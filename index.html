@@ -289,8 +289,7 @@
 // ===== КОНФИГУРАЦИЯ =====
 const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/07dc0b5505724d4bb8ea8bcc01215a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=apdLUQR8CW4pzuioH5DaobPAC2XvKeO66mSMsOxijdw';
 const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
-const SP_SITE = 'https://raicommerce.sharepoint.com';
-const SP_LIST = 'Механизация';
+const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
 
 // ===== МАШИНИ (базов списък с цени) =====
 const MACHINES = [
@@ -514,16 +513,23 @@ function onMachinaSelect() {
   }
 }
 
-// Зареждане от SharePoint
+// Зареждане от SharePoint чрез Flow 3
 async function loadFromSharePoint() {
+  document.getElementById('table-container').innerHTML = '<div class="loading"><span class="spinner"></span>Зареждане от SharePoint...</div>';
   try {
-    const url = `${SP_SITE}/_api/web/lists/getbytitle('${encodeURIComponent(SP_LIST)}')/items?$top=500&$orderby=Id desc`;
-    const res = await fetch(url, { headers: { 'Accept': 'application/json;odata=verbose' } });
-    if (!res.ok) throw new Error('SP error');
+    const res = await fetch(FLOW_READ, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    if (!res.ok) throw new Error('Flow error');
     const data = await res.json();
-    spData = data.d.results;
+    // Power Automate връща value масив
+    spData = data.value || data.body?.value || [];
   } catch(e) {
     spData = [];
+    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане на данните. Проверете връзката с Power Automate.</div>';
+    return;
   }
   renderTable();
   updateStats();
