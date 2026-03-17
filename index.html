@@ -522,18 +522,23 @@ async function loadFromSharePoint() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({})
     });
-    if (!res.ok) throw new Error('Flow error');
-    const data = await res.json();
-    // Flow връща масив директно или вложено
+    const text = await res.text();
+    if (!text || text.trim() === '') throw new Error('Празен отговор');
+    const data = JSON.parse(text);
     if (Array.isArray(data)) {
       spData = data;
+    } else if (data.value && Array.isArray(data.value)) {
+      spData = data.value;
+    } else if (data.body && Array.isArray(data.body)) {
+      spData = data.body;
+    } else if (data.body && data.body.value) {
+      spData = data.body.value;
     } else {
-      spData = data.value || data.body?.value || [];
+      spData = [];
     }
-    console.log('Заредени записи:', spData.length, spData[0]);
   } catch(e) {
     spData = [];
-    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане на данните. Проверете връзката с Power Automate.</div>';
+    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + e.message + '</div>';
     return;
   }
   renderTable();
