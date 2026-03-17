@@ -1,756 +1,248 @@
-<!DOCTYPE html>
-<html lang="bg">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Raicommerce - Механизация</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 14px; }
-
-  /* HEADER */
-  .header { background: #0033CC; padding: 0; }
-  .header-top { background: #EE1C25; height: 8px; }
-  .header-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
-  .header-logo { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 2px; }
-  .header-logo span { color: #fff; font-size: 12px; display: block; letter-spacing: 4px; font-weight: 400; }
-  .header-bottom { background: #EE1C25; height: 8px; }
-  .header-nav { display: flex; gap: 8px; }
-  .nav-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s; }
-  .nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,0.3); }
-  .nav-btn.primary { background: #EE1C25; border-color: #EE1C25; }
-  .nav-btn.primary:hover { background: #cc1010; }
-
-  /* MAIN */
-  .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
-
-  /* STAT CARDS */
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .stat { background: #fff; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #0033CC; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .stat.free { border-left-color: #27ae60; }
-  .stat.busy { border-left-color: #EE1C25; }
-  .stat.cat { border-left-color: #0033CC; }
-  .stat-label { font-size: 11px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-value { font-size: 28px; font-weight: 700; color: #0033CC; }
-  .stat.free .stat-value { color: #27ae60; }
-  .stat.busy .stat-value { color: #EE1C25; }
-
-  /* FILTERS */
-  .filters { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .filters input, .filters select { padding: 7px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: #f9f9f9; }
-  .filters input { flex: 1; min-width: 200px; }
-  .filter-label { font-size: 12px; color: #666; font-weight: 600; }
-
-  /* TABLE */
-  .table-wrap { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
-  .table-header { background: #0033CC; color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-  .table-header h3 { font-size: 14px; font-weight: 600; }
-  .table-count { font-size: 12px; opacity: 0.8; }
-  table { width: 100%; border-collapse: collapse; }
-  th { background: #f0f4ff; color: #0033CC; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; border-bottom: 2px solid #dde4f5; white-space: nowrap; }
-  td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; vertical-align: middle; }
-  tr:hover td { background: #f8f9ff; }
-  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .status-free { background: #d4edda; color: #155724; }
-  .status-busy { background: #f8d7da; color: #721c24; }
-  .action-btn { padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; margin-right: 4px; }
-  .btn-zachisli { background: #0033CC; color: #fff; }
-  .btn-otchisli { background: #EE1C25; color: #fff; }
-  .btn-zachisli:hover { background: #0026a0; }
-  .btn-otchisli:hover { background: #cc1010; }
-
-  /* MODAL */
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: #fff; border-radius: 10px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,51,0.2); }
-  .modal-header { background: #0033CC; color: #fff; padding: 16px 20px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
-  .modal-header.red { background: #EE1C25; }
-  .modal-header h3 { font-size: 15px; }
-  .modal-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; line-height: 1; }
-  .modal-body { padding: 20px; }
-  .machine-info { background: #f0f4ff; border-radius: 6px; padding: 12px; margin-bottom: 16px; border-left: 4px solid #0033CC; }
-  .machine-info strong { color: #0033CC; font-size: 14px; }
-  .machine-info span { font-size: 12px; color: #666; display: block; margin-top: 2px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .form-group { display: flex; flex-direction: column; gap: 4px; }
-  .form-group.full { grid-column: 1/-1; }
-  .form-group label { font-size: 12px; font-weight: 600; color: #444; }
-  .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
-  .form-group input:focus, .form-group select:focus { outline: none; border-color: #0033CC; }
-  .form-group .readonly { background: #f5f5f5; color: #666; }
-  .modal-footer { padding: 14px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 8px; }
-  .btn-cancel { padding: 8px 18px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; }
-  .btn-save { padding: 8px 22px; background: #0033CC; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
-  .btn-save.red { background: #EE1C25; }
-  .btn-save:hover { background: #0026a0; }
-  .btn-save.red:hover { background: #cc1010; }
-
-  /* STATUS MESSAGE */
-  .toast { position: fixed; bottom: 24px; right: 24px; background: #27ae60; color: #fff; padding: 12px 20px; border-radius: 6px; font-size: 13px; z-index: 2000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-  .toast.error { background: #EE1C25; }
-  .toast.show { display: block; }
-
-  /* LOADING */
-  .loading { text-align: center; padding: 40px; color: #666; }
-  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #ddd; border-top-color: #0033CC; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
-  .price-tag { font-size: 11px; color: #0033CC; font-weight: 600; }
-</style>
-</head>
-<body>
-
-<div class="header">
-  <div class="header-top"></div>
-  <div class="header-main">
-    <div class="header-logo">
-      RAICOMMERCE
-      <span>CONSTRUCTION</span>
-    </div>
-    <div class="header-nav">
-      <button class="nav-btn active" onclick="showView('dashboard')">Табло</button>
-      <button class="nav-btn primary" onclick="showZachislyavane()">+ Зачисляване</button>
-    </div>
-  </div>
-  <div class="header-bottom"></div>
-</div>
-
-<div class="main">
-  <!-- STATS -->
-  <div class="stats" id="stats">
-    <div class="stat"><div class="stat-label">Общо машини</div><div class="stat-value" id="stat-total">-</div></div>
-    <div class="stat free"><div class="stat-label">Свободни</div><div class="stat-value" id="stat-free">-</div></div>
-    <div class="stat busy"><div class="stat-label">Заети</div><div class="stat-value" id="stat-busy">-</div></div>
-    <div class="stat"><div class="stat-label">Генератори</div><div class="stat-value" id="stat-gen">-</div></div>
-    <div class="stat"><div class="stat-label">Виброплочи/Трамбовки</div><div class="stat-value" id="stat-vib">-</div></div>
-    <div class="stat"><div class="stat-label">Компресори</div><div class="stat-value" id="stat-komp">-</div></div>
-  </div>
-
-  <!-- FILTERS -->
-  <div class="filters">
-    <span class="filter-label">Филтри:</span>
-    <input type="text" id="search" placeholder="Търсене по код или наименование..." oninput="renderTable()">
-    <select id="filter-cat" onchange="renderTable()">
-      <option value="">Всички категории</option>
-      <option>Генератори</option>
-      <option>Виброплочи и трамбовки</option>
-      <option>Компресори</option>
-      <option>Хидравлични станции</option>
-      <option>Хидравлични чукове</option>
-      <option>Асфалторезачки</option>
-      <option>Заваръчни машини</option>
-      <option>Машини за ел. муфи</option>
-      <option>Грундомати</option>
-      <option>Укрепващи системи</option>
-      <option>Пробивни машини</option>
-    </select>
-    <select id="filter-status" onchange="renderTable()">
-      <option value="">Всички статуси</option>
-      <option value="free">Свободна</option>
-      <option value="busy">Заета</option>
-    </select>
-    <select id="filter-dir" onchange="renderTable()">
-      <option value="">Всички направления</option>
-      <option>Инфраструктурно строителство</option>
-      <option>ВиК Строителство и поддръжка</option>
-      <option>Безизкопни технологии</option>
-      <option>Механизация и транспорт</option>
-      <option>РаТек ООД</option>
-      <option>Строителство на сгради и съоръжения</option>
-    </select>
-  </div>
-
-  <!-- TABLE -->
-  <div class="table-wrap">
-    <div class="table-header">
-      <h3>Списък на механизацията</h3>
-      <span class="table-count" id="table-count"></span>
-    </div>
-    <div id="table-container">
-      <div class="loading"><span class="spinner"></span>Зареждане от SharePoint...</div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL ЗАЧИСЛЯВАНЕ -->
-<div class="modal-overlay" id="modal-zachisli">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Зачисляване на машина</h3>
-      <button class="modal-close" onclick="closeModal('modal-zachisli')">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="machine-info" id="zachisli-info"></div>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>Филтър по категория</label>
-          <select id="z-filter-kat" onchange="filterMachineSelect()">
-            <option value="">-- Всички категории --</option>
-            <option>Генератори</option>
-            <option>Виброплочи и трамбовки</option>
-            <option>Компресори</option>
-            <option>Хидравлични станции</option>
-            <option>Хидравлични чукове</option>
-            <option>Асфалторезачки</option>
-            <option>Заваръчни машини</option>
-            <option>Машини за ел. муфи</option>
-            <option>Грундомати</option>
-            <option>Укрепващи системи</option>
-            <option>Пробивни машини</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Машина *</label>
-          <select id="z-mashina" onchange="onMachinaSelect()">
-            <option value="">-- Изберете машина --</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Дата зачисляване *</label>
-          <input type="date" id="z-data">
-        </div>
-        <div class="form-group">
-          <label>Направление *</label>
-          <select id="z-napravlenie">
-            <option value="">-- Изберете --</option>
-            <option>Инфраструктурно строителство</option>
-            <option>ВиК Строителство и поддръжка</option>
-            <option>Безизкопни технологии</option>
-            <option>Механизация и транспорт</option>
-            <option>РаТек ООД</option>
-            <option>Строителство на сгради и съоръжения</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Приел (ползвател) *</label>
-          <input type="text" id="z-priel" placeholder="Три имена">
-        </div>
-        <div class="form-group">
-          <label>Местонахождение *</label>
-          <input type="text" id="z-mesto" placeholder="Обект/адрес">
-        </div>
-        <div class="form-group">
-          <label>Служител МиТ</label>
-          <input type="text" id="z-sluzhitel" placeholder="Три имена">
-        </div>
-        <div class="form-group">
-          <label>Цена (мсм/ден)</label>
-          <input type="text" id="z-cena" class="readonly" readonly>
-        </div>
-        <div class="form-group">
-          <label>Категория</label>
-          <input type="text" id="z-kategoria" class="readonly" readonly>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('modal-zachisli')">Отказ</button>
-      <button class="btn-save" onclick="submitZachislyavane()">Зачисли машината</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL ОТЧИСЛЯВАНЕ -->
-<div class="modal-overlay" id="modal-otchisli">
-  <div class="modal">
-    <div class="modal-header red">
-      <h3>Отчисляване на машина</h3>
-      <button class="modal-close" onclick="closeModal('modal-otchisli')">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="machine-info" id="otchisli-info"></div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Дата отчисляване *</label>
-          <input type="date" id="o-data">
-        </div>
-        <div class="form-group">
-          <label>Предал (върнал) *</label>
-          <input type="text" id="o-predal" placeholder="Три имена">
-        </div>
-        <div class="form-group full">
-          <label>Служител МиТ (приел)</label>
-          <input type="text" id="o-sluzhitel" placeholder="Три имена">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeModal('modal-otchisli')">Отказ</button>
-      <button class="btn-save red" onclick="submitOtchislyavane()">Отчисли машината</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-// ===== КОНФИГУРАЦИЯ =====
-const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/07dc0b5505724d4bb8ea8bcc01215a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=apdLUQR8CW4pzuioH5DaobPAC2XvKeO66mSMsOxijdw';
-const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
-const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
-
-// ===== МАШИНИ (базов списък с цени) =====
-const MACHINES = [
-  {kod:"1145",ime:"Генератор монофазен KOHLER Perform 6500",kat:"Генератори",cena:6.87},
-  {kod:"1146",ime:"Генератор монофазен KOHLER Perform 6500",kat:"Генератори",cena:6.87},
-  {kod:"1144",ime:"Генератор монофазен KOHLER Perform 6500",kat:"Генератори",cena:6.87},
-  {kod:"08030210",ime:"Виброплоча прикачна 0210",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030211",ime:"Виброплоча прикачна 0211",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030213",ime:"Виброплоча прикачна 0213",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08032014",ime:"Виброплоча прикачна 0214",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030215",ime:"Виброплоча прикачна 0215",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030216",ime:"Виброплоча прикачна 0216",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030217",ime:"Виброплоча прикачна 0217",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030218",ime:"Виброплоча прикачна 0218",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030219",ime:"Виброплоча прикачна 0219",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"08030220",ime:"Виброплоча прикачна 0220",kat:"Виброплочи и трамбовки",cena:10.23},
-  {kod:"060101",ime:"Компресор VRK 140 66",kat:"Компресори",cena:8.54},
-  {kod:"060102",ime:"Компресор VRK 140",kat:"Компресори",cena:8.54},
-  {kod:"060104",ime:"Компресор VRK 140 940195",kat:"Компресори",cena:8.54},
-  {kod:"060105",ime:"Компресор VRK 140 19766",kat:"Компресори",cena:8.54},
-  {kod:"060108",ime:"Компресор VRK 140 0065/036041",kat:"Компресори",cena:8.54},
-  {kod:"060111",ime:"Компресор VRK 150 20545",kat:"Компресори",cena:8.54},
-  {kod:"060113",ime:"Компресор VRK 150 23360",kat:"Компресори",cena:8.54},
-  {kod:"060114",ime:"Компресор VRK 150 23359",kat:"Компресори",cena:8.54},
-  {kod:"060116",ime:"Компресор VRK 150 23478",kat:"Компресори",cena:8.54},
-  {kod:"060119",ime:"Компресор VRK 150 КА0759",kat:"Компресори",cena:8.54},
-  {kod:"060123",ime:"Компресор PB 82 99666",kat:"Компресори",cena:8.54},
-  {kod:"060124",ime:"Компресор PB 82 99667",kat:"Компресори",cena:8.54},
-  {kod:"060125",ime:"Компресор PB 82 99668",kat:"Компресори",cena:8.54},
-  {kod:"060126",ime:"Компресор PB 82 99818",kat:"Компресори",cena:8.54},
-  {kod:"0706",ime:"Хидравлична станция 0706",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0711",ime:"Хидравлична станция HPP09 175071",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0712",ime:"Хидравлична станция LP 8 195720",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0713",ime:"Хидравлична станция HPP09 48265",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0715",ime:"Хидравлична станция HPP09 60146",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0716",ime:"Хидравлична станция HPP09 68317",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0719",ime:"Хидравлична станция LP 8 73197",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0720",ime:"Хидравлична станция HPP09 73187",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0721",ime:"Хидравлична станция LP 8 73167",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0722",ime:"Хидравлична станция LP 8 74417",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0724",ime:"Хидравлична станция LP 8 80668",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0725",ime:"Хидравлична станция LP 8 80688",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0727",ime:"Хидравлична станция LP 8 84633",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0728",ime:"Хидравлична станция HPP09 84623",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0732",ime:"Хидравлична станция HPP09 7583",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0734",ime:"Хидравлична станция HPP09 7578",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0735",ime:"Хидравлична станция HPP09 8511",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0737",ime:"Хидравлична станция HPP09 12463",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0738",ime:"Хидравлична станция HPP09 12465",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0739",ime:"Хидравлична станция HPP09 12476",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0740",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0740",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0742",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0742",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0743",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0743",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0744",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0744",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0745",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0745",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0746",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0746",kat:"Хидравлични станции",cena:6.89},
-  {kod:"0747",ime:"Хидравлична станция Atlas Copco LP 9-20Р 0747",kat:"Хидравлични станции",cena:6.89},
-  {kod:"080211",ime:"Трамбовка ВТ 65/4 101540486315",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080212",ime:"Трамбовка ВТ 65/4 101540489088",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080219",ime:"Трамбовка ВТ 65/4 101540511477",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080225",ime:"Трамбовка ВТ 65/4 101540516772",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080127",ime:"Виброплоча AVH 7010 149584",kat:"Виброплочи и трамбовки",cena:12.17},
-  {kod:"080230",ime:"Трамбовка ВТ 65/4 101540531383",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080136",ime:"Виброплоча AVH 7010 152213",kat:"Виброплочи и трамбовки",cena:12.17},
-  {kod:"080138",ime:"Виброплоча AVH 7010 153706",kat:"Виброплочи и трамбовки",cena:12.17},
-  {kod:"080240",ime:"Трамбовка ВТ 65/4 101540532119",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080241",ime:"Трамбовка ВТ 65/4 101540532248",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080243",ime:"Трамбовка ВТ 65/4 101540533866",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080246",ime:"Трамбовка ВТ 65/4 101540534374",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080250",ime:"Трамбовка ВТ 65/4 101540534535",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080152",ime:"Виброплоча AVH 7010 165343",kat:"Виброплочи и трамбовки",cena:12.17},
-  {kod:"080253",ime:"Трамбовка ВТ 65/4 101540534534",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080254",ime:"Трамбовка ВТ 65/4 101540534809",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080257",ime:"Трамбовка ВТ 65/4 101540561690",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080260",ime:"Трамбовка ВТ 65/4 101540567916",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080261",ime:"Трамбовка ВТ 65/4 101540568003",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080271",ime:"Трамбовка ВТ 65 101541325526",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080272",ime:"Трамбовка ВТ 65 101541325527",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080173",ime:"Виброплоча CR 9 7104857",kat:"Виброплочи и трамбовки",cena:12.17},
-  {kod:"080284",ime:"Виброплоча CP60",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080277",ime:"Трамбовка ВТ 65 101541363117",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080177",ime:"Виброплоча CR 9 20032619",kat:"Виброплочи и трамбовки",cena:12.17},
-  {kod:"080273",ime:"Трамбовка ВТ 65 101541377407",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080274",ime:"Трамбовка ВТ 65 101541379645",kat:"Виброплочи и трамбовки",cena:5.72},
-  {kod:"080275",ime:"Трамбовка ВТ 65 101541379646",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080278",ime:"Трамбовка ВТ 65 101541391512",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080279",ime:"Трамбовка ВТ 65 101541391511",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080276",ime:"Трамбовка ВТ 65 101541391500",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080281",ime:"Трамбовка ВТ 65 101541391557",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080282",ime:"Трамбовка ВТ 65 101541391558",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080283",ime:"Трамбовка ВТ 65 101541391559",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080285",ime:"Виброплоча CF2A hd 20052883",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080286",ime:"Виброплоча CF2A hd 20052878",kat:"Виброплочи и трамбовки",cena:5.79},
-  {kod:"080287",ime:"Трамбовка ВТ 65 101541556677",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080288",ime:"Трамбовка ВТ 65 101541556678",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080289",ime:"Трамбовка ВТ 65 101541556679",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"080290",ime:"Трамбовка ВТ 65 10154556684",kat:"Виброплочи и трамбовки",cena:6.20},
-  {kod:"0910",ime:"Асфалторезачка FS 170 1701133",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0920",ime:"Асфалторезачка FS 170 1721144",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0937",ime:"Асфалторезачка моторна FS 175 08300181",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0938",ime:"Асфалторезачка TS 700 187938567",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0940",ime:"Асфалторезачка FS 175 8300280",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0944",ime:"Асфалторезачка Седима CF 13.3 B 0944",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0945",ime:"Асфалторезачка Седима CF 13.3 B 0945",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0946",ime:"Асфалторезачка Седима CF 13.3 B 0946",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0947",ime:"Асфалторезачка Седима CF 13.3 B 0947",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0948",ime:"Асфалторезачка Седима CF 13.3 B 0948",kat:"Асфалторезачки",cena:6.20},
-  {kod:"0949",ime:"Асфалторезачка Седима CF 13.3 B 0949",kat:"Асфалторезачки",cena:6.20},
-  {kod:"1105",ime:"Генератор трифазен 10 kW",kat:"Генератори",cena:6.87},
-  {kod:"1108",ime:"Генератор монофазен 8 kW",kat:"Генератори",cena:6.87},
-  {kod:"1109",ime:"Генератор монофазен 8 kW 0333302102",kat:"Генератори",cena:6.87},
-  {kod:"1111",ime:"Генератор монофазен Geko 2.4 kW",kat:"Генератори",cena:6.87},
-  {kod:"1112",ime:"Генератор монофазен Geko 2.4 kW 1112",kat:"Генератори",cena:6.87},
-  {kod:"1114",ime:"Генератор монофазен 10 kW 6101111",kat:"Генератори",cena:6.87},
-  {kod:"1117",ime:"Генератор монофазен 4 kW EZDY-8203327",kat:"Генератори",cena:6.87},
-  {kod:"1118",ime:"Генератор монофазен 10 kW 215876",kat:"Генератори",cena:6.87},
-  {kod:"1121",ime:"Генератор монофазен 4278",kat:"Генератори",cena:6.87},
-  {kod:"1125",ime:"Генератор монофазен S 20 W 5.6 kW 284055",kat:"Генератори",cena:6.87},
-  {kod:"1129",ime:"Генератор монофазен Perform 6500 260861S",kat:"Генератори",cena:6.87},
-  {kod:"1133",ime:"Генератор монофазен Perform 6500 79045468-001",kat:"Генератори",cena:6.87},
-  {kod:"1134",ime:"Генератор монофазен Perform 6500 79045468-003",kat:"Генератори",cena:6.87},
-  {kod:"1135",ime:"Генератор монофазен Perform 6500 79045475-018",kat:"Генератори",cena:6.87},
-  {kod:"1137",ime:"Генератор монофазен Perform 6500 87071894-022",kat:"Генератори",cena:6.87},
-  {kod:"1138",ime:"Генератор монофазен Perform 6500 87071894-030",kat:"Генератори",cena:6.87},
-  {kod:"1140",ime:"Генератор заваръчен трифазен WELDARC 220T",kat:"Генератори",cena:6.87},
-  {kod:"1143",ime:"Генератор монофазен KOHLER Perform 3000",kat:"Генератори",cena:6.87},
-  {kod:"1147",ime:"Генератор монофазен EUROPOWER EP3300",kat:"Генератори",cena:6.87},
-  {kod:"130215",ime:"Хидравличен чук DM 270 090227493",kat:"Хидравлични чукове",cena:11.25},
-  {kod:"130218",ime:"Хидравличен чук F 6 баг. товарач",kat:"Хидравлични чукове",cena:11.25},
-  {kod:"130219",ime:"Хидравличен чук F 6 6119",kat:"Хидравлични чукове",cena:11.25},
-  {kod:"130220",ime:"Хидравличен чук F 6 5663",kat:"Хидравлични чукове",cena:11.25},
-  {kod:"130226",ime:"Хидравличен чук SB 152 0421 JCB 8030",kat:"Хидравлични чукове",cena:6.03},
-  {kod:"130231",ime:"Хидравличен чук SB 152 3431 JCB 8030",kat:"Хидравлични чукове",cena:6.03},
-  {kod:"130232",ime:"Хидравличен чук SB 302 BES 023673",kat:"Хидравлични чукове",cena:11.25},
-  {kod:"130237",ime:"Хидравличен чук M5 BT05A0314",kat:"Хидравлични чукове",cena:11.25},
-  {kod:"2005",ime:"Заваръчна машина 4900/Ф315 21SV49S10133",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2006",ime:"Заваръчна машина 4600/Ф250 09SV46S10181",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2009",ime:"Заваръчна машина 4900/Ф315 21SV49N10325",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2011",ime:"Заваръчна машина 4900/Ф315 0307376",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2012",ime:"Заваръчна машина 4900/Ф315 06070418",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2013",ime:"Заваръчна машина 4600/Ф250 07080596",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2015",ime:"Заваръчна машина HST 160 R 10442151",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2026",ime:"Заваръчна машина HST 315 R 13442144",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2019",ime:"Заваръчна машина 4900/Ф315 0607-0411",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2020",ime:"Заваръчна машина 4400/Ф160 11140534",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2021",ime:"Заваръчна машина 4600/Ф250 05171213",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2031",ime:"Заваръчна машина Видос 4600/ф225",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2032",ime:"Заваръчна машина Видос 4900/Ф315",kat:"Заваръчни машини",cena:12.27},
-  {kod:"2029",ime:"Заваръчна машина 5100/Ф450",kat:"Заваръчни машини",cena:21.42},
-  {kod:"2110",ime:"Машина за ел. муфи HST 300 10220179",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2112",ime:"Машина за ел. муфи basic print FR 1267263",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2113",ime:"Машина за ел. муфи HST 300 16220237",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2114",ime:"Машина за ел. муфи HST 300 16220238",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2115",ime:"Машина за ел. муфи print eco FR 1910077",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2117",ime:"Машина за ел. муфи HST 300 20200114",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2118",ime:"Машина за ел. муфи Фриамат FR 2110186",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2119",ime:"Машина за ел. муфи Фриамат FR 2110313",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2120",ime:"Машина за ел. муфи Фриамат FR 2110441",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2123",ime:"Машина за ел. муфи Хюрнер 25200121",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2124",ime:"Машина за ел. муфи Фриамат FR 611124",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"2125",ime:"Машина за ел. муфи Фриамат FR 2510639",kat:"Машини за ел. муфи",cena:8.54},
-  {kod:"22012855/1",ime:"Пробивна машина Хилти 2855/1",kat:"Пробивни машини",cena:10.00},
-  {kod:"3428",ime:"Укрепваща система KS 100",kat:"Укрепващи системи",cena:7.22},
-  {kod:"3404",ime:"Укрепваща система 3.5x2.4 3404",kat:"Укрепващи системи",cena:7.22},
-  {kod:"3409",ime:"Укрепваща система 3.5x2.4 3409",kat:"Укрепващи системи",cena:7.22},
-  {kod:"3412",ime:"Укрепваща система 3.5x2.4 3412",kat:"Укрепващи системи",cena:7.22},
-  {kod:"3418",ime:"Укрепваща система 3.5x1.5 3418",kat:"Укрепващи системи",cena:5.17},
-  {kod:"3419",ime:"Укрепваща система 3.5x1.5 3419",kat:"Укрепващи системи",cena:5.17},
-  {kod:"6531",ime:"Грундомат 55-3",kat:"Грундомати",cena:19.37},
-  {kod:"6504",ime:"Грундомат 65 Р 65-1",kat:"Грундомати",cena:19.37},
-  {kod:"6505",ime:"Грундомат 65 РК 65-10",kat:"Грундомати",cena:19.37},
-  {kod:"6506",ime:"Грундомат 65 РК 65-11",kat:"Грундомати",cena:19.37},
-  {kod:"6507",ime:"Грундомат 65 РК 65-12",kat:"Грундомати",cena:19.37},
-  {kod:"6508",ime:"Грундомат 65 РК 65-13",kat:"Грундомати",cena:19.37},
-  {kod:"6526",ime:"Грундомат 65 РК 65-15",kat:"Грундомати",cena:19.37},
-  {kod:"6525",ime:"Грундомат 65 РК 65-2",kat:"Грундомати",cena:19.37},
-  {kod:"6510",ime:"Грундомат 65 Р 65-3",kat:"Грундомати",cena:19.37},
-  {kod:"6530",ime:"Грундомат 65 РК 65-4",kat:"Грундомати",cena:19.37},
-  {kod:"6511",ime:"Грундомат 65 РК 65-5",kat:"Грундомати",cena:19.37},
-  {kod:"6512",ime:"Грундомат 65 РК 65-6",kat:"Грундомати",cena:19.37},
-  {kod:"6529",ime:"Грундомат 65 РК 65-8",kat:"Грундомати",cena:19.37},
-  {kod:"6514",ime:"Грундомат 65 РК 65-9",kat:"Грундомати",cena:19.37},
-  {kod:"6517",ime:"Грундомат 75 Z 75-2",kat:"Грундомати",cena:19.37},
-  {kod:"6518",ime:"Грундомат 75 75-3",kat:"Грундомати",cena:19.37},
-  {kod:"6519",ime:"Грундомат 75 РК 75-4",kat:"Грундомати",cena:19.37},
-  {kod:"6520",ime:"Грундомат 75 РК 75-5",kat:"Грундомати",cena:19.37},
-  {kod:"6528",ime:"Грундомат 75 РК 75-6",kat:"Грундомати",cena:19.37},
-];
-
-let spData = [];
-let currentOtchisliId = null;
-
-// Попълване на dropdown с машини
-function populateMachineSelect() {
-  filterMachineSelect();
-}
-
-function filterMachineSelect() {
-  const kat = document.getElementById('z-filter-kat') ? document.getElementById('z-filter-kat').value : '';
-  const sel = document.getElementById('z-mashina');
-  sel.innerHTML = '<option value="">-- Изберете машина --</option>';
-  const filtered = kat ? MACHINES.filter(m => m.kat === kat) : MACHINES;
-  filtered.forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m.kod;
-    opt.textContent = `${m.kod} — ${m.ime}`;
-    sel.appendChild(opt);
-  });
-  document.getElementById('z-cena').value = '';
-  document.getElementById('z-kategoria').value = '';
-  document.getElementById('zachisli-info').innerHTML = '<span style="color:#666;font-size:13px;">Изберете машина от списъка</span>';
-}
-
-function onMachinaSelect() {
-  const kod = document.getElementById('z-mashina').value;
-  const m = MACHINES.find(x => x.kod === kod);
-  if (m) {
-    document.getElementById('z-cena').value = m.cena.toFixed(2) + ' лв/ден';
-    document.getElementById('z-kategoria').value = m.kat;
-    document.getElementById('zachisli-info').innerHTML = `<strong>${m.ime}</strong><span>Код: ${m.kod} | Категория: ${m.kat} | Цена: ${m.cena.toFixed(2)} лв/ден</span>`;
-  }
-}
-
-// Зареждане от SharePoint чрез Flow 3
-async function loadFromSharePoint() {
-  document.getElementById('table-container').innerHTML = '<div class="loading"><span class="spinner"></span>Зареждане от SharePoint...</div>';
-  try {
-    const res = await fetch(FLOW_READ, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    if (!res.ok) throw new Error('Flow error');
-    const data = await res.json();
-    // Power Automate връща value масив
-    spData = data.value || data.body?.value || [];
-  } catch(e) {
-    spData = [];
-    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане на данните. Проверете връзката с Power Automate.</div>';
-    return;
-  }
-  renderTable();
-  updateStats();
-}
-
-function getStatus(item) {
-  const hasDZ = item['Дата_x0020_зачисляване'] || item['ДатаЗачисляване'];
-  const hasDO = item['Дата_x0020_на_x0020_отчисляване'] || item['ДатаОтчисляване'];
-  if (!hasDZ || hasDO) return 'free';
-  return 'busy';
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('bg-BG');
-}
-
-function updateStats() {
-  const total = spData.length;
-  const free = spData.filter(i => getStatus(i) === 'free').length;
-  const busy = spData.filter(i => getStatus(i) === 'busy').length;
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-free').textContent = free;
-  document.getElementById('stat-busy').textContent = busy;
-  document.getElementById('stat-gen').textContent = spData.filter(i => (i.Категория||'').includes('Генератор')).length;
-  document.getElementById('stat-vib').textContent = spData.filter(i => (i.Категория||'').includes('Вибро') || (i.Категория||'').includes('трамбов')).length;
-  document.getElementById('stat-komp').textContent = spData.filter(i => (i.Категория||'').includes('Компресор')).length;
-}
-
-function renderTable() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const cat = document.getElementById('filter-cat').value;
-  const st = document.getElementById('filter-status').value;
-  const dir = document.getElementById('filter-dir').value;
-
-  let data = spData.filter(item => {
-    const kod = (item.Код || '').toLowerCase();
-    const ime = (item.Наименование || '').toLowerCase();
-    const itemCat = item.Категория || '';
-    const itemDir = item['Направление_x0020__x0028_ползват'] || item.Направление || '';
-    const status = getStatus(item);
-    return (!q || kod.includes(q) || ime.includes(q)) &&
-           (!cat || itemCat === cat) &&
-           (!st || status === st) &&
-           (!dir || itemDir === dir);
-  });
-
-  document.getElementById('table-count').textContent = `${data.length} записа`;
-
-  if (data.length === 0) {
-    document.getElementById('table-container').innerHTML = '<div class="empty">Няма намерени записи</div>';
-    return;
-  }
-
-  let html = `<div style="overflow-x:auto"><table>
-    <thead><tr>
-      <th>Код</th><th>Наименование</th><th>Категория</th>
-      <th>Статус</th><th>Направление</th><th>Приел</th>
-      <th>Местонахождение</th><th>Дата зачисл.</th>
-      <th>Дата отчисл.</th><th>Дни</th><th>Сума</th><th>Действие</th>
-    </tr></thead><tbody>`;
-
-  data.forEach(item => {
-    const status = getStatus(item);
-    const badge = status === 'free'
-      ? '<span class="status-badge status-free">Свободна</span>'
-      : '<span class="status-badge status-busy">Заета</span>';
-    const dz = formatDate(item['Дата_x0020_зачисляване'] || item.ДатаЗачисляване);
-    const dot = formatDate(item['Дата_x0020_на_x0020_отчисляване'] || item.ДатаОтчисляване);
-    const dni = item['Брой_x0020_дни'] || item['Брой дни'] || '—';
-    const suma = item.Сума ? Number(item.Сума).toFixed(2) + ' лв' : '—';
-    const dir2 = item['Направление_x0020__x0028_ползват'] || item.Направление || '—';
-    const priel = item['Приел_x0020__x0028_ползвател_x00'] || item.Приел || '—';
-    const mesto = item['Местонахождение_x0020_след_x002'] || item.Местонахождение || '—';
-
-    const btn = status === 'free'
-      ? `<button class="action-btn btn-zachisli" onclick="openZachisliForItem('${item.Id}','${(item.Код||'').replace(/'/g,"\\'")}')">Зачисли</button>`
-      : `<button class="action-btn btn-otchisli" onclick="openOtchisli(${item.Id},'${(item.Наименование||'').replace(/'/g,"\\'")}','${item.Код||''}')">Отчисли</button>`;
-
-    html += `<tr>
-      <td><strong>${item.Код||'—'}</strong></td>
-      <td>${item.Наименование||'—'}</td>
-      <td><span style="font-size:11px;background:#e8eeff;color:#0033CC;padding:2px 8px;border-radius:10px;">${item.Категория||'—'}</span></td>
-      <td>${badge}</td>
-      <td style="font-size:12px;">${dir2}</td>
-      <td style="font-size:12px;">${priel}</td>
-      <td style="font-size:12px;">${mesto}</td>
-      <td style="font-size:12px;">${dz}</td>
-      <td style="font-size:12px;">${dot}</td>
-      <td style="text-align:center;">${dni}</td>
-      <td class="price-tag">${suma}</td>
-      <td>${btn}</td>
-    </tr>`;
-  });
-
-  html += '</tbody></table></div>';
-  document.getElementById('table-container').innerHTML = html;
-}
-
-// ЗАЧИСЛЯВАНЕ
-function showZachislyavane() {
-  document.getElementById('z-mashina').value = '';
-  document.getElementById('z-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('z-napravlenie').value = '';
-  document.getElementById('z-priel').value = '';
-  document.getElementById('z-mesto').value = '';
-  document.getElementById('z-sluzhitel').value = '';
-  document.getElementById('z-cena').value = '';
-  document.getElementById('z-kategoria').value = '';
-  document.getElementById('zachisli-info').innerHTML = '<span style="color:#666;font-size:13px;">Изберете машина от списъка</span>';
-  document.getElementById('modal-zachisli').classList.add('open');
-}
-
-function openZachisliForItem(id, kod) {
-  showZachislyavane();
-  document.getElementById('z-mashina').value = kod;
-  onMachinaSelect();
-}
-
-async function submitZachislyavane() {
-  const kod = document.getElementById('z-mashina').value;
-  const data = document.getElementById('z-data').value;
-  const dir = document.getElementById('z-napravlenie').value;
-  const priel = document.getElementById('z-priel').value;
-  const mesto = document.getElementById('z-mesto').value;
-  const sluzhitel = document.getElementById('z-sluzhitel').value;
-
-  if (!kod || !data || !dir || !priel || !mesto) {
-    showToast('Моля попълнете всички задължителни полета!', true);
-    return;
-  }
-
-  const m = MACHINES.find(x => x.kod === kod);
-  const body = {
-    Код: kod,
-    Наименование: m ? m.ime : '',
-    Категория: m ? m.kat : '',
-    Цена: m ? m.cena : 0,
-    ДатаЗачисляване: data,
-    Направление: dir,
-    Приел: priel,
-    Местонахождение: mesto,
-    СлужителМиТ: sluzhitel
-  };
-
-  try {
-    const res = await fetch(FLOW_ZACHISLI, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (res.ok || res.status === 202) {
-      closeModal('modal-zachisli');
-      showToast('Машината е зачислена успешно!');
-      setTimeout(() => loadFromSharePoint(), 2000);
-    } else {
-      showToast('Грешка при зачисляване!', true);
-    }
-  } catch(e) {
-    showToast('Грешка при връзка с Power Automate!', true);
-  }
-}
-
-// ОТЧИСЛЯВАНЕ
-function openOtchisli(id, ime, kod) {
-  currentOtchisliId = id;
-  document.getElementById('otchisli-info').innerHTML = `<strong>${ime}</strong><span>Код: ${kod}</span>`;
-  document.getElementById('o-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('o-predal').value = '';
-  document.getElementById('o-sluzhitel').value = '';
-  document.getElementById('modal-otchisli').classList.add('open');
-}
-
-async function submitOtchislyavane() {
-  const data = document.getElementById('o-data').value;
-  const predal = document.getElementById('o-predal').value;
-  const sluzhitel = document.getElementById('o-sluzhitel').value;
-
-  if (!data || !predal) {
-    showToast('Моля попълнете дата и предал!', true);
-    return;
-  }
-
-  const body = {
-    ID: currentOtchisliId,
-    ДатаОтчисляване: data,
-    Предал: predal,
-    СлужителМиТ: sluzhitel
-  };
-
-  try {
-    const res = await fetch(FLOW_OTCHISLI, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (res.ok || res.status === 202) {
-      closeModal('modal-otchisli');
-      showToast('Машината е отчислена успешно!');
-      setTimeout(() => loadFromSharePoint(), 2000);
-    } else {
-      showToast('Грешка при отчисляване!', true);
-    }
-  } catch(e) {
-    showToast('Грешка при връзка с Power Automate!', true);
-  }
-}
-
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showView(v) {}
-
-function showToast(msg, err) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast' + (err ? ' error' : '') + ' show';
-  setTimeout(() => t.className = 'toast', 3500);
-}
-
-// INIT
-populateMachineSelect();
-loadFromSharePoint();
-</script>
-</body>
-</html>
+{
+    "statusCode": 200,
+    "headers": {
+        "Cache-Control": "max-age=0, private",
+        "Transfer-Encoding": "chunked",
+        "Vary": "Origin,Accept-Encoding",
+        "X-NetworkStatistics": "0,4194720,0,0,68721,26822,26822,25362",
+        "X-SharePointHealthScore": "2",
+        "X-MS-SPConnector": "1",
+        "X-SP-SERVERSTATE": "ReadOnly=0",
+        "DATASERVICEVERSION": "3.0",
+        "SPClientServiceRequestDuration": "155",
+        "IsOCDI": "0",
+        "X-DataBoundary": "EU",
+        "X-1DSCollectorUrl": "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/",
+        "X-AriaCollectorURL": "https://eu-mobile.events.data.microsoft.com/Collector/3.0/",
+        "SPRequestGuid": "1c896bd9-560d-4314-b0d2-af74dc1f149e",
+        "request-id": "1c896bd9-560d-4314-b0d2-af74dc1f149e",
+        "MS-CV": "ogDln+4gAPC3uR44Jsz52g.0",
+        "SPLogId": "9fe500a2-20ee-f000-b7b9-1e3826ccf9da",
+        "Alt-Svc": "h3=\":443\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self' teams.microsoft.com *.teams.microsoft.com *.skype.com *.teams.microsoft.us local.teams.office.com teams.cloud.microsoft *.office365.com goals.cloud.microsoft *.powerapps.com *.powerbi.com *.yammer.com engage.cloud.microsoft word.cloud.microsoft excel.cloud.microsoft powerpoint.cloud.microsoft *.officeapps.live.com *.office.com *.microsoft365.com m365.cloud.microsoft *.cloud.microsoft *.stream.azure-test.net *.dynamics.com *.microsoft.com onedrive.live.com *.onedrive.live.com securebroker.sharepointonline.com;",
+        "MicrosoftSharePointTeamServices": "16.0.0.27104",
+        "X-Content-Type-Options": "nosniff",
+        "X-MS-InvokeApp": "1; RequireReadOnly",
+        "P3P": "CP=\"ALL IND DSP COR ADM CONo CUR CUSo IVAo IVDo PSA PSD TAI TELo OUR SAMo CNT COM INT NAV ONL PHY PRE PUR UNI\"",
+        "X-AspNet-Version": "4.0.30319",
+        "X-Powered-By": "ASP.NET",
+        "x-ms-environment-id": "default-0b822811-c53c-4f5e-9444-350c2fb3f935",
+        "x-ms-tenant-id": "0b822811-c53c-4f5e-9444-350c2fb3f935",
+        "x-ms-subscription-id": "Default-0b822811-c53c-4f5e-9444-350c2fb3f935",
+        "x-ms-dlp-re": "-|-",
+        "x-ms-dlp-gu": "-|-",
+        "x-ms-dlp-ef": "-|-/-|-|-|-",
+        "x-ms-mip-sl": "-|-|-|-",
+        "x-ms-au-creator-id": "58e3124c-7940-4098-87c9-c2b1092c852d",
+        "Timing-Allow-Origin": "*",
+        "x-ms-apihub-cached-response": "true",
+        "x-ms-apihub-obo": "false",
+        "Date": "Tue, 17 Mar 2026 14:22:22 GMT",
+        "Content-Type": "application/json; charset=utf-8",
+        "Expires": "Mon, 02 Mar 2026 15:22:23 GMT",
+        "Last-Modified": "Tue, 17 Mar 2026 14:22:23 GMT",
+        "Content-Length": "8058"
+    },
+    "body": {
+        "value": [
+            {
+                "@odata.etag": "\"1\"",
+                "ItemInternalId": "1",
+                "ID": 1,
+                "Title": "1114",
+                "OData__x0414__x0430__x0442__x0430__x04": "2026-03-17",
+                "OData__x041a__x043e__x0434_": "1114",
+                "OData__x041a__x0430__x0442__x0435__x04": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                    "Id": 0,
+                    "Value": "Генератори"
+                },
+                "OData__x041a__x0430__x0442__x0435__x04#Id": 0,
+                "OData__x041d__x0430__x0438__x043c__x04": "Генератор монофазен 10 kW 6101111",
+                "OData__x041d__x0430__x043f__x0440__x04": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                    "Id": 1,
+                    "Value": "ВиК Строителство и поддръжка"
+                },
+                "OData__x041d__x0430__x043f__x0440__x04#Id": 1,
+                "OData__x041f__x0440__x0438__x0435__x04": "Иван Иванов",
+                "OData__x041c__x0435__x0441__x0442__x04": "ул. Иван Александър",
+                "OData__x0426__x0435__x043d__x0430__x00": 6.87,
+                "Modified": "2026-03-17T14:00:51Z",
+                "Created": "2026-03-17T14:00:51Z",
+                "Author": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                    "DisplayName": "Кирил Васев",
+                    "Email": "k.vassev@raicommerce.bg",
+                    "Picture": "https://raicommerce.sharepoint.com/_layouts/15/UserPhoto.aspx?Size=L&AccountName=k.vassev@raicommerce.bg",
+                    "Department": "Логистика",
+                    "JobTitle": "Директор Логистика"
+                },
+                "Author#Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                "Editor": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                    "DisplayName": "Кирил Васев",
+                    "Email": "k.vassev@raicommerce.bg",
+                    "Picture": "https://raicommerce.sharepoint.com/_layouts/15/UserPhoto.aspx?Size=L&AccountName=k.vassev@raicommerce.bg",
+                    "Department": "Логистика",
+                    "JobTitle": "Директор Логистика"
+                },
+                "Editor#Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                "{Identifier}": "Lists%252fList2%252f1_.000",
+                "{IsFolder}": false,
+                "{Thumbnail}": {
+                    "Large": null,
+                    "Medium": null,
+                    "Small": null
+                },
+                "{Link}": "https://raicommerce.sharepoint.com/_layouts/15/listform.aspx?PageType=4&ListId=5194e5ef%2D8a5c%2D473b%2D89fa%2D967e6a8988ec&ID=1&ContentTypeID=0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                "{Name}": "1114",
+                "{FilenameWithExtension}": "1114",
+                "{Path}": "Lists/List2/",
+                "{FullPath}": "Lists/List2/1_.000",
+                "{ContentType}": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedContentType",
+                    "Id": "0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                    "Name": "Елемент"
+                },
+                "{ContentType}#Id": "0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                "{HasAttachments}": false,
+                "{VersionNumber}": "1.0"
+            },
+            {
+                "@odata.etag": "\"1\"",
+                "ItemInternalId": "2",
+                "ID": 2,
+                "Title": "060104",
+                "OData__x0414__x0430__x0442__x0430__x04": "2026-03-17",
+                "OData__x041a__x043e__x0434_": "060104",
+                "OData__x041a__x0430__x0442__x0435__x04": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                    "Id": 2,
+                    "Value": "Компресори"
+                },
+                "OData__x041a__x0430__x0442__x0435__x04#Id": 2,
+                "OData__x041d__x0430__x0438__x043c__x04": "Компресор VRK 140 940195",
+                "OData__x041d__x0430__x043f__x0440__x04": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                    "Id": 2,
+                    "Value": "Инфраструктурно строителство"
+                },
+                "OData__x041d__x0430__x043f__x0440__x04#Id": 2,
+                "OData__x041f__x0440__x0438__x0435__x04": "Петър Петрое",
+                "OData__x041c__x0435__x0441__x0442__x04": "Ямбол",
+                "OData__x0426__x0435__x043d__x0430__x00": 8.54,
+                "Modified": "2026-03-17T14:17:50Z",
+                "Created": "2026-03-17T14:17:50Z",
+                "Author": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                    "DisplayName": "Кирил Васев",
+                    "Email": "k.vassev@raicommerce.bg",
+                    "Picture": "https://raicommerce.sharepoint.com/_layouts/15/UserPhoto.aspx?Size=L&AccountName=k.vassev@raicommerce.bg",
+                    "Department": "Логистика",
+                    "JobTitle": "Директор Логистика"
+                },
+                "Author#Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                "Editor": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                    "DisplayName": "Кирил Васев",
+                    "Email": "k.vassev@raicommerce.bg",
+                    "Picture": "https://raicommerce.sharepoint.com/_layouts/15/UserPhoto.aspx?Size=L&AccountName=k.vassev@raicommerce.bg",
+                    "Department": "Логистика",
+                    "JobTitle": "Директор Логистика"
+                },
+                "Editor#Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                "{Identifier}": "Lists%252fList2%252f2_.000",
+                "{IsFolder}": false,
+                "{Thumbnail}": {
+                    "Large": null,
+                    "Medium": null,
+                    "Small": null
+                },
+                "{Link}": "https://raicommerce.sharepoint.com/_layouts/15/listform.aspx?PageType=4&ListId=5194e5ef%2D8a5c%2D473b%2D89fa%2D967e6a8988ec&ID=2&ContentTypeID=0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                "{Name}": "060104",
+                "{FilenameWithExtension}": "060104",
+                "{Path}": "Lists/List2/",
+                "{FullPath}": "Lists/List2/2_.000",
+                "{ContentType}": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedContentType",
+                    "Id": "0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                    "Name": "Елемент"
+                },
+                "{ContentType}#Id": "0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                "{HasAttachments}": false,
+                "{VersionNumber}": "1.0"
+            },
+            {
+                "@odata.etag": "\"1\"",
+                "ItemInternalId": "3",
+                "ID": 3,
+                "Title": "0937",
+                "OData__x0414__x0430__x0442__x0430__x04": "2026-03-17",
+                "OData__x041a__x043e__x0434_": "0937",
+                "OData__x041a__x0430__x0442__x0435__x04": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                    "Id": 5,
+                    "Value": "Асфалторезачки"
+                },
+                "OData__x041a__x0430__x0442__x0435__x04#Id": 5,
+                "OData__x041d__x0430__x0438__x043c__x04": "Асфалторезачка моторна FS 175 08300181",
+                "OData__x041d__x0430__x043f__x0440__x04": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedReference",
+                    "Id": 1,
+                    "Value": "ВиК Строителство и поддръжка"
+                },
+                "OData__x041d__x0430__x043f__x0440__x04#Id": 1,
+                "OData__x041f__x0440__x0438__x0435__x04": "Гошо Гошев",
+                "OData__x041c__x0435__x0441__x0442__x04": "Панчарево",
+                "OData__x0426__x0435__x043d__x0430__x00": 6.2,
+                "Modified": "2026-03-17T14:22:21Z",
+                "Created": "2026-03-17T14:22:21Z",
+                "Author": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                    "DisplayName": "Кирил Васев",
+                    "Email": "k.vassev@raicommerce.bg",
+                    "Picture": "https://raicommerce.sharepoint.com/_layouts/15/UserPhoto.aspx?Size=L&AccountName=k.vassev@raicommerce.bg",
+                    "Department": "Логистика",
+                    "JobTitle": "Директор Логистика"
+                },
+                "Author#Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                "Editor": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                    "DisplayName": "Кирил Васев",
+                    "Email": "k.vassev@raicommerce.bg",
+                    "Picture": "https://raicommerce.sharepoint.com/_layouts/15/UserPhoto.aspx?Size=L&AccountName=k.vassev@raicommerce.bg",
+                    "Department": "Логистика",
+                    "JobTitle": "Директор Логистика"
+                },
+                "Editor#Claims": "i:0#.f|membership|k.vassev@raicommerce.bg",
+                "{Identifier}": "Lists%252fList2%252f3_.000",
+                "{IsFolder}": false,
+                "{Thumbnail}": {
+                    "Large": null,
+                    "Medium": null,
+                    "Small": null
+                },
+                "{Link}": "https://raicommerce.sharepoint.com/_layouts/15/listform.aspx?PageType=4&ListId=5194e5ef%2D8a5c%2D473b%2D89fa%2D967e6a8988ec&ID=3&ContentTypeID=0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                "{Name}": "0937",
+                "{FilenameWithExtension}": "0937",
+                "{Path}": "Lists/List2/",
+                "{FullPath}": "Lists/List2/3_.000",
+                "{ContentType}": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedContentType",
+                    "Id": "0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                    "Name": "Елемент"
+                },
+                "{ContentType}#Id": "0x0100E0F8B18CBACD1E499CA4DA8AAEFF4752001129794FFAB9854E8B8F423DFFFE7032",
+                "{HasAttachments}": false,
+                "{VersionNumber}": "1.0"
+            }
+        ]
