@@ -524,8 +524,13 @@ async function loadFromSharePoint() {
     });
     if (!res.ok) throw new Error('Flow error');
     const data = await res.json();
-    // Power Automate връща value масив
-    spData = data.value || data.body?.value || [];
+    // Flow връща масив директно или вложено
+    if (Array.isArray(data)) {
+      spData = data;
+    } else {
+      spData = data.value || data.body?.value || [];
+    }
+    console.log('Заредени записи:', spData.length, spData[0]);
   } catch(e) {
     spData = [];
     document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане на данните. Проверете връзката с Power Automate.</div>';
