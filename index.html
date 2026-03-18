@@ -8,7 +8,6 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 14px; }
 
-  /* HEADER */
   .header { background: #0033CC; padding: 0; }
   .header-top { background: #EE1C25; height: 8px; }
   .header-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
@@ -21,27 +20,22 @@
   .nav-btn.primary { background: #EE1C25; border-color: #EE1C25; }
   .nav-btn.primary:hover { background: #cc1010; }
 
-  /* MAIN */
   .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
 
-  /* STAT CARDS */
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .stat { background: #fff; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #0033CC; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
   .stat.free { border-left-color: #27ae60; }
   .stat.busy { border-left-color: #EE1C25; }
-  .stat.cat { border-left-color: #0033CC; }
   .stat-label { font-size: 11px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-value { font-size: 28px; font-weight: 700; color: #0033CC; }
   .stat.free .stat-value { color: #27ae60; }
   .stat.busy .stat-value { color: #EE1C25; }
 
-  /* FILTERS */
   .filters { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .filters input, .filters select { padding: 7px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: #f9f9f9; }
   .filters input { flex: 1; min-width: 200px; }
   .filter-label { font-size: 12px; color: #666; font-weight: 600; }
 
-  /* TABLE */
   .table-wrap { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
   .table-header { background: #0033CC; color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
   .table-header h3 { font-size: 14px; font-weight: 600; }
@@ -59,7 +53,6 @@
   .btn-zachisli:hover { background: #0026a0; }
   .btn-otchisli:hover { background: #cc1010; }
 
-  /* MODAL */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
   .modal { background: #fff; border-radius: 10px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,51,0.2); }
@@ -85,12 +78,10 @@
   .btn-save:hover { background: #0026a0; }
   .btn-save.red:hover { background: #cc1010; }
 
-  /* STATUS MESSAGE */
   .toast { position: fixed; bottom: 24px; right: 24px; background: #27ae60; color: #fff; padding: 12px 20px; border-radius: 6px; font-size: 13px; z-index: 2000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
   .toast.error { background: #EE1C25; }
   .toast.show { display: block; }
 
-  /* LOADING */
   .loading { text-align: center; padding: 40px; color: #666; }
   .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #ddd; border-top-color: #0033CC; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -117,7 +108,6 @@
 </div>
 
 <div class="main">
-  <!-- STATS -->
   <div class="stats" id="stats">
     <div class="stat"><div class="stat-label">Общо машини</div><div class="stat-value" id="stat-total">-</div></div>
     <div class="stat free"><div class="stat-label">Свободни</div><div class="stat-value" id="stat-free">-</div></div>
@@ -127,7 +117,6 @@
     <div class="stat"><div class="stat-label">Компресори</div><div class="stat-value" id="stat-komp">-</div></div>
   </div>
 
-  <!-- FILTERS -->
   <div class="filters">
     <span class="filter-label">Филтри:</span>
     <input type="text" id="search" placeholder="Търсене по код или наименование..." oninput="renderTable()">
@@ -161,7 +150,6 @@
     </select>
   </div>
 
-  <!-- TABLE -->
   <div class="table-wrap">
     <div class="table-header">
       <h3>Списък на механизацията</h3>
@@ -173,7 +161,6 @@
   </div>
 </div>
 
-<!-- MODAL ЗАЧИСЛЯВАНЕ -->
 <div class="modal-overlay" id="modal-zachisli">
   <div class="modal">
     <div class="modal-header">
@@ -251,7 +238,6 @@
   </div>
 </div>
 
-<!-- MODAL ОТЧИСЛЯВАНЕ -->
 <div class="modal-overlay" id="modal-otchisli">
   <div class="modal">
     <div class="modal-header red">
@@ -282,16 +268,13 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== КОНФИГУРАЦИЯ =====
 const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/07dc0b5505724d4bb8ea8bcc01215a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=apdLUQR8CW4pzuioH5DaobPAC2XvKeO66mSMsOxijdw';
 const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
 const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
 
-// ===== МАШИНИ (базов списък с цени) =====
 const MACHINES = [
   {kod:"1145",ime:"Генератор монофазен KOHLER Perform 6500",kat:"Генератори",cena:6.87},
   {kod:"1146",ime:"Генератор монофазен KOHLER Perform 6500",kat:"Генератори",cena:6.87},
@@ -476,13 +459,21 @@ const MACHINES = [
   {kod:"6518",ime:"Грундомат 75 75-3",kat:"Грундомати",cena:19.37},
   {kod:"6519",ime:"Грундомат 75 РК 75-4",kat:"Грундомати",cena:19.37},
   {kod:"6520",ime:"Грундомат 75 РК 75-5",kat:"Грундомати",cena:19.37},
-  {kod:"6528",ime:"Грундомат 75 РК 75-6",kat:"Грундомати",cena:19.37},
+  {kod:"6528",ime:"Грундомат 75 РК 75-6",kat:"Грундомати",cena:19.37}
 ];
 
 let spData = [];
 let currentOtchisliId = null;
 
-// Попълване на dropdown с машини
+function safeText(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function populateMachineSelect() {
   filterMachineSelect();
 }
@@ -491,6 +482,7 @@ function filterMachineSelect() {
   const kat = document.getElementById('z-filter-kat') ? document.getElementById('z-filter-kat').value : '';
   const sel = document.getElementById('z-mashina');
   sel.innerHTML = '<option value="">-- Изберете машина --</option>';
+
   const filtered = kat ? MACHINES.filter(m => m.kat === kat) : MACHINES;
   filtered.forEach(m => {
     const opt = document.createElement('option');
@@ -498,6 +490,7 @@ function filterMachineSelect() {
     opt.textContent = `${m.kod} — ${m.ime}`;
     sel.appendChild(opt);
   });
+
   document.getElementById('z-cena').value = '';
   document.getElementById('z-kategoria').value = '';
   document.getElementById('zachisli-info').innerHTML = '<span style="color:#666;font-size:13px;">Изберете машина от списъка</span>';
@@ -509,11 +502,15 @@ function onMachinaSelect() {
   if (m) {
     document.getElementById('z-cena').value = m.cena.toFixed(2) + ' лв/ден';
     document.getElementById('z-kategoria').value = m.kat;
-    document.getElementById('zachisli-info').innerHTML = `<strong>${m.ime}</strong><span>Код: ${m.kod} | Категория: ${m.kat} | Цена: ${m.cena.toFixed(2)} лв/ден</span>`;
+    document.getElementById('zachisli-info').innerHTML =
+      `<strong>${safeText(m.ime)}</strong><span>Код: ${safeText(m.kod)} | Категория: ${safeText(m.kat)} | Цена: ${m.cena.toFixed(2)} лв/ден</span>`;
+  } else {
+    document.getElementById('z-cena').value = '';
+    document.getElementById('z-kategoria').value = '';
+    document.getElementById('zachisli-info').innerHTML = '<span style="color:#666;font-size:13px;">Изберете машина от списъка</span>';
   }
 }
 
-// Зареждане от SharePoint чрез Flow 3
 async function loadFromSharePoint() {
   document.getElementById('table-container').innerHTML = '<div class="loading"><span class="spinner"></span>Зареждане от SharePoint...</div>';
   try {
@@ -522,9 +519,12 @@ async function loadFromSharePoint() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({})
     });
+
     const text = await res.text();
     if (!text || text.trim() === '') throw new Error('Празен отговор');
+
     const data = JSON.parse(text);
+
     if (Array.isArray(data)) {
       spData = data;
     } else if (data.value && Array.isArray(data.value)) {
@@ -538,32 +538,34 @@ async function loadFromSharePoint() {
     }
   } catch(e) {
     spData = [];
-    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + e.message + '</div>';
+    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + safeText(e.message) + '</div>';
+    updateStats();
     return;
   }
+
   renderTable();
   updateStats();
 }
 
-// Помощни функции за четене на полета
 function f(item, key) {
   const map = {
-    'dz': 'OData__x0414__x0430__x0442__x0430__x04',
-    'do': 'OData__x0414__x0430__x0442__x0430__x041e',
-    'kod': 'OData__x041a__x043e__x0434_',
-    'kat': 'OData__x041a__x0430__x0442__x0435__x04',
-    'ime': 'OData__x041d__x0430__x0438__x043c__x04',
-    'dir': 'OData__x041d__x0430__x043f__x0440__x04',
-    'priel': 'OData__x041f__x0440__x0438__x0435__x04',
-    'mesto': 'OData__x041c__x0435__x0441__x0442__x04',
-    'cena': 'OData__x0426__x0435__x043d__x0430__x00',
-    'predal': 'OData__x041f__x0440__x0435__x0434__x04',
-    'sluzhitel': 'OData__x0421__x043b__x0443__x0436__x04',
-    'dni': 'OData__x0411__x0440__x043e__x0439__x04',
-    'suma': 'OData__x0421__x0443__x043c__x0430_',
+    dz: 'OData__x0414__x0430__x0442__x0430__x04',
+    do: 'OData__x0414__x0430__x0442__x0430__x041e',
+    kod: 'OData__x041a__x043e__x0434_',
+    kat: 'OData__x041a__x0430__x0442__x0435__x04',
+    ime: 'OData__x041d__x0430__x0438__x043c__x04',
+    dir: 'OData__x041d__x0430__x043f__x0440__x04',
+    priel: 'OData__x041f__x0440__x0438__x0435__x04',
+    mesto: 'OData__x041c__x0435__x0441__x0442__x04',
+    cena: 'OData__x0426__x0435__x043d__x0430__x00',
+    predal: 'OData__x041f__x0440__x0435__x0434__x04',
+    sluzhitel: 'OData__x0421__x043b__x0443__x0436__x04',
+    dni: 'OData__x0411__x0440__x043e__x0439__x04',
+    suma: 'OData__x0421__x0443__x043c__x0430_'
   };
+
   const v = item[map[key]];
-  if (v && typeof v === 'object') return v.Value || '';
+  if (v && typeof v === 'object') return v.Value || v.DisplayName || '';
   return v || '';
 }
 
@@ -576,33 +578,42 @@ function getStatus(item) {
 
 function formatDate(d) {
   if (!d) return '—';
-  try { return new Date(d).toLocaleDateString('bg-BG'); } catch(e) { return d; }
+  try {
+    return new Date(d).toLocaleDateString('bg-BG');
+  } catch(e) {
+    return d;
+  }
 }
 
 function updateStats() {
   const total = spData.length;
   const free = spData.filter(i => getStatus(i) === 'free').length;
   const busy = spData.filter(i => getStatus(i) === 'busy').length;
+
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-free').textContent = free;
   document.getElementById('stat-busy').textContent = busy;
   document.getElementById('stat-gen').textContent = spData.filter(i => f(i,'kat').includes('Генератор')).length;
-  document.getElementById('stat-vib').textContent = spData.filter(i => f(i,'kat').includes('Вибро') || f(i,'kat').includes('трамбов')).length;
+  document.getElementById('stat-vib').textContent = spData.filter(i => {
+    const k = f(i,'kat').toLowerCase();
+    return k.includes('вибро') || k.includes('трамбов');
+  }).length;
   document.getElementById('stat-komp').textContent = spData.filter(i => f(i,'kat').includes('Компресор')).length;
 }
 
 function renderTable() {
-  const q = document.getElementById('search').value.toLowerCase();
+  const q = document.getElementById('search').value.toLowerCase().trim();
   const cat = document.getElementById('filter-cat').value;
   const st = document.getElementById('filter-status').value;
   const dir = document.getElementById('filter-dir').value;
 
   let data = spData.filter(item => {
-    const kod = (item.Код || '').toLowerCase();
-    const ime = (item.Наименование || '').toLowerCase();
-    const itemCat = item.Категория || '';
-    const itemDir = item['Направление_x0020__x0028_ползват'] || item.Направление || '';
+    const kod = (f(item,'kod') || '').toLowerCase();
+    const ime = (f(item,'ime') || '').toLowerCase();
+    const itemCat = f(item,'kat') || '';
+    const itemDir = f(item,'dir') || '';
     const status = getStatus(item);
+
     return (!q || kod.includes(q) || ime.includes(q)) &&
            (!cat || itemCat === cat) &&
            (!st || status === st) &&
@@ -629,30 +640,36 @@ function renderTable() {
     const badge = status === 'free'
       ? '<span class="status-badge status-free">Свободна</span>'
       : '<span class="status-badge status-busy">Заета</span>';
-    const dz = formatDate(item['Дата_x0020_зачисляване'] || item.ДатаЗачисляване);
-    const dot = formatDate(item['Дата_x0020_на_x0020_отчисляване'] || item.ДатаОтчисляване);
-    const dni = item['Брой_x0020_дни'] || item['Брой дни'] || '—';
-    const suma = item.Сума ? Number(item.Сума).toFixed(2) + ' лв' : '—';
-    const dir2 = item['Направление_x0020__x0028_ползват'] || item.Направление || '—';
-    const priel = item['Приел_x0020__x0028_ползвател_x00'] || item.Приел || '—';
-    const mesto = item['Местонахождение_x0020_след_x002'] || item.Местонахождение || '—';
+
+    const dz = formatDate(f(item,'dz'));
+    const dot = formatDate(f(item,'do'));
+    const dni = f(item,'dni') || '—';
+    const suma = f(item,'suma') ? Number(f(item,'suma')).toFixed(2) + ' лв' : '—';
+
+    const dir2 = f(item,'dir') || '—';
+    const priel = f(item,'priel') || '—';
+    const mesto = f(item,'mesto') || '—';
+    const kod = f(item,'kod') || item.Title || '';
+    const ime = f(item,'ime') || '—';
+    const kat = f(item,'kat') || '—';
+    const itemId = item.ID || item.Id || '';
 
     const btn = status === 'free'
-      ? `<button class="action-btn btn-zachisli" onclick="openZachisliForItem('${item.Id}','${(item.Код||'').replace(/'/g,"\\'")}')">Зачисли</button>`
-      : `<button class="action-btn btn-otchisli" onclick="openOtchisli(${item.Id},'${(item.Наименование||'').replace(/'/g,"\\'")}','${item.Код||''}')">Отчисли</button>`;
+      ? `<button class="action-btn btn-zachisli" onclick="openZachisliForItem('${safeText(String(itemId))}','${safeText(kod)}')">Зачисли</button>`
+      : `<button class="action-btn btn-otchisli" onclick="openOtchisli('${safeText(String(itemId))}','${safeText(ime)}','${safeText(kod)}')">Отчисли</button>`;
 
     html += `<tr>
-      <td><strong>${item.Код||'—'}</strong></td>
-      <td>${item.Наименование||'—'}</td>
-      <td><span style="font-size:11px;background:#e8eeff;color:#0033CC;padding:2px 8px;border-radius:10px;">${item.Категория||'—'}</span></td>
+      <td><strong>${safeText(kod || '—')}</strong></td>
+      <td>${safeText(ime)}</td>
+      <td><span style="font-size:11px;background:#e8eeff;color:#0033CC;padding:2px 8px;border-radius:10px;">${safeText(kat)}</span></td>
       <td>${badge}</td>
-      <td style="font-size:12px;">${dir2}</td>
-      <td style="font-size:12px;">${priel}</td>
-      <td style="font-size:12px;">${mesto}</td>
-      <td style="font-size:12px;">${dz}</td>
-      <td style="font-size:12px;">${dot}</td>
-      <td style="text-align:center;">${dni}</td>
-      <td class="price-tag">${suma}</td>
+      <td style="font-size:12px;">${safeText(dir2)}</td>
+      <td style="font-size:12px;">${safeText(priel)}</td>
+      <td style="font-size:12px;">${safeText(mesto)}</td>
+      <td style="font-size:12px;">${safeText(dz)}</td>
+      <td style="font-size:12px;">${safeText(dot)}</td>
+      <td style="text-align:center;">${safeText(dni)}</td>
+      <td class="price-tag">${safeText(suma)}</td>
       <td>${btn}</td>
     </tr>`;
   });
@@ -661,7 +678,6 @@ function renderTable() {
   document.getElementById('table-container').innerHTML = html;
 }
 
-// ЗАЧИСЛЯВАНЕ
 function showZachislyavane() {
   document.getElementById('z-mashina').value = '';
   document.getElementById('z-data').value = new Date().toISOString().split('T')[0];
@@ -713,10 +729,11 @@ async function submitZachislyavane() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
+
     if (res.ok || res.status === 202) {
       closeModal('modal-zachisli');
       showToast('Машината е зачислена успешно!');
-      setTimeout(() => loadFromSharePoint(), 2000);
+      setTimeout(() => loadFromSharePoint(), 1200);
     } else {
       showToast('Грешка при зачисляване!', true);
     }
@@ -725,10 +742,9 @@ async function submitZachislyavane() {
   }
 }
 
-// ОТЧИСЛЯВАНЕ
 function openOtchisli(id, ime, kod) {
   currentOtchisliId = id;
-  document.getElementById('otchisli-info').innerHTML = `<strong>${ime}</strong><span>Код: ${kod}</span>`;
+  document.getElementById('otchisli-info').innerHTML = `<strong>${safeText(ime)}</strong><span>Код: ${safeText(kod)}</span>`;
   document.getElementById('o-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('o-predal').value = '';
   document.getElementById('o-sluzhitel').value = '';
@@ -758,10 +774,11 @@ async function submitOtchislyavane() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
+
     if (res.ok || res.status === 202) {
       closeModal('modal-otchisli');
       showToast('Машината е отчислена успешно!');
-      setTimeout(() => loadFromSharePoint(), 2000);
+      setTimeout(() => loadFromSharePoint(), 1200);
     } else {
       showToast('Грешка при отчисляване!', true);
     }
@@ -770,7 +787,10 @@ async function submitOtchislyavane() {
   }
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
 function showView(v) {}
 
 function showToast(msg, err) {
@@ -780,7 +800,6 @@ function showToast(msg, err) {
   setTimeout(() => t.className = 'toast', 3500);
 }
 
-// INIT
 populateMachineSelect();
 loadFromSharePoint();
 </script>
