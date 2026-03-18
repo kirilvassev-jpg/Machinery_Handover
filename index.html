@@ -474,16 +474,40 @@ function safeText(v) {
     .replace(/'/g, '&#039;');
 }
 
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleDateString('bg-BG');
+  } catch {
+    return d;
+  }
+}
+
+function getStatus(item) {
+  return item.dz && !item.do ? 'busy' : 'free';
+}
+
+function getBusyCodes() {
+  return new Set(
+    spData.filter(x => getStatus(x) === 'busy').map(x => x.kod)
+  );
+}
+
 function populateMachineSelect() {
   filterMachineSelect();
 }
 
 function filterMachineSelect() {
-  const kat = document.getElementById('z-filter-kat') ? document.getElementById('z-filter-kat').value : '';
+  const kat = document.getElementById('z-filter-kat')?.value || '';
   const sel = document.getElementById('z-mashina');
+  const busyCodes = getBusyCodes();
+
   sel.innerHTML = '<option value="">-- Изберете машина --</option>';
 
-  const filtered = kat ? MACHINES.filter(m => m.kat === kat) : MACHINES;
+  const filtered = MACHINES
+    .filter(m => !kat || m.kat === kat)
+    .filter(m => !busyCodes.has(m.kod));
+
   filtered.forEach(m => {
     const opt = document.createElement('option');
     opt.value = m.kod;
@@ -524,19 +548,8 @@ async function loadFromSharePoint() {
     if (!text || text.trim() === '') throw new Error('Празен отговор');
 
     const data = JSON.parse(text);
-
-    if (Array.isArray(data)) {
-      spData = data;
-    } else if (data.value && Array.isArray(data.value)) {
-      spData = data.value;
-    } else if (data.body && Array.isArray(data.body)) {
-      spData = data.body;
-    } else if (data.body && data.body.value) {
-      spData = data.body.value;
-    } else {
-      spData = [];
-    }
-  } catch(e) {
+    spData = Array.isArray(data) ? data : [];
+  } catch (e) {
     spData = [];
     document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + safeText(e.message) + '</div>';
     updateStats();
@@ -545,44 +558,7 @@ async function loadFromSharePoint() {
 
   renderTable();
   updateStats();
-}
-
-function f(item, key) {
-  const map = {
-    dz: 'OData__x0414__x0430__x0442__x0430__x04',
-    do: 'OData__x0414__x0430__x0442__x0430__x041e',
-    kod: 'OData__x041a__x043e__x0434_',
-    kat: 'OData__x041a__x0430__x0442__x0435__x04',
-    ime: 'OData__x041d__x0430__x0438__x043c__x04',
-    dir: 'OData__x041d__x0430__x043f__x0440__x04',
-    priel: 'OData__x041f__x0440__x0438__x0435__x04',
-    mesto: 'OData__x041c__x0435__x0441__x0442__x04',
-    cena: 'OData__x0426__x0435__x043d__x0430__x00',
-    predal: 'OData__x041f__x0440__x0435__x0434__x04',
-    sluzhitel: 'OData__x0421__x043b__x0443__x0436__x04',
-    dni: 'OData__x0411__x0440__x043e__x0439__x04',
-    suma: 'OData__x0421__x0443__x043c__x0430_'
-  };
-
-  const v = item[map[key]];
-  if (v && typeof v === 'object') return v.Value || v.DisplayName || '';
-  return v || '';
-}
-
-function getStatus(item) {
-  const hasDZ = f(item, 'dz');
-  const hasDO = f(item, 'do');
-  if (!hasDZ || hasDO) return 'free';
-  return 'busy';
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  try {
-    return new Date(d).toLocaleDateString('bg-BG');
-  } catch(e) {
-    return d;
-  }
+  populateMachineSelect();
 }
 
 function updateStats() {
@@ -593,12 +569,12 @@ function updateStats() {
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-free').textContent = free;
   document.getElementById('stat-busy').textContent = busy;
-  document.getElementById('stat-gen').textContent = spData.filter(i => f(i,'kat').includes('Генератор')).length;
+  document.getElementById('stat-gen').textContent = spData.filter(i => (i.kat || '').includes('Генератор')).length;
   document.getElementById('stat-vib').textContent = spData.filter(i => {
-    const k = f(i,'kat').toLowerCase();
+    const k = (i.kat || '').toLowerCase();
     return k.includes('вибро') || k.includes('трамбов');
   }).length;
-  document.getElementById('stat-komp').textContent = spData.filter(i => f(i,'kat').includes('Компресор')).length;
+  document.getElementById('stat-komp').textContent = spData.filter(i => (i.kat || '').includes('Компресор')).length;
 }
 
 function renderTable() {
@@ -607,11 +583,11 @@ function renderTable() {
   const st = document.getElementById('filter-status').value;
   const dir = document.getElementById('filter-dir').value;
 
-  let data = spData.filter(item => {
-    const kod = (f(item,'kod') || '').toLowerCase();
-    const ime = (f(item,'ime') || '').toLowerCase();
-    const itemCat = f(item,'kat') || '';
-    const itemDir = f(item,'dir') || '';
+  const data = spData.filter(item => {
+    const kod = (item.kod || '').toLowerCase();
+    const ime = (item.ime || '').toLowerCase();
+    const itemCat = item.kat || '';
+    const itemDir = item.dir || '';
     const status = getStatus(item);
 
     return (!q || kod.includes(q) || ime.includes(q)) &&
@@ -641,35 +617,22 @@ function renderTable() {
       ? '<span class="status-badge status-free">Свободна</span>'
       : '<span class="status-badge status-busy">Заета</span>';
 
-    const dz = formatDate(f(item,'dz'));
-    const dot = formatDate(f(item,'do'));
-    const dni = f(item,'dni') || '—';
-    const suma = f(item,'suma') ? Number(f(item,'suma')).toFixed(2) + ' лв' : '—';
-
-    const dir2 = f(item,'dir') || '—';
-    const priel = f(item,'priel') || '—';
-    const mesto = f(item,'mesto') || '—';
-    const kod = f(item,'kod') || item.Title || '';
-    const ime = f(item,'ime') || '—';
-    const kat = f(item,'kat') || '—';
-    const itemId = item.ID || item.Id || '';
-
     const btn = status === 'free'
-      ? `<button class="action-btn btn-zachisli" onclick="openZachisliForItem('${safeText(String(itemId))}','${safeText(kod)}')">Зачисли</button>`
-      : `<button class="action-btn btn-otchisli" onclick="openOtchisli('${safeText(String(itemId))}','${safeText(ime)}','${safeText(kod)}')">Отчисли</button>`;
+      ? `<button class="action-btn btn-zachisli" onclick="openZachisliForItem('${safeText(String(item.id || ''))}','${safeText(item.kod || '')}')">Зачисли</button>`
+      : `<button class="action-btn btn-otchisli" onclick="openOtchisli('${safeText(String(item.id || ''))}','${safeText(item.ime || '')}','${safeText(item.kod || '')}')">Отчисли</button>`;
 
     html += `<tr>
-      <td><strong>${safeText(kod || '—')}</strong></td>
-      <td>${safeText(ime)}</td>
-      <td><span style="font-size:11px;background:#e8eeff;color:#0033CC;padding:2px 8px;border-radius:10px;">${safeText(kat)}</span></td>
+      <td><strong>${safeText(item.kod || '—')}</strong></td>
+      <td>${safeText(item.ime || '—')}</td>
+      <td><span style="font-size:11px;background:#e8eeff;color:#0033CC;padding:2px 8px;border-radius:10px;">${safeText(item.kat || '—')}</span></td>
       <td>${badge}</td>
-      <td style="font-size:12px;">${safeText(dir2)}</td>
-      <td style="font-size:12px;">${safeText(priel)}</td>
-      <td style="font-size:12px;">${safeText(mesto)}</td>
-      <td style="font-size:12px;">${safeText(dz)}</td>
-      <td style="font-size:12px;">${safeText(dot)}</td>
-      <td style="text-align:center;">${safeText(dni)}</td>
-      <td class="price-tag">${safeText(suma)}</td>
+      <td style="font-size:12px;">${safeText(item.dir || '—')}</td>
+      <td style="font-size:12px;">${safeText(item.priel || '—')}</td>
+      <td style="font-size:12px;">${safeText(item.mesto || '—')}</td>
+      <td style="font-size:12px;">${safeText(formatDate(item.dz))}</td>
+      <td style="font-size:12px;">${safeText(formatDate(item.do))}</td>
+      <td style="text-align:center;">${safeText(item.dni || '—')}</td>
+      <td class="price-tag">${item.suma ? safeText(Number(item.suma).toFixed(2) + ' лв') : '—'}</td>
       <td>${btn}</td>
     </tr>`;
   });
@@ -679,6 +642,7 @@ function renderTable() {
 }
 
 function showZachislyavane() {
+  document.getElementById('z-filter-kat').value = '';
   document.getElementById('z-mashina').value = '';
   document.getElementById('z-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('z-napravlenie').value = '';
@@ -687,7 +651,7 @@ function showZachislyavane() {
   document.getElementById('z-sluzhitel').value = '';
   document.getElementById('z-cena').value = '';
   document.getElementById('z-kategoria').value = '';
-  document.getElementById('zachisli-info').innerHTML = '<span style="color:#666;font-size:13px;">Изберете машина от списъка</span>';
+  filterMachineSelect();
   document.getElementById('modal-zachisli').classList.add('open');
 }
 
@@ -701,12 +665,18 @@ async function submitZachislyavane() {
   const kod = document.getElementById('z-mashina').value;
   const data = document.getElementById('z-data').value;
   const dir = document.getElementById('z-napravlenie').value;
-  const priel = document.getElementById('z-priel').value;
-  const mesto = document.getElementById('z-mesto').value;
-  const sluzhitel = document.getElementById('z-sluzhitel').value;
+  const priel = document.getElementById('z-priel').value.trim();
+  const mesto = document.getElementById('z-mesto').value.trim();
+  const sluzhitel = document.getElementById('z-sluzhitel').value.trim();
 
   if (!kod || !data || !dir || !priel || !mesto) {
     showToast('Моля попълнете всички задължителни полета!', true);
+    return;
+  }
+
+  const busyCodes = getBusyCodes();
+  if (busyCodes.has(kod)) {
+    showToast('Машината вече е заета!', true);
     return;
   }
 
@@ -737,7 +707,7 @@ async function submitZachislyavane() {
     } else {
       showToast('Грешка при зачисляване!', true);
     }
-  } catch(e) {
+  } catch {
     showToast('Грешка при връзка с Power Automate!', true);
   }
 }
@@ -753,8 +723,8 @@ function openOtchisli(id, ime, kod) {
 
 async function submitOtchislyavane() {
   const data = document.getElementById('o-data').value;
-  const predal = document.getElementById('o-predal').value;
-  const sluzhitel = document.getElementById('o-sluzhitel').value;
+  const predal = document.getElementById('o-predal').value.trim();
+  const sluzhitel = document.getElementById('o-sluzhitel').value.trim();
 
   if (!data || !predal) {
     showToast('Моля попълнете дата и предал!', true);
@@ -782,7 +752,7 @@ async function submitOtchislyavane() {
     } else {
       showToast('Грешка при отчисляване!', true);
     }
-  } catch(e) {
+  } catch {
     showToast('Грешка при връзка с Power Automate!', true);
   }
 }
@@ -791,7 +761,7 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
-function showView(v) {}
+function showView() {}
 
 function showToast(msg, err) {
   const t = document.getElementById('toast');
