@@ -2,8 +2,14 @@
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
-<title>Machinery</title>
+<title>Debug SharePoint Flow</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+pre { background: #f4f4f4; padding: 15px; border-radius: 5px; }
+.error { color: red; font-weight: bold; }
+</style>
 </head>
+
 <body>
 
 <h2>Тест на връзка със SharePoint</h2>
@@ -14,13 +20,14 @@
 
 console.log("VERSION 2 LOADED ✅");
 
-const FLOW_READ = "PASTE_YOUR_FLOW_URL_HERE";
+// 🔴 СМЕНИ ТУК С РЕАЛНИЯ FLOW URL
+const FLOW_READ = "PASTE_REAL_FLOW_URL_HERE";
 
 let spData = [];
 
 async function loadFromSharePoint() {
 
-  console.log("START FETCH...");
+  console.log("START FETCH →", FLOW_READ);
 
   try {
     const res = await fetch(FLOW_READ, {
@@ -29,9 +36,18 @@ async function loadFromSharePoint() {
       body: JSON.stringify({})
     });
 
+    console.log("STATUS:", res.status);
+
     const text = await res.text();
 
     console.log("RAW RESPONSE:", text);
+
+    // ❗ Ако не е JSON → покажи директно
+    if (text.trim().startsWith("<")) {
+      document.getElementById("result").innerHTML =
+        "<div class='error'>Flow връща HTML (грешка):<br><pre>" + text + "</pre></div>";
+      return;
+    }
 
     const data = JSON.parse(text);
 
@@ -53,11 +69,12 @@ async function loadFromSharePoint() {
     console.log("FINAL spData:", spData);
 
     document.getElementById("result").innerHTML =
-      "<pre>" + JSON.stringify(spData, null, 2) + "</pre>";
+      "<h3>Резултат:</h3><pre>" + JSON.stringify(spData, null, 2) + "</pre>";
 
   } catch (e) {
     console.error("ERROR:", e);
-    document.getElementById("result").innerHTML = "Грешка: " + e.message;
+    document.getElementById("result").innerHTML =
+      "<div class='error'>Грешка: " + e.message + "</div>";
   }
 }
 
