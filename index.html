@@ -652,7 +652,7 @@ async function submitOtchislyavane() {
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
   if (currentOtchisliId == null) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
-    const payload = { id: currentOtchisliId, dateOtchislyavane: data, predal: predal, sluzhitel: sluzhitel };
+    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel };
     console.log('[FLOW_OTCHISLI] sending:', payload);
     const res = await fetch(FLOW_OTCHISLI, {
       method: 'POST',
