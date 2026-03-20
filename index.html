@@ -16,6 +16,7 @@
   .header-nav { display: flex; gap: 8px; }
   .nav-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
   .nav-btn.primary { background: #EE1C25; border-color: #EE1C25; }
+  .debug-panel { background: #1e1e1e; color: #d4d4d4; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 6px; max-height: 60vh; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
   .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .stat { background: #fff; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #0033CC; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
@@ -82,6 +83,7 @@
   <div class="header-main">
     <div class="header-logo">RAICOMMERCE<span>CONSTRUCTION</span></div>
     <div class="header-nav">
+      <button class="nav-btn" onclick="showDebug()" title="Debug: виж сурови данни от SharePoint">🔍 Debug</button>
       <button class="nav-btn primary" onclick="showZachislyavane()">+ Зачисляване</button>
     </div>
   </div>
@@ -127,6 +129,24 @@
       <span class="table-count" id="table-count"></span>
     </div>
     <div id="table-container"><div class="loading"><span class="spinner"></span>Зареждане...</div></div>
+  </div>
+</div>
+
+<!-- MODAL DEBUG -->
+<div class="modal-overlay" id="modal-debug">
+  <div class="modal" style="width:780px;max-width:98vw;">
+    <div class="modal-header" style="background:#1e1e1e;">
+      <h3>Debug — Сурови данни от SharePoint</h3>
+      <button class="modal-close" onclick="closeModal('modal-debug')">×</button>
+    </div>
+    <div class="modal-body" style="padding:12px;">
+      <p style="font-size:12px;color:#666;margin-bottom:8px;">Брой записи: <strong id="debug-count">—</strong>. Ако е 0 или данните са грешни, провери FLOW_READ. Полетата с <code>OData__</code> са кирилски колони в SharePoint.</p>
+      <div class="debug-panel" id="debug-content">Зарежда...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="copyDebug()">Копирай</button>
+      <button class="btn-cancel" onclick="closeModal('modal-debug')">Затвори</button>
+    </div>
   </div>
 </div>
 
@@ -469,19 +489,33 @@ async function loadFromSharePoint() {
       body: JSON.stringify({})
     });
     const text = await res.text();
-    if (!text || text.trim() === '') throw new Error('Празен отговор');
+    console.log('[FLOW_READ] status:', res.status, 'body:', text);
+    if (!text || text.trim() === '') throw new Error('Празен отговор от FLOW_READ');
     const data = JSON.parse(text);
     if (Array.isArray(data)) spData = data;
     else if (Array.isArray(data.value)) spData = data.value;
     else if (data.body && Array.isArray(data.body)) spData = data.body;
     else if (data.body && Array.isArray(data.body.value)) spData = data.body.value;
     else spData = [];
+    console.log('[FLOW_READ] parsed items:', spData.length, spData.length > 0 ? 'First item keys: ' + Object.keys(spData[0]).join(', ') : '');
   } catch(e) {
+    console.error('[FLOW_READ] error:', e);
     document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + e.message + '</div>';
     return;
   }
   renderTable();
   updateStats();
+}
+
+function showDebug() {
+  document.getElementById('debug-count').textContent = spData.length;
+  const sample = spData.slice(0, 3);
+  document.getElementById('debug-content').textContent = JSON.stringify(sample, null, 2);
+  document.getElementById('modal-debug').classList.add('open');
+}
+
+function copyDebug() {
+  navigator.clipboard.writeText(document.getElementById('debug-content').textContent).then(() => showToast('Копирано!'));
 }
 
 function filterMachineSelect() {
@@ -600,14 +634,18 @@ async function submitZachislyavane() {
   if (!kod || !data || !dir || !priel || !mesto) { showToast('Попълнете всички задължителни полета!', true); return; }
   const m = MACHINES.find(x => x.kod === kod);
   try {
+    const payload = { kod: kod, ime: m ? m.ime : '', kategoria: m ? m.kat : '', cena: m ? m.cena : 0, dateZachislyavane: data, napravlenie: dir, priel: priel, mesto: mesto, sluzhitel: sluzhitel };
+    console.log('[FLOW_ZACHISLI] sending:', payload);
     const res = await fetch(FLOW_ZACHISLI, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Код: kod, Наименование: m ? m.ime : '', Категория: m ? m.kat : '', Цена: m ? m.cena : 0, ДатаЗачисляване: data, Направление: dir, Приел: priel, Местонахождение: mesto, СлужителМиТ: sluzhitel })
+      body: JSON.stringify(payload)
     });
-    if (res.ok || res.status === 202) { closeModal('modal-zachisli'); showToast('Машината е зачислена успешно!'); setTimeout(() => loadFromSharePoint(), 3000); }
-    else showToast('Грешка при зачисляване!', true);
-  } catch(e) { showToast('Грешка при връзка!', true); }
+    const resText = await res.text();
+    console.log('[FLOW_ZACHISLI] status:', res.status, 'body:', resText);
+    if (res.ok || res.status === 202) { closeModal('modal-zachisli'); showToast('Машината е зачислена успешно!'); setTimeout(() => loadFromSharePoint(), 4000); }
+    else { showToast('Грешка ' + res.status + ' при зачисляване! Виж конзолата.', true); }
+  } catch(e) { console.error('[FLOW_ZACHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
 }
 
 function openOtchisli(id, ime, kod) {
@@ -624,15 +662,20 @@ async function submitOtchislyavane() {
   const predal = document.getElementById('o-predal').value;
   const sluzhitel = document.getElementById('o-sluzhitel').value;
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
+  if (!currentOtchisliId && currentOtchisliId !== 0) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
+    const payload = { id: currentOtchisliId, dateOtchislyavane: data, predal: predal, sluzhitel: sluzhitel };
+    console.log('[FLOW_OTCHISLI] sending:', payload);
     const res = await fetch(FLOW_OTCHISLI, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ID: currentOtchisliId, ДатаОтчисляване: data, Предал: predal, СлужителМиТ: sluzhitel })
+      body: JSON.stringify(payload)
     });
-    if (res.ok || res.status === 202) { closeModal('modal-otchisli'); showToast('Машината е отчислена успешно!'); setTimeout(() => loadFromSharePoint(), 3000); }
-    else showToast('Грешка при отчисляване!', true);
-  } catch(e) { showToast('Грешка при връзка!', true); }
+    const resText = await res.text();
+    console.log('[FLOW_OTCHISLI] status:', res.status, 'body:', resText);
+    if (res.ok || res.status === 202) { closeModal('modal-otchisli'); showToast('Машината е отчислена успешно!'); setTimeout(() => loadFromSharePoint(), 4000); }
+    else { showToast('Грешка ' + res.status + ' при отчисляване! Виж конзолата.', true); }
+  } catch(e) { console.error('[FLOW_OTCHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
