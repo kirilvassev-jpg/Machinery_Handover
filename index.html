@@ -434,14 +434,14 @@ function formatDate(d) {
 
 function updateStats() {
   const total = spData.length;
-  const free = spData.filter(i => getStatus(i) === 'free').length;
-  const busy = spData.filter(i => getStatus(i) === 'busy').length;
+  const freeItems = spData.filter(i => getStatus(i) === 'free');
+  const busyItems = spData.filter(i => getStatus(i) === 'busy');
   document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-free').textContent = free;
-  document.getElementById('stat-busy').textContent = busy;
-  document.getElementById('stat-gen').textContent = spData.filter(i => f(i,'kat').includes('Генератор')).length;
-  document.getElementById('stat-vib').textContent = spData.filter(i => f(i,'kat').includes('Вибро') || f(i,'kat').includes('трамбов')).length;
-  document.getElementById('stat-komp').textContent = spData.filter(i => f(i,'kat').includes('Компресор')).length;
+  document.getElementById('stat-free').textContent = freeItems.length;
+  document.getElementById('stat-busy').textContent = busyItems.length;
+  document.getElementById('stat-gen').textContent = busyItems.filter(i => f(i,'kat').toLowerCase().includes('генератор')).length;
+  document.getElementById('stat-vib').textContent = busyItems.filter(i => { const k = f(i,'kat').toLowerCase(); return k.includes('вибро') || k.includes('трамбов'); }).length;
+  document.getElementById('stat-komp').textContent = busyItems.filter(i => f(i,'kat').toLowerCase().includes('компресор')).length;
 }
 
 async function loadFromSharePoint() {
