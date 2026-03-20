@@ -416,51 +416,27 @@ const MACHINES = [
   {kod:"6528",ime:"Грундомат 75 РК 75-6",kat:"Грундомати",cena:19.37},
 ];
 
+// spData = активни зачисления от SharePoint
+// spMap  = { kod -> spItem } за бързо търсене
 let spData = [];
+let spMap = {};
 let currentOtchisliId = null;
 
-// Полета от SharePoint OData
+// Извлича поле от SharePoint OData item
 function f(item, key) {
   const map = {
-    dz:  'OData__x0414__x0430__x0442__x0430__x04',
-    kod: 'OData__x041a__x043e__x0434_',
-    kat: 'OData__x041a__x0430__x0442__x0435__x04',
-    ime: 'OData__x041d__x0430__x0438__x043c__x04',
-    dir: 'OData__x041d__x0430__x043f__x0440__x04',
+    dz:    'OData__x0414__x0430__x0442__x0430__x04',
+    kod:   'OData__x041a__x043e__x0434_',
+    kat:   'OData__x041a__x0430__x0442__x0435__x04',
+    ime:   'OData__x041d__x0430__x0438__x043c__x04',
+    dir:   'OData__x041d__x0430__x043f__x0440__x04',
     priel: 'OData__x041f__x0440__x0438__x0435__x04',
     mesto: 'OData__x041c__x0435__x0441__x0442__x04',
-    cena: 'OData__x0426__x0435__x043d__x0430__x00',
+    cena:  'OData__x0426__x0435__x043d__x0430__x00',
   };
   const v = item[map[key]];
   if (v && typeof v === 'object') return v.Value || '';
   return v != null ? v : '';
-}
-
-const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
-
-function getOtchislDate(item) {
-  // Опитваме известни имена
-  const knownKeys = [
-    'OData__x0414__x0430__x0442__x0430__x041e',
-    'OData__x0414__x0430__x0442__x0430__x04_x041e',
-    'OData__x0414__x0430__x0442__x0430__x041',
-    'DataOtchislqvane'
-  ];
-  for (const k of knownKeys) {
-    if (item[k]) return item[k];
-  }
-  // Динамично търсим всяко OData поле, което започва с "Дата..." и НЕ Е полето за зачисляване
-  for (const k of Object.keys(item)) {
-    if (k.startsWith(DZ_KEY) && k !== DZ_KEY && item[k]) return item[k];
-  }
-  return '';
-}
-
-function getStatus(item) {
-  const hasDZ = f(item, 'dz');
-  const dot = getOtchislDate(item);
-  if (hasDZ && !dot) return 'busy';
-  return 'free';
 }
 
 function formatDate(d) {
@@ -468,16 +444,25 @@ function formatDate(d) {
   try { return new Date(d).toLocaleDateString('bg-BG'); } catch(e) { return d; }
 }
 
+function buildSpMap() {
+  spMap = {};
+  spData.forEach(item => {
+    const kod = f(item, 'kod');
+    if (kod) spMap[kod] = item;
+  });
+}
+
 function updateStats() {
-  const total = spData.length;
-  const freeItems = spData.filter(i => getStatus(i) === 'free');
-  const busyItems = spData.filter(i => getStatus(i) === 'busy');
+  const busyKods = Object.keys(spMap);
+  const total = MACHINES.length;
+  const busy = busyKods.length;
+  const free = total - busy;
   document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-free').textContent = freeItems.length;
-  document.getElementById('stat-busy').textContent = busyItems.length;
-  document.getElementById('stat-gen').textContent = busyItems.filter(i => f(i,'kat').toLowerCase().includes('генератор')).length;
-  document.getElementById('stat-vib').textContent = busyItems.filter(i => { const k = f(i,'kat').toLowerCase(); return k.includes('вибро') || k.includes('трамбов'); }).length;
-  document.getElementById('stat-komp').textContent = busyItems.filter(i => f(i,'kat').toLowerCase().includes('компресор')).length;
+  document.getElementById('stat-free').textContent = free;
+  document.getElementById('stat-busy').textContent = busy;
+  document.getElementById('stat-gen').textContent = busyKods.filter(k => { const m = MACHINES.find(x=>x.kod===k); return m && m.kat.toLowerCase().includes('генератор'); }).length;
+  document.getElementById('stat-vib').textContent = busyKods.filter(k => { const m = MACHINES.find(x=>x.kod===k); return m && (m.kat.toLowerCase().includes('вибро') || m.kat.toLowerCase().includes('трамбов')); }).length;
+  document.getElementById('stat-komp').textContent = busyKods.filter(k => { const m = MACHINES.find(x=>x.kod===k); return m && m.kat.toLowerCase().includes('компресор'); }).length;
 }
 
 async function loadFromSharePoint() {
@@ -497,20 +482,20 @@ async function loadFromSharePoint() {
     else if (data.body && Array.isArray(data.body)) spData = data.body;
     else if (data.body && Array.isArray(data.body.value)) spData = data.body.value;
     else spData = [];
-    console.log('[FLOW_READ] parsed items:', spData.length, spData.length > 0 ? 'First item keys: ' + Object.keys(spData[0]).join(', ') : '');
+    console.log('[FLOW_READ] заети машини (записи в SP):', spData.length);
   } catch(e) {
     console.error('[FLOW_READ] error:', e);
     document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + e.message + '</div>';
     return;
   }
+  buildSpMap();
   renderTable();
   updateStats();
 }
 
 function showDebug() {
   document.getElementById('debug-count').textContent = spData.length;
-  const sample = spData.slice(0, 3);
-  document.getElementById('debug-content').textContent = JSON.stringify(sample, null, 2);
+  document.getElementById('debug-content').textContent = JSON.stringify(spData.slice(0, 3), null, 2);
   document.getElementById('modal-debug').classList.add('open');
 }
 
@@ -522,7 +507,9 @@ function filterMachineSelect() {
   const kat = document.getElementById('z-filter-kat').value;
   const sel = document.getElementById('z-mashina');
   sel.innerHTML = '<option value="">-- Изберете машина --</option>';
-  (kat ? MACHINES.filter(m => m.kat === kat) : MACHINES).forEach(m => {
+  // Показва само СВОБОДНИ машини за зачисляване
+  const available = (kat ? MACHINES.filter(m => m.kat === kat) : MACHINES).filter(m => !spMap[m.kod]);
+  available.forEach(m => {
     const o = document.createElement('option');
     o.value = m.kod;
     o.textContent = m.kod + ' — ' + m.ime;
@@ -549,14 +536,16 @@ function renderTable() {
   const st = document.getElementById('filter-status').value;
   const dir = document.getElementById('filter-dir').value;
 
-  const data = spData.filter(item => {
-    const kod = f(item,'kod').toLowerCase();
-    const ime = f(item,'ime').toLowerCase();
-    const status = getStatus(item);
-    return (!q || kod.includes(q) || ime.includes(q)) &&
-           (!cat || f(item,'kat') === cat) &&
+  // Итерираме ВСИЧКИ машини, статусът се определя от spMap
+  const data = MACHINES.filter(m => {
+    const isBusy = !!spMap[m.kod];
+    const status = isBusy ? 'busy' : 'free';
+    const spItem = spMap[m.kod];
+    const spDir = spItem ? (f(spItem,'dir') || '') : '';
+    return (!q || m.kod.toLowerCase().includes(q) || m.ime.toLowerCase().includes(q)) &&
+           (!cat || m.kat === cat) &&
            (!st || status === st) &&
-           (!dir || f(item,'dir') === dir);
+           (!dir || spDir === dir);
   });
 
   document.getElementById('table-count').textContent = data.length + ' записа';
@@ -569,39 +558,35 @@ function renderTable() {
   let html = '<div style="overflow-x:auto"><table><thead><tr>' +
     '<th>Код</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
     '<th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
-    '<th>Дата зачисл.</th><th>Дата отчисл.</th><th>Дни</th><th>Сума</th><th>Действие</th>' +
+    '<th>Дата зачисл.</th><th>Действие</th>' +
     '</tr></thead><tbody>';
 
-  data.forEach(item => {
-    const status = getStatus(item);
-    const badge = status === 'free'
-      ? '<span class="status-badge status-free">Свободна</span>'
-      : '<span class="status-badge status-busy">Заета</span>';
-    const kod = f(item,'kod') || '—';
-    const ime = f(item,'ime') || '—';
-    const kat = f(item,'kat') || '—';
-    const dir2 = f(item,'dir') || '—';
-    const priel = f(item,'priel') || '—';
-    const mesto = f(item,'mesto') || '—';
-    const dz = formatDate(f(item,'dz'));
-    const dotRaw = getOtchislDate(item);
-    const dot = dotRaw ? formatDate(dotRaw) : '—';
-    const dni = '—';
-    const suma = '—';
-    const safeIme = ime.replace(/'/g,"\\'");
-    const safeKod = kod.replace(/'/g,"\\'");
-    const itemId = item.ID != null ? item.ID : item.id;
+  data.forEach(m => {
+    const isBusy = !!spMap[m.kod];
+    const spItem = spMap[m.kod];
+    const badge = isBusy
+      ? '<span class="status-badge status-busy">Заета</span>'
+      : '<span class="status-badge status-free">Свободна</span>';
+    const dir2 = spItem ? (f(spItem,'dir') || '—') : '—';
+    const priel = spItem ? (f(spItem,'priel') || '—') : '—';
+    const mesto = spItem ? (f(spItem,'mesto') || '—') : '—';
+    const dz = spItem ? formatDate(f(spItem,'dz')) : '—';
+    const safeIme = m.ime.replace(/'/g,"\\'");
+    const safeKod = m.kod.replace(/'/g,"\\'");
 
-    const btn = status === 'free'
-      ? '<button class="action-btn btn-zachisli" onclick="openZachisliForItem(' + itemId + ',\'' + safeKod + '\')">Зачисли</button>'
-      : '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + itemId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>';
+    let btn;
+    if (isBusy) {
+      const spId = spItem.ID != null ? spItem.ID : spItem.id;
+      btn = '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>';
+    } else {
+      btn = '<button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button>';
+    }
 
-    html += '<tr><td><strong>' + kod + '</strong></td><td>' + ime + '</td>' +
-      '<td><span class="cat-badge">' + kat + '</span></td><td>' + badge + '</td>' +
+    html += '<tr><td><strong>' + m.kod + '</strong></td><td>' + m.ime + '</td>' +
+      '<td><span class="cat-badge">' + m.kat + '</span></td><td>' + badge + '</td>' +
       '<td style="font-size:12px;">' + dir2 + '</td><td style="font-size:12px;">' + priel + '</td>' +
       '<td style="font-size:12px;">' + mesto + '</td><td style="font-size:12px;">' + dz + '</td>' +
-      '<td style="font-size:12px;">' + dot + '</td><td style="text-align:center;">' + dni + '</td>' +
-      '<td class="price-tag">' + suma + '</td><td>' + btn + '</td></tr>';
+      '<td>' + btn + '</td></tr>';
   });
 
   html += '</tbody></table></div>';
@@ -618,10 +603,12 @@ function showZachislyavane() {
   document.getElementById('modal-zachisli').classList.add('open');
 }
 
-function openZachisliForItem(id, kod) {
+function openZachisliForKod(kod) {
   showZachislyavane();
-  document.getElementById('z-mashina').value = kod;
-  onMachinaSelect();
+  setTimeout(() => {
+    document.getElementById('z-mashina').value = kod;
+    onMachinaSelect();
+  }, 0);
 }
 
 async function submitZachislyavane() {
@@ -632,6 +619,7 @@ async function submitZachislyavane() {
   const mesto = document.getElementById('z-mesto').value;
   const sluzhitel = document.getElementById('z-sluzhitel').value;
   if (!kod || !data || !dir || !priel || !mesto) { showToast('Попълнете всички задължителни полета!', true); return; }
+  if (spMap[kod]) { showToast('Тази машина вече е зачислена!', true); return; }
   const m = MACHINES.find(x => x.kod === kod);
   try {
     const payload = { kod: kod, ime: m ? m.ime : '', kategoria: m ? m.kat : '', cena: m ? m.cena : 0, dateZachislyavane: data, napravlenie: dir, priel: priel, mesto: mesto, sluzhitel: sluzhitel };
@@ -662,7 +650,7 @@ async function submitOtchislyavane() {
   const predal = document.getElementById('o-predal').value;
   const sluzhitel = document.getElementById('o-sluzhitel').value;
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
-  if (!currentOtchisliId && currentOtchisliId !== 0) { showToast('Грешка: липсва ID на машината!', true); return; }
+  if (currentOtchisliId == null) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
     const payload = { id: currentOtchisliId, dateOtchislyavane: data, predal: predal, sluzhitel: sluzhitel };
     console.log('[FLOW_OTCHISLI] sending:', payload);
