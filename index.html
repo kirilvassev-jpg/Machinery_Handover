@@ -416,13 +416,29 @@ function f(item, key) {
   return v != null ? v : '';
 }
 
+const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
+
+function getOtchislDate(item) {
+  // Опитваме известни имена
+  const knownKeys = [
+    'OData__x0414__x0430__x0442__x0430__x041e',
+    'OData__x0414__x0430__x0442__x0430__x04_x041e',
+    'OData__x0414__x0430__x0442__x0430__x041',
+    'DataOtchislqvane'
+  ];
+  for (const k of knownKeys) {
+    if (item[k]) return item[k];
+  }
+  // Динамично търсим всяко OData поле, което започва с "Дата..." и НЕ Е полето за зачисляване
+  for (const k of Object.keys(item)) {
+    if (k.startsWith(DZ_KEY) && k !== DZ_KEY && item[k]) return item[k];
+  }
+  return '';
+}
+
 function getStatus(item) {
   const hasDZ = f(item, 'dz');
-  // Машината е заета ако има дата зачисляване и НЯМА дата отчисляване
-  // Дата отчисляване не е в текущите данни - проверяваме Title полето
-  const dot = item['OData__x0414__x0430__x0442__x0430__x041e'] || 
-              item['OData__x0414__x0430__x0442__x0430__x04_x041e'] || 
-              item['DataOtchislqvane'] || '';
+  const dot = getOtchislDate(item);
   if (hasDZ && !dot) return 'busy';
   return 'free';
 }
@@ -534,15 +550,17 @@ function renderTable() {
     const priel = f(item,'priel') || '—';
     const mesto = f(item,'mesto') || '—';
     const dz = formatDate(f(item,'dz'));
-    const dot = '—';
+    const dotRaw = getOtchislDate(item);
+    const dot = dotRaw ? formatDate(dotRaw) : '—';
     const dni = '—';
     const suma = '—';
     const safeIme = ime.replace(/'/g,"\\'");
     const safeKod = kod.replace(/'/g,"\\'");
+    const itemId = item.ID != null ? item.ID : item.id;
 
     const btn = status === 'free'
-      ? '<button class="action-btn btn-zachisli" onclick="openZachisliForItem(' + item.ID + ',\'' + safeKod + '\')">Зачисли</button>'
-      : '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + item.ID + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>';
+      ? '<button class="action-btn btn-zachisli" onclick="openZachisliForItem(' + itemId + ',\'' + safeKod + '\')">Зачисли</button>'
+      : '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + itemId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>';
 
     html += '<tr><td><strong>' + kod + '</strong></td><td>' + ime + '</td>' +
       '<td><span class="cat-badge">' + kat + '</span></td><td>' + badge + '</td>' +
