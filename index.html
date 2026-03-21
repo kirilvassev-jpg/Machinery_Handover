@@ -446,7 +446,13 @@ function formatDate(d) {
 
 function buildSpMap() {
   spMap = {};
+  const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
   spData.forEach(item => {
+    // Ако има попълнена дата на отчисляване - машината е свободна, пропускаме
+    const isOtchislena = Object.keys(item).some(k =>
+      k.startsWith(DZ_KEY) && k !== DZ_KEY && item[k]
+    );
+    if (isOtchislena) return;
     const kod = f(item, 'kod');
     if (kod) spMap[kod] = item;
   });
