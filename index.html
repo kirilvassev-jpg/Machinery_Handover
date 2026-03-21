@@ -91,13 +91,10 @@
 </div>
 
 <div class="main">
-  <div class="stats">
+  <div class="stats" id="stats-container">
     <div class="stat"><div class="stat-label">Общо машини</div><div class="stat-value" id="stat-total">-</div></div>
     <div class="stat free"><div class="stat-label">Свободни</div><div class="stat-value" id="stat-free">-</div></div>
     <div class="stat busy"><div class="stat-label">Заети</div><div class="stat-value" id="stat-busy">-</div></div>
-    <div class="stat"><div class="stat-label">Генератори</div><div class="stat-value" id="stat-gen">-</div></div>
-    <div class="stat"><div class="stat-label">Виброплочи/Трамбовки</div><div class="stat-value" id="stat-vib">-</div></div>
-    <div class="stat"><div class="stat-label">Компресори</div><div class="stat-value" id="stat-komp">-</div></div>
   </div>
 
   <div class="filters">
@@ -466,9 +463,24 @@ function updateStats() {
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-free').textContent = free;
   document.getElementById('stat-busy').textContent = busy;
-  document.getElementById('stat-gen').textContent = busyKods.filter(k => { const m = MACHINES.find(x=>x.kod===k); return m && m.kat.toLowerCase().includes('генератор'); }).length;
-  document.getElementById('stat-vib').textContent = busyKods.filter(k => { const m = MACHINES.find(x=>x.kod===k); return m && (m.kat.toLowerCase().includes('вибро') || m.kat.toLowerCase().includes('трамбов')); }).length;
-  document.getElementById('stat-komp').textContent = busyKods.filter(k => { const m = MACHINES.find(x=>x.kod===k); return m && m.kat.toLowerCase().includes('компресор'); }).length;
+
+  // Динамични карти по категория — само тези с поне 1 заета машина
+  const katCount = {};
+  busyKods.forEach(k => {
+    const m = MACHINES.find(x => x.kod === k);
+    if (m) katCount[m.kat] = (katCount[m.kat] || 0) + 1;
+  });
+
+  const container = document.getElementById('stats-container');
+  // Премахни старите динамични карти
+  container.querySelectorAll('.stat-dynamic').forEach(el => el.remove());
+  // Добави нови
+  Object.entries(katCount).sort((a,b) => b[1]-a[1]).forEach(([kat, count]) => {
+    const div = document.createElement('div');
+    div.className = 'stat stat-dynamic';
+    div.innerHTML = '<div class="stat-label">' + kat + '</div><div class="stat-value" style="font-size:22px;color:#EE1C25">' + count + '</div>';
+    container.appendChild(div);
+  });
 }
 
 async function loadFromSharePoint() {
