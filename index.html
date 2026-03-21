@@ -187,6 +187,7 @@
         <div class="form-group"><label>Служител МиТ</label><input type="text" id="z-sluzhitel" placeholder="Три имена"></div>
         <div class="form-group"><label>Цена (мсм/ден)</label><input type="text" id="z-cena" class="readonly" readonly></div>
         <div class="form-group"><label>Категория</label><input type="text" id="z-kategoria" class="readonly" readonly></div>
+        <div class="form-group full"><label>Забележка</label><textarea id="z-zabelezhka" rows="3" placeholder="Допълнителни бележки (незадължително)"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -617,6 +618,7 @@ function showZachislyavane() {
   document.getElementById('z-priel').value = '';
   document.getElementById('z-mesto').value = '';
   document.getElementById('z-sluzhitel').value = '';
+  document.getElementById('z-zabelezhka').value = '';
   document.getElementById('modal-zachisli').classList.add('open');
 }
 
@@ -635,11 +637,12 @@ async function submitZachislyavane() {
   const priel = document.getElementById('z-priel').value;
   const mesto = document.getElementById('z-mesto').value;
   const sluzhitel = document.getElementById('z-sluzhitel').value;
+  const zabelezhka = document.getElementById('z-zabelezhka').value;
   if (!kod || !data || !dir || !priel || !mesto) { showToast('Попълнете всички задължителни полета!', true); return; }
   if (spMap[kod]) { showToast('Тази машина вече е зачислена!', true); return; }
   const m = MACHINES.find(x => x.kod === kod);
   try {
-    const payload = { kod: kod, ime: m ? m.ime : '', kategoria: m ? m.kat : '', cena: m ? m.cena : 0, dateZachislyavane: data, napravlenie: dir, priel: priel, mesto: mesto, sluzhitel: sluzhitel };
+    const payload = { kod: kod, ime: m ? m.ime : '', kategoria: m ? m.kat : '', cena: m ? m.cena : 0, dateZachislyavane: data, napravlenie: dir, priel: priel, mesto: mesto, sluzhitel: sluzhitel, zabelezhka: zabelezhka };
     console.log('[FLOW_ZACHISLI] sending:', payload);
     const res = await fetch(FLOW_ZACHISLI, {
       method: 'POST',
