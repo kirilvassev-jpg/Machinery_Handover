@@ -10,10 +10,11 @@
   .header { background: #0033CC; }
   .header-top { background: #EE1C25; height: 8px; }
   .header-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
-  .header-logo { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 2px; }
-  .header-logo span { color: #fff; font-size: 12px; display: block; letter-spacing: 4px; font-weight: 400; }
+  .header-logo { display: flex; align-items: center; }
+  .header-logo img { height: 48px; width: auto; }
   .header-bottom { background: #EE1C25; height: 8px; }
-  .header-title { color: #fff; font-size: 13px; font-weight: 600; opacity: 0.9; text-align: center; flex: 1; padding: 0 20px; }
+  .header-title { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 1px; text-align: center; flex: 1; padding: 0 20px; }
+  .header-title span { color: #fff; font-size: 12px; display: block; letter-spacing: 4px; font-weight: 400; }
   .header-nav { display: flex; gap: 8px; }
   .nav-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
   .nav-btn.primary { background: #EE1C25; border-color: #EE1C25; }
@@ -82,8 +83,8 @@
 <div class="header">
   <div class="header-top"></div>
   <div class="header-main">
-    <div class="header-logo">RAICOMMERCE<span>CONSTRUCTION</span></div>
-    <div class="header-title">Приемно-предаване на машини и оборудване (Механизация и транспорт)</div>
+    <div class="header-logo"><img src="logo.png" alt="Raicommerce Construction"></div>
+    <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>МЕХАНИЗАЦИЯ И ТРАНСПОРТ</span></div>
     <div class="header-nav">
       <button class="nav-btn primary" onclick="showZachislyavane()">+ Зачисляване</button>
     </div>
