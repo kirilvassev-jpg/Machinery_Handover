@@ -76,6 +76,40 @@
   .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
   .cat-badge { font-size: 11px; background: #e8eeff; color: #0033CC; padding: 2px 8px; border-radius: 10px; }
   .price-tag { font-size: 11px; color: #0033CC; font-weight: 600; }
+
+  /* LOGIN MODAL */
+  .login-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,51,0.88); z-index: 9999; align-items: center; justify-content: center; }
+  .login-box { background: #fff; border-radius: 12px; width: 500px; max-width: 95vw; box-shadow: 0 16px 56px rgba(0,0,51,0.35); overflow: hidden; }
+  .login-header { background: #0033CC; padding: 28px 24px 22px; text-align: center; border-bottom: 5px solid #EE1C25; }
+  .login-header h2 { color: #fff; font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
+  .login-header p { color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; }
+  .login-body { padding: 28px 28px 24px; }
+  .login-choose-label { font-size: 12px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; text-align: center; }
+  .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .role-card { border: 2px solid #e0e0e0; border-radius: 10px; padding: 22px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s, transform 0.15s; user-select: none; }
+  .role-card:hover { transform: translateY(-2px); }
+  .role-card.admin-card:hover { border-color: #0033CC; background: #f0f4ff; }
+  .role-card.guest-card:hover { border-color: #27ae60; background: #f0faf4; }
+  .role-card.selected { border-width: 2px; }
+  .role-card.admin-card.selected { border-color: #0033CC; background: #f0f4ff; }
+  .role-icon { font-size: 38px; margin-bottom: 10px; line-height: 1; }
+  .role-title { font-size: 15px; font-weight: 700; color: #222; }
+  .role-desc { font-size: 11px; color: #777; margin-top: 5px; line-height: 1.4; }
+  .login-pass-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee; display: none; }
+  .login-pass-section label { font-size: 12px; font-weight: 600; color: #444; display: block; margin-bottom: 6px; }
+  .login-pass-row { display: flex; gap: 8px; }
+  .login-pass-row input { flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+  .login-pass-row input:focus { border-color: #0033CC; }
+  .login-pass-row button { padding: 10px 18px; background: #0033CC; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .login-pass-row button:hover { background: #0022aa; }
+  .login-error { color: #EE1C25; font-size: 12px; margin-top: 8px; display: none; }
+  .login-guest-btn { margin-top: 16px; display: none; width: 100%; padding: 11px; background: #27ae60; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .login-guest-btn:hover { background: #219150; }
+  .role-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 14px; font-size: 12px; font-weight: 600; }
+  .role-badge.admin { background: #e8eeff; color: #0033CC; }
+  .role-badge.guest { background: #d4edda; color: #155724; }
+  .logout-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .logout-btn:hover { background: rgba(255,255,255,0.25); }
 </style>
 </head>
 <body>
@@ -90,8 +124,10 @@
       </span>
     </div>
     <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>МЕХАНИЗАЦИЯ И ТРАНСПОРТ</span></div>
-    <div class="header-nav">
-      <button class="nav-btn primary" onclick="showZachislyavane()">+ Зачисляване</button>
+    <div class="header-nav" id="header-nav">
+      <span id="role-indicator" style="display:none;"></span>
+      <button class="nav-btn primary" id="btn-zachislyavane" style="display:none;" onclick="showZachislyavane()">+ Зачисляване</button>
+      <button class="logout-btn" id="btn-logout" style="display:none;" onclick="doLogout()">Изход</button>
     </div>
   </div>
   <div class="header-bottom"></div>
@@ -229,10 +265,118 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- LOGIN MODAL -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-header">
+      <h2>ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ</h2>
+      <p>Механизация и транспорт</p>
+    </div>
+    <div class="login-body">
+      <div class="login-choose-label">Влезте като:</div>
+      <div class="role-cards">
+        <div class="role-card admin-card" id="card-admin" onclick="selectRole('admin')">
+          <div class="role-icon">🔐</div>
+          <div class="role-title">Администратор</div>
+          <div class="role-desc">Зачисляване и отчисляване на машини</div>
+        </div>
+        <div class="role-card guest-card" id="card-guest" onclick="selectRole('guest')">
+          <div class="role-icon">👁️</div>
+          <div class="role-title">Гост</div>
+          <div class="role-desc">Преглед на наличността (само четене)</div>
+        </div>
+      </div>
+
+      <div class="login-pass-section" id="login-pass-section">
+        <label>Парола за администратор</label>
+        <div class="login-pass-row">
+          <input type="password" id="admin-password" placeholder="Въведете парола..." onkeydown="if(event.key==='Enter')tryLoginAdmin()">
+          <button onclick="tryLoginAdmin()">Вход</button>
+        </div>
+        <div class="login-error" id="login-error">Грешна парола. Опитайте отново.</div>
+      </div>
+
+      <button class="login-guest-btn" id="login-guest-btn" onclick="loginAsGuest()">Влез като гост →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/07dc0b5505724d4bb8ea8bcc01215a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=apdLUQR8CW4pzuioH5DaobPAC2XvKeO66mSMsOxijdw';
 const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
 const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
+
+// --- AUTH ---
+// Паролата осигурява само потребителски контрол (UI-ниво). 
+// Промяна тук изисква актуализация на файла.
+const _AP = atob('UmFpQ29uMjAyNCE='); // RaiCon2024!
+let currentRole = null; // 'admin' | 'guest'
+
+function selectRole(role) {
+  document.getElementById('card-admin').classList.remove('selected');
+  document.getElementById('card-guest').classList.remove('selected');
+  document.getElementById('login-pass-section').style.display = 'none';
+  document.getElementById('login-guest-btn').style.display = 'none';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('admin-password').value = '';
+
+  if (role === 'admin') {
+    document.getElementById('card-admin').classList.add('selected');
+    document.getElementById('login-pass-section').style.display = 'block';
+    setTimeout(() => document.getElementById('admin-password').focus(), 50);
+  } else {
+    document.getElementById('card-guest').classList.add('selected');
+    document.getElementById('login-guest-btn').style.display = 'block';
+  }
+}
+
+function tryLoginAdmin() {
+  const pw = document.getElementById('admin-password').value;
+  if (pw === _AP) {
+    currentRole = 'admin';
+    document.getElementById('login-overlay').style.display = 'none';
+    applyRoleUI();
+    loadFromSharePoint();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('admin-password').value = '';
+    document.getElementById('admin-password').focus();
+  }
+}
+
+function loginAsGuest() {
+  currentRole = 'guest';
+  document.getElementById('login-overlay').style.display = 'none';
+  applyRoleUI();
+  loadFromSharePoint();
+}
+
+function applyRoleUI() {
+  const isAdmin = currentRole === 'admin';
+  const ri = document.getElementById('role-indicator');
+  ri.style.display = 'inline-flex';
+  ri.innerHTML = isAdmin
+    ? '<span class="role-badge admin">🔐 Администратор</span>'
+    : '<span class="role-badge guest">👁️ Гост</span>';
+  document.getElementById('btn-zachislyavane').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('btn-logout').style.display = 'inline-block';
+}
+
+function doLogout() {
+  currentRole = null;
+  document.getElementById('role-indicator').style.display = 'none';
+  document.getElementById('btn-zachislyavane').style.display = 'none';
+  document.getElementById('btn-logout').style.display = 'none';
+  // Ресет на login формата
+  document.getElementById('card-admin').classList.remove('selected');
+  document.getElementById('card-guest').classList.remove('selected');
+  document.getElementById('login-pass-section').style.display = 'none';
+  document.getElementById('login-guest-btn').style.display = 'none';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('admin-password').value = '';
+  document.getElementById('login-overlay').style.display = 'flex';
+}
+// --- END AUTH ---
 
 const MACHINES = [
   {kod:"1145",ime:"Генератор монофазен KOHLER Perform 6500 1145",kat:"Генератори",cena:6.87},
@@ -584,7 +728,7 @@ function renderTable() {
   let html = '<div style="overflow-x:auto"><table><thead><tr>' +
     '<th>Код</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
     '<th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
-    '<th>Дата зачисл.</th><th>Действие</th>' +
+    '<th>Дата зачисл.</th>' + (currentRole === 'admin' ? '<th>Действие</th>' : '') +
     '</tr></thead><tbody>';
 
   data.forEach(m => {
@@ -600,19 +744,21 @@ function renderTable() {
     const safeIme = m.ime.replace(/'/g,"\\'");
     const safeKod = m.kod.replace(/'/g,"\\'");
 
-    let btn;
-    if (isBusy) {
-      const spId = spItem.ID != null ? spItem.ID : spItem.id;
-      btn = '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>';
-    } else {
-      btn = '<button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button>';
+    let btn = '';
+    if (currentRole === 'admin') {
+      if (isBusy) {
+        const spId = spItem.ID != null ? spItem.ID : spItem.id;
+        btn = '<td><button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button></td>';
+      } else {
+        btn = '<td><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
+      }
     }
 
     html += '<tr><td><strong>' + m.kod + '</strong></td><td>' + m.ime + '</td>' +
       '<td><span class="cat-badge">' + m.kat + '</span></td><td>' + badge + '</td>' +
       '<td style="font-size:12px;">' + dir2 + '</td><td style="font-size:12px;">' + priel + '</td>' +
       '<td style="font-size:12px;">' + mesto + '</td><td style="font-size:12px;">' + dz + '</td>' +
-      '<td>' + btn + '</td></tr>';
+      btn + '</tr>';
   });
 
   html += '</tbody></table></div>';
@@ -620,6 +766,7 @@ function renderTable() {
 }
 
 function showZachislyavane() {
+  if (currentRole !== 'admin') return;
   filterMachineSelect();
   document.getElementById('z-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('z-napravlenie').value = '';
@@ -704,7 +851,7 @@ function showToast(msg, err) {
 }
 
 filterMachineSelect();
-loadFromSharePoint();
+// Страницата се зарежда след успешен вход
 </script>
 </body>
 </html>
