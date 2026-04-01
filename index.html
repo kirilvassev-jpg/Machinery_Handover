@@ -149,6 +149,7 @@
       <option>Хидравлични станции</option><option>Хидравлични чукове</option><option>Асфалторезачки</option>
       <option>Заваръчни машини</option><option>Машини за ел. муфи</option><option>Грундомати</option>
       <option>Укрепващи системи</option><option>Пробивни машини</option>
+      <option>Багери</option>
     </select>
     <select id="filter-status" onchange="renderTable()">
       <option value="">Всички статуси</option>
@@ -208,6 +209,7 @@
             <option>Хидравлични станции</option><option>Хидравлични чукове</option><option>Асфалторезачки</option>
             <option>Заваръчни машини</option><option>Машини за ел. муфи</option><option>Грундомати</option>
             <option>Укрепващи системи</option><option>Пробивни машини</option>
+            <option>Багери</option>
           </select>
         </div>
         <div class="form-group full">
@@ -563,6 +565,49 @@ const MACHINES = [
   {kod:"6519",ime:"Грундомат 75 РК 75-4",kat:"Грундомати",cena:19.37},
   {kod:"6520",ime:"Грундомат 75 РК 75-5",kat:"Грундомати",cena:19.37},
   {kod:"6528",ime:"Грундомат 75 РК 75-6",kat:"Грундомати",cena:19.37},
+  {kod:"040457",ime:"JCB 3 CX 14H5WA C 19341",kat:"Багери",cena:208.21},
+  {kod:"040456",ime:"JCB 3 CX 14H5WA C 19342",kat:"Багери",cena:208.21},
+  {kod:"040458",ime:"JCB 3 CX 14H5WA C 19687",kat:"Багери",cena:208.21},
+  {kod:"040459",ime:"JCB 3 CX 14H5WA C 19688",kat:"Багери",cena:208.21},
+  {kod:"040444",ime:"JCB 3 CX 14MFWA C 13071",kat:"Багери",cena:208.21},
+  {kod:"040446",ime:"JCB 3 CX 14MFWA C 15449",kat:"Багери",cena:208.21},
+  {kod:"040447",ime:"JCB 3 CX 14MFWA C 15450",kat:"Багери",cena:208.21},
+  {kod:"040450",ime:"JCB 3 CX 14MFWA C 15906",kat:"Багери",cena:208.21},
+  {kod:"040448",ime:"JCB 3 CX 14MFWA C 15907",kat:"Багери",cena:208.21},
+  {kod:"040449",ime:"JCB 3 CX 14MFWA C 15908",kat:"Багери",cena:208.21},
+  {kod:"040451",ime:"JCB 3 CX 14MFWA C 17212",kat:"Багери",cena:208.21},
+  {kod:"040452",ime:"JCB 3 CX 14MFWA C 17213",kat:"Багери",cena:208.21},
+  {kod:"040453",ime:"JCB 3 CX 14MFWA C 17484",kat:"Багери",cena:208.21},
+  {kod:"040454",ime:"JCB 3 CX 14MFWA C 17485",kat:"Багери",cena:208.21},
+  {kod:"040461",ime:"JCB 3 CX 23H54AR C22926",kat:"Багери",cena:208.21},
+  {kod:"040460",ime:"JCB 3 CX 23H54CR C22925",kat:"Багери",cena:208.21},
+  {kod:"040412",ime:"JCB 3 CX SM C 07477",kat:"Багери",cena:208.21},
+  {kod:"040413",ime:"JCB 3 CX SM C 09228",kat:"Багери",cena:208.21},
+  {kod:"040441",ime:"JCB 3 CX SM C 10118",kat:"Багери",cena:208.21},
+  {kod:"040442",ime:"JCB 3 CX SM C 10119",kat:"Багери",cena:208.21},
+  {kod:"040414",ime:"JCB 3 CX SM C 10201",kat:"Багери",cena:208.21},
+  {kod:"040415",ime:"JCB 3 CX SM C 10202",kat:"Багери",cena:208.21},
+  {kod:"040606",ime:"JCB 8030 ZTS C 04826",kat:"Багери",cena:159.94},
+  {kod:"040601",ime:"JCB 8035 ZTS C 11226",kat:"Багери",cena:159.94},
+  {kod:"4108",ime:"MAN TTM CB2966PH Вакуум машина",kat:"Багери",cena:295.49},
+  {kod:"040462",ime:"Sany VF1804/SW115 C 20180",kat:"Багери",cena:70.20},
+  {kod:"040533",ime:"Гел SL 4640 C 07245",kat:"Багери",cena:146.56},
+  {kod:"040929",ime:"Каналокопател T 655 III C 04936",kat:"Багери",cena:644.87},
+  {kod:"040407",ime:"Катерпилар 428 E C 06396",kat:"Багери",cena:208.21},
+  {kod:"040408",ime:"Катерпилар 428 E C 06397",kat:"Багери",cena:208.21},
+  {kod:"040143",ime:"Комацу PC 350 NL-8 C 03190",kat:"Багери",cena:475.23},
+  {kod:"040123",ime:"Комацу PC 350 NL-8 C 03475",kat:"Багери",cena:475.23},
+  {kod:"040318",ime:"Комацу PW 180-7E0 C 02303",kat:"Багери",cena:285.81},
+  {kod:"040455",ime:"Комацу WA 100 M-8 C 18757",kat:"Багери",cena:180.80},
+  {kod:"040402",ime:"Комацу WB 93 R-5 C 01937",kat:"Багери",cena:208.21},
+  {kod:"0501",ime:"Ставострои BB 100 C 03588",kat:"Багери",cena:241.00},
+  {kod:"040254",ime:"Хюндай HX 145 LCR C 13385",kat:"Багери",cena:262.14},
+  {kod:"040255",ime:"Хюндай HX 145 LCR C 17286",kat:"Багери",cena:262.14},
+  {kod:"040256",ime:"Хюндай HX 145 LCR C 18836",kat:"Багери",cena:262.14},
+  {kod:"040226",ime:"Хюндай R 140 LC - 7 C 03478",kat:"Багери",cena:262.14},
+  {kod:"041020",ime:"Хюндай R 210 LC - 7 C 03201",kat:"Багери",cena:298.38},
+  {kod:"040238",ime:"Хюндай R145 LCR - 9A C 10699",kat:"Багери",cena:262.14},
+  {kod:"041034",ime:"Хюндай R220 LC - 9A C 08663",kat:"Багери",cena:298.38},
 ];
 
 // spData = активни зачисления от SharePoint
