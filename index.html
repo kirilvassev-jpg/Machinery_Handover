@@ -889,7 +889,7 @@ async function submitZachislyavane() {
   if (spMap[kod]) { showToast('Тази машина вече е зачислена!', true); return; }
   const m = MACHINES.find(x => x.kod === kod);
   try {
-    const payload = { "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Забележка": zabelezhka };
+    const payload = { "secret": "RC-MIT-2024-xK9p", "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Забележка": zabelezhka };
     console.log('[FLOW_ZACHISLI] sending:', payload);
     const res = await fetch(FLOW_ZACHISLI, {
       method: 'POST',
@@ -919,7 +919,7 @@ async function submitOtchislyavane() {
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
   if (currentOtchisliId == null) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
-    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel };
+    const payload = { "secret": "RC-MIT-2024-xK9p", ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel };
     console.log('[FLOW_OTCHISLI] sending:', payload);
     const res = await fetch(FLOW_OTCHISLI, {
       method: 'POST',
