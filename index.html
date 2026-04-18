@@ -142,7 +142,7 @@
 
   <div class="filters">
     <span class="filter-label">Филтри:</span>
-    <input type="text" id="search" placeholder="Търсене по код или наименование..." oninput="renderTable()">
+    <input type="text" id="search" placeholder="Търсене по код WS или наименование..." oninput="renderTable()">
     <select id="filter-cat" onchange="renderTable()">
       <option value="">Всички категории</option>
       <option>Асфалторезачки</option><option>Багери</option><option>Виброплочи и трамбовки</option>
@@ -677,6 +677,14 @@ function formatDate(d) {
   try { return new Date(d).toLocaleDateString('bg-BG'); } catch(e) { return d; }
 }
 
+function getMachineDN(m) {
+  if (m.kat === 'Багери') {
+    const match = m.ime.match(/[CС]\s*(\d+)$/);
+    return match ? 'C ' + match[1] : '—';
+  }
+  return m.ime.split(' ')[0];
+}
+
 function buildSpMap() {
   spMap = {};
   const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
@@ -780,7 +788,7 @@ function onMachinaSelect() {
   if (m) {
     document.getElementById('z-cena').value = m.cena.toFixed(2) + ' лв/ден';
     document.getElementById('z-kategoria').value = m.kat;
-    document.getElementById('zachisli-info').innerHTML = '<strong>' + m.ime + '</strong><span>Код: ' + m.kod + ' | ' + m.kat + ' | ' + m.cena.toFixed(2) + ' лв/ден</span>';
+    document.getElementById('zachisli-info').innerHTML = '<strong>' + m.ime + '</strong><span>Код WS: ' + m.kod + ' | ' + m.kat + ' | ' + m.cena.toFixed(2) + ' лв/ден</span>';
   }
 }
 
@@ -810,7 +818,7 @@ function renderTable() {
   }
 
   let html = '<div style="overflow-x:auto"><table><thead><tr>' +
-    '<th>Код</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
+    '<th>Инв./ДН №</th><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
     '<th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
     '<th>Дата зачисл.</th>' + (currentRole === 'admin' ? '<th>Действие</th>' : '') +
     '</tr></thead><tbody>';
@@ -838,7 +846,7 @@ function renderTable() {
       }
     }
 
-    html += '<tr><td><strong>' + m.kod + '</strong></td><td>' + m.ime + '</td>' +
+    html += '<tr><td><strong>' + getMachineDN(m) + '</strong></td><td>' + m.kod + '</td><td>' + m.ime + '</td>' +
       '<td><span class="cat-badge">' + m.kat + '</span></td><td>' + badge + '</td>' +
       '<td style="font-size:12px;">' + dir2 + '</td><td style="font-size:12px;">' + priel + '</td>' +
       '<td style="font-size:12px;">' + mesto + '</td><td style="font-size:12px;">' + dz + '</td>' +
@@ -897,7 +905,7 @@ async function submitZachislyavane() {
 
 function openOtchisli(id, ime, kod) {
   currentOtchisliId = id;
-  document.getElementById('otchisli-info').innerHTML = '<strong>' + ime + '</strong><span>Код: ' + kod + '</span>';
+  document.getElementById('otchisli-info').innerHTML = '<strong>' + ime + '</strong><span>Код WS: ' + kod + '</span>';
   document.getElementById('o-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('o-predal').value = '';
   document.getElementById('o-sluzhitel').value = '';
