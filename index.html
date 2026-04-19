@@ -110,7 +110,11 @@
   .role-badge.guest { background: #d4edda; color: #155724; }
   .logout-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
   .logout-btn:hover { background: rgba(255,255,255,0.25); }
+  .ms-login-btn { display: inline-flex; align-items: center; gap: 10px; padding: 11px 20px; background: #fff; border: 1px solid #8c8c8c; border-radius: 4px; font-size: 14px; font-weight: 600; color: #5e5e5e; cursor: pointer; margin-top: 20px; width: 100%; justify-content: center; transition: background 0.15s; }
+  .ms-login-btn:hover { background: #f3f3f3; }
+  .login-ms-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee; text-align: center; display: none; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.39.0/dist/msal-browser.min.js"></script>
 </head>
 <body>
 
@@ -287,13 +291,12 @@
         </div>
       </div>
 
-      <div class="login-pass-section" id="login-pass-section">
-        <label>Парола за администратор</label>
-        <div class="login-pass-row">
-          <input type="password" id="admin-password" placeholder="Въведете парола..." onkeydown="if(event.key==='Enter')tryLoginAdmin()">
-          <button onclick="tryLoginAdmin()">Вход</button>
-        </div>
-        <div class="login-error" id="login-error">Грешна парола. Опитайте отново.</div>
+      <div class="login-ms-section" id="login-ms-section">
+        <button class="ms-login-btn" onclick="loginWithMicrosoft()">
+          <svg width="21" height="21" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+          Вход с Microsoft акаунт
+        </button>
+        <div class="login-error" id="login-error" style="display:none;"></div>
       </div>
 
       <button class="login-guest-btn" id="login-guest-btn" onclick="loginAsGuest()">Влез като гост →</button>
@@ -306,41 +309,50 @@ const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environm
 const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
 const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
 
-// --- AUTH ---
-// Паролата осигурява само потребителски контрол (UI-ниво). 
-// Промяна тук изисква актуализация на файла.
-const _AP = atob('UmFpQ29uMjAyNCE='); // RaiCon2024!
+// --- AUTH (MSAL) ---
+const msalConfig = {
+  auth: {
+    clientId: '62029787-9853-404f-9a43-eff6e9762d13',
+    authority: 'https://login.microsoftonline.com/0b822811-c53c-4f5e-9444-350c2fb3f935',
+    redirectUri: window.location.origin + window.location.pathname
+  },
+  cache: {
+    cacheLocation: 'sessionStorage',
+    storeAuthStateInCookie: false
+  }
+};
+const msalInstance = new msal.PublicClientApplication(msalConfig);
 let currentRole = null; // 'admin' | 'guest'
 
 function selectRole(role) {
   document.getElementById('card-admin').classList.remove('selected');
   document.getElementById('card-guest').classList.remove('selected');
-  document.getElementById('login-pass-section').style.display = 'none';
+  document.getElementById('login-ms-section').style.display = 'none';
   document.getElementById('login-guest-btn').style.display = 'none';
   document.getElementById('login-error').style.display = 'none';
-  document.getElementById('admin-password').value = '';
-
   if (role === 'admin') {
     document.getElementById('card-admin').classList.add('selected');
-    document.getElementById('login-pass-section').style.display = 'block';
-    setTimeout(() => document.getElementById('admin-password').focus(), 50);
+    document.getElementById('login-ms-section').style.display = 'block';
   } else {
     document.getElementById('card-guest').classList.add('selected');
     document.getElementById('login-guest-btn').style.display = 'block';
   }
 }
 
-function tryLoginAdmin() {
-  const pw = document.getElementById('admin-password').value;
-  if (pw === _AP) {
+async function loginWithMicrosoft() {
+  document.getElementById('login-error').style.display = 'none';
+  try {
+    await msalInstance.loginPopup({ scopes: ['openid', 'profile', 'User.Read'] });
     currentRole = 'admin';
     document.getElementById('login-overlay').style.display = 'none';
     applyRoleUI();
     loadFromSharePoint();
-  } else {
-    document.getElementById('login-error').style.display = 'block';
-    document.getElementById('admin-password').value = '';
-    document.getElementById('admin-password').focus();
+  } catch (err) {
+    if (err.errorCode !== 'user_cancelled') {
+      const el = document.getElementById('login-error');
+      el.textContent = 'Грешка при влизане с Microsoft. Опитайте отново.';
+      el.style.display = 'block';
+    }
   }
 }
 
@@ -355,28 +367,32 @@ function applyRoleUI() {
   const isAdmin = currentRole === 'admin';
   const ri = document.getElementById('role-indicator');
   ri.style.display = 'inline-flex';
+  const accounts = msalInstance.getAllAccounts();
+  const name = accounts.length > 0 ? (accounts[0].name || accounts[0].username) : 'Администратор';
   ri.innerHTML = isAdmin
-    ? '<span class="role-badge admin">🔐 Администратор</span>'
+    ? `<span class="role-badge admin">🔐 ${name}</span>`
     : '<span class="role-badge guest">👁️ Гост</span>';
   document.getElementById('btn-zachislyavane').style.display = isAdmin ? 'inline-block' : 'none';
   document.getElementById('btn-logout').style.display = 'inline-block';
 }
 
 function doLogout() {
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0) {
+    msalInstance.logoutPopup({ account: accounts[0] }).catch(() => {});
+  }
   currentRole = null;
   document.getElementById('role-indicator').style.display = 'none';
   document.getElementById('btn-zachislyavane').style.display = 'none';
   document.getElementById('btn-logout').style.display = 'none';
-  // Ресет на login формата
   document.getElementById('card-admin').classList.remove('selected');
   document.getElementById('card-guest').classList.remove('selected');
-  document.getElementById('login-pass-section').style.display = 'none';
+  document.getElementById('login-ms-section').style.display = 'none';
   document.getElementById('login-guest-btn').style.display = 'none';
   document.getElementById('login-error').style.display = 'none';
-  document.getElementById('admin-password').value = '';
   document.getElementById('login-overlay').style.display = 'flex';
 }
-// --- END AUTH ---
+// --- END AUTH (MSAL) ---
 
 const MACHINES = [
   // ВИБРОПЛОЧИ И ТРАМБОВКИ
