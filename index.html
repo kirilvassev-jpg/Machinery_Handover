@@ -115,6 +115,7 @@
   .login-ms-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee; text-align: center; display: none; }
 </style>
 <script src="msal-browser.min.js"></script>
+<script src="supabase.js"></script>
 </head>
 <body>
 
@@ -277,29 +278,13 @@
       <p>Механизация и транспорт</p>
     </div>
     <div class="login-body">
-      <div class="login-choose-label">Влезте като:</div>
-      <div class="role-cards">
-        <div class="role-card admin-card" id="card-admin" onclick="selectRole('admin')">
-          <div class="role-icon">🔐</div>
-          <div class="role-title">Администратор</div>
-          <div class="role-desc">Зачисляване и отчисляване на машини</div>
-        </div>
-        <div class="role-card guest-card" id="card-guest" onclick="selectRole('guest')">
-          <div class="role-icon">👁️</div>
-          <div class="role-title">Гост</div>
-          <div class="role-desc">Преглед на наличността (само четене)</div>
-        </div>
-      </div>
-
-      <div class="login-ms-section" id="login-ms-section">
-        <button class="ms-login-btn" onclick="loginWithMicrosoft()">
-          <svg width="21" height="21" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
-          Вход с Microsoft акаунт
-        </button>
-        <div class="login-error" id="login-error" style="display:none;"></div>
-      </div>
-
-      <button class="login-guest-btn" id="login-guest-btn" onclick="loginAsGuest()">Влез като гост →</button>
+      <div class="login-choose-label">Влезте с вашия фирмен акаунт</div>
+      <button class="ms-login-btn" onclick="loginWithMicrosoft()">
+        <svg width="21" height="21" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+        Вход с Microsoft акаунт
+      </button>
+      <div class="login-error" id="login-error" style="display:none;"></div>
+      <div style="margin-top:14px;font-size:11px;color:#aaa;text-align:center;">Достъпът изисква акаунт в Raicommerce</div>
     </div>
   </div>
 </div>
@@ -309,20 +294,22 @@ const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environm
 const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
 const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
 
-// --- AUTH (MSAL) ---
+// --- AUTH (MSAL + Supabase roles) ---
+const SUPABASE_URL = 'https://wcsdjfsohqanxcppcvvk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_aMxRatJ2BJxE5vQIhffing_8_zMpBDO';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const msalConfig = {
   auth: {
     clientId: '62029787-9853-404f-9a43-eff6e9762d13',
     authority: 'https://login.microsoftonline.com/0b822811-c53c-4f5e-9444-350c2fb3f935',
     redirectUri: window.location.origin + window.location.pathname
   },
-  cache: {
-    cacheLocation: 'sessionStorage',
-    storeAuthStateInCookie: false
-  }
+  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
 };
 let msalInstance = null;
 let currentRole = null; // 'admin' | 'guest'
+let currentUserName = '';
 
 async function getMsal() {
   if (!msalInstance) {
@@ -332,55 +319,44 @@ async function getMsal() {
   return msalInstance;
 }
 
-function selectRole(role) {
-  document.getElementById('card-admin').classList.remove('selected');
-  document.getElementById('card-guest').classList.remove('selected');
-  document.getElementById('login-ms-section').style.display = 'none';
-  document.getElementById('login-guest-btn').style.display = 'none';
-  document.getElementById('login-error').style.display = 'none';
-  if (role === 'admin') {
-    document.getElementById('card-admin').classList.add('selected');
-    document.getElementById('login-ms-section').style.display = 'block';
-  } else {
-    document.getElementById('card-guest').classList.add('selected');
-    document.getElementById('login-guest-btn').style.display = 'block';
-  }
+async function checkAdminRole(email) {
+  const { data, error } = await supabaseClient
+    .from('machinery_admins')
+    .select('email')
+    .eq('email', email.toLowerCase())
+    .maybeSingle();
+  if (error) console.warn('Supabase role check error:', error.message);
+  return !!data;
 }
 
 async function loginWithMicrosoft() {
-  document.getElementById('login-error').style.display = 'none';
+  const el = document.getElementById('login-error');
+  el.style.display = 'none';
   try {
     const instance = await getMsal();
-    await instance.loginPopup({ scopes: ['openid', 'profile', 'User.Read'] });
-    currentRole = 'admin';
+    const result = await instance.loginPopup({ scopes: ['openid', 'profile', 'User.Read'] });
+    const email = result.account.username;
+    currentUserName = result.account.name || email;
+    const isAdmin = await checkAdminRole(email);
+    currentRole = isAdmin ? 'admin' : 'guest';
     document.getElementById('login-overlay').style.display = 'none';
     applyRoleUI();
     loadFromSharePoint();
   } catch (err) {
     if (err.errorCode !== 'user_cancelled') {
-      const el = document.getElementById('login-error');
       el.textContent = (err.errorCode || '') + ': ' + (err.errorMessage || err.message || JSON.stringify(err));
       el.style.display = 'block';
     }
   }
 }
 
-function loginAsGuest() {
-  currentRole = 'guest';
-  document.getElementById('login-overlay').style.display = 'none';
-  applyRoleUI();
-  loadFromSharePoint();
-}
-
 function applyRoleUI() {
   const isAdmin = currentRole === 'admin';
   const ri = document.getElementById('role-indicator');
   ri.style.display = 'inline-flex';
-  const accounts = msalInstance ? msalInstance.getAllAccounts() : [];
-  const name = accounts.length > 0 ? (accounts[0].name || accounts[0].username) : 'Администратор';
   ri.innerHTML = isAdmin
-    ? `<span class="role-badge admin">🔐 ${name}</span>`
-    : '<span class="role-badge guest">👁️ Гост</span>';
+    ? `<span class="role-badge admin">🔐 ${currentUserName}</span>`
+    : `<span class="role-badge guest">👁️ ${currentUserName}</span>`;
   document.getElementById('btn-zachislyavane').style.display = isAdmin ? 'inline-block' : 'none';
   document.getElementById('btn-logout').style.display = 'inline-block';
 }
@@ -388,22 +364,17 @@ function applyRoleUI() {
 async function doLogout() {
   if (msalInstance) {
     const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      msalInstance.logoutPopup({ account: accounts[0] }).catch(() => {});
-    }
+    if (accounts.length > 0) msalInstance.logoutPopup({ account: accounts[0] }).catch(() => {});
   }
   currentRole = null;
+  currentUserName = '';
   document.getElementById('role-indicator').style.display = 'none';
   document.getElementById('btn-zachislyavane').style.display = 'none';
   document.getElementById('btn-logout').style.display = 'none';
-  document.getElementById('card-admin').classList.remove('selected');
-  document.getElementById('card-guest').classList.remove('selected');
-  document.getElementById('login-ms-section').style.display = 'none';
-  document.getElementById('login-guest-btn').style.display = 'none';
   document.getElementById('login-error').style.display = 'none';
   document.getElementById('login-overlay').style.display = 'flex';
 }
-// --- END AUTH (MSAL) ---
+// --- END AUTH ---
 
 const MACHINES = [
   // ВИБРОПЛОЧИ И ТРАМБОВКИ
