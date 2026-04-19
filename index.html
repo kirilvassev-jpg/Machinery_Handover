@@ -350,7 +350,7 @@ async function loginWithMicrosoft() {
   } catch (err) {
     if (err.errorCode !== 'user_cancelled') {
       const el = document.getElementById('login-error');
-      el.textContent = 'Грешка при влизане с Microsoft. Опитайте отново.';
+      el.textContent = (err.errorCode || '') + ': ' + (err.errorMessage || err.message || JSON.stringify(err));
       el.style.display = 'block';
     }
   }
