@@ -321,8 +321,16 @@ const msalConfig = {
     storeAuthStateInCookie: false
   }
 };
-const msalInstance = new msal.PublicClientApplication(msalConfig);
+let msalInstance = null;
 let currentRole = null; // 'admin' | 'guest'
+
+async function getMsal() {
+  if (!msalInstance) {
+    msalInstance = new msal.PublicClientApplication(msalConfig);
+    await msalInstance.initialize();
+  }
+  return msalInstance;
+}
 
 function selectRole(role) {
   document.getElementById('card-admin').classList.remove('selected');
@@ -342,7 +350,8 @@ function selectRole(role) {
 async function loginWithMicrosoft() {
   document.getElementById('login-error').style.display = 'none';
   try {
-    await msalInstance.loginPopup({ scopes: ['openid', 'profile', 'User.Read'] });
+    const instance = await getMsal();
+    await instance.loginPopup({ scopes: ['openid', 'profile', 'User.Read'] });
     currentRole = 'admin';
     document.getElementById('login-overlay').style.display = 'none';
     applyRoleUI();
@@ -367,7 +376,7 @@ function applyRoleUI() {
   const isAdmin = currentRole === 'admin';
   const ri = document.getElementById('role-indicator');
   ri.style.display = 'inline-flex';
-  const accounts = msalInstance.getAllAccounts();
+  const accounts = msalInstance ? msalInstance.getAllAccounts() : [];
   const name = accounts.length > 0 ? (accounts[0].name || accounts[0].username) : 'Администратор';
   ri.innerHTML = isAdmin
     ? `<span class="role-badge admin">🔐 ${name}</span>`
@@ -376,10 +385,12 @@ function applyRoleUI() {
   document.getElementById('btn-logout').style.display = 'inline-block';
 }
 
-function doLogout() {
-  const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0) {
-    msalInstance.logoutPopup({ account: accounts[0] }).catch(() => {});
+async function doLogout() {
+  if (msalInstance) {
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      msalInstance.logoutPopup({ account: accounts[0] }).catch(() => {});
+    }
   }
   currentRole = null;
   document.getElementById('role-indicator').style.display = 'none';
