@@ -260,6 +260,14 @@
         <div class="form-group"><label>Служител МиТ</label><select id="z-sluzhitel"><option value="">-- Изберете служител --</option><option>Атанас Валентинов Милчев</option><option>Васил Василев Палакарски</option><option>Васил Яворов Палакарски</option><option>Венелин Александров Захариев</option><option>Георги Пламенов Василев</option><option>Мирослав Велинов Велков</option><option>Ричърд Елвисов Архангелов</option><option>Стоян Симеонов Първанов</option></select></div>
         <div class="form-group"><label>Цена (мсм/ден)</label><input type="text" id="z-cena" class="readonly" readonly></div>
         <div class="form-group"><label>Категория</label><input type="text" id="z-kategoria" class="readonly" readonly></div>
+        <div class="form-group full">
+          <label>Състояние при предаване *</label>
+          <select id="z-sastoyanie">
+            <option value="">-- Изберете --</option>
+            <option value="В изправност">В изправност</option>
+            <option value="Неизправно (за ремонт)">Неизправно (за ремонт)</option>
+          </select>
+        </div>
         <div class="form-group full"><label>Забележка</label><textarea id="z-zabelezhka" rows="3" placeholder="Допълнителни бележки (незадължително)"></textarea></div>
       </div>
     </div>
@@ -968,6 +976,7 @@ function showZachislyavane() {
   document.getElementById('z-priel').value = '';
   document.getElementById('z-mesto').value = '';
   document.getElementById('z-sluzhitel').value = '';
+  document.getElementById('z-sastoyanie').value = '';
   document.getElementById('z-zabelezhka').value = '';
   document.getElementById('modal-zachisli').classList.add('open');
 }
@@ -987,12 +996,13 @@ async function submitZachislyavane() {
   const priel = document.getElementById('z-priel').value;
   const mesto = document.getElementById('z-mesto').value;
   const sluzhitel = document.getElementById('z-sluzhitel').value;
+  const sastoyanie = document.getElementById('z-sastoyanie').value;
   const zabelezhka = document.getElementById('z-zabelezhka').value;
-  if (!kod || !data || !dir || !priel || !mesto) { showToast('Попълнете всички задължителни полета!', true); return; }
+  if (!kod || !data || !dir || !priel || !mesto || !sastoyanie) { showToast('Попълнете всички задължителни полета!', true); return; }
   if (spMap[kod]) { showToast('Тази машина вече е зачислена!', true); return; }
   const m = MACHINES.find(x => x.kod === kod);
   try {
-    const payload = { "secret": "RC-MIT-2024-xK9p", "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Забележка": zabelezhka };
+    const payload = { "secret": "RC-MIT-2024-xK9p", "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Състояние": sastoyanie, "Забележка": zabelezhka };
     console.log('[FLOW_ZACHISLI] sending:', payload);
     const res = await fetch(FLOW_ZACHISLI, {
       method: 'POST',
@@ -1006,7 +1016,7 @@ async function submitZachislyavane() {
         const token = await createConfirmationRecord({
           kod, ime: m ? m.ime : kod, kat: m ? m.kat : '',
           cena: m ? m.cena : 0, dir, priel, mesto,
-          assignment_date: data, sluzhitel
+          assignment_date: data, sluzhitel, sastoyanie
         });
         closeModal('modal-zachisli');
         showToast('Машината е зачислена успешно!');
@@ -1065,7 +1075,7 @@ function showToast(msg, err) {
 // Изисква: Супабазе таблица 'machinery_confirmations' с полета:
 // id uuid PK, machine_kod text, machine_name text, category text, price numeric,
 // direction text, recipient_name text, location text, assignment_date date,
-// employee_mit text, confirmed bool DEFAULT false,
+// employee_mit text, condition text, confirmed bool DEFAULT false,
 // confirmed_at timestamptz, created_at timestamptz DEFAULT now()
 
 let confirmationsMap = {};
@@ -1092,13 +1102,14 @@ async function loadConfirmations() {
   } catch(e) { console.warn('[CONFIRM] Грешка:', e.message); }
 }
 
-async function createConfirmationRecord({ kod, ime, kat, cena, dir, priel, mesto, assignment_date, sluzhitel }) {
+async function createConfirmationRecord({ kod, ime, kat, cena, dir, priel, mesto, assignment_date, sluzhitel, sastoyanie }) {
   const { data: result, error } = await supabaseClient
     .from('machinery_confirmations')
     .insert({
       machine_kod: kod, machine_name: ime, category: kat, price: cena,
       direction: dir, recipient_name: priel, location: mesto,
-      assignment_date: assignment_date, employee_mit: sluzhitel || null, confirmed: false
+      assignment_date: assignment_date, employee_mit: sluzhitel || null,
+      condition: sastoyanie || null, confirmed: false
     })
     .select('id')
     .single();
@@ -1177,6 +1188,7 @@ function populateConfirmDetails(data) {
     (data.direction ? '<div class="confirm-detail"><span>Направление:</span><strong>' + escapeHtml(data.direction) + '</strong></div>' : '') +
     (data.recipient_name ? '<div class="confirm-detail"><span>Получател:</span><strong>' + escapeHtml(data.recipient_name) + '</strong></div>' : '') +
     (data.location ? '<div class="confirm-detail"><span>Местонахождение:</span><strong>' + escapeHtml(data.location) + '</strong></div>' : '') +
+    (data.condition ? '<div class="confirm-detail"><span>Състояние:</span><strong style="color:' + (data.condition === 'В изправност' ? '#155724' : '#721c24') + ';">' + escapeHtml(data.condition) + '</strong></div>' : '') +
     (data.assignment_date ? '<div class="confirm-detail"><span>Дата зачисляване:</span><strong>' + escapeHtml(fmtDate(data.assignment_date)) + '</strong></div>' : '') +
     (data.employee_mit ? '<div class="confirm-detail"><span>Служител МиТ:</span><strong>' + escapeHtml(data.employee_mit) + '</strong></div>' : '') +
     '</div>';
