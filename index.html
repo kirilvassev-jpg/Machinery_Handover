@@ -113,7 +113,36 @@
   .ms-login-btn { display: inline-flex; align-items: center; gap: 10px; padding: 11px 20px; background: #fff; border: 1px solid #8c8c8c; border-radius: 4px; font-size: 14px; font-weight: 600; color: #5e5e5e; cursor: pointer; margin-top: 20px; width: 100%; justify-content: center; transition: background 0.15s; }
   .ms-login-btn:hover { background: #f3f3f3; }
   .login-ms-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee; text-align: center; display: none; }
+
+  /* ===== CONFIRMATION SYSTEM ===== */
+  .conf-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .conf-badge.confirmed { background: #d4edda; color: #155724; }
+  .conf-badge.pending { background: #fff3cd; color: #856404; cursor: pointer; }
+  .qr-wrapper { background: #f5f5f5; border-radius: 8px; padding: 18px; display: inline-block; margin: 8px 0; }
+  .confirm-link-row { display: flex; gap: 8px; margin-top: 10px; }
+  .confirm-link-row input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; background: #f5f5f5; color: #333; }
+  .confirm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9998; overflow-y: auto; padding: 20px; }
+  .confirm-overlay.show { display: block; }
+  .confirm-box { max-width: 520px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,51,0.15); }
+  .confirm-box-header { background: #0033CC; color: #fff; padding: 24px 20px; text-align: center; border-bottom: 4px solid #27ae60; }
+  .confirm-box-header h2 { font-size: 18px; margin-bottom: 4px; font-weight: 700; }
+  .confirm-box-header p { font-size: 12px; opacity: 0.75; letter-spacing: 1px; text-transform: uppercase; }
+  .confirm-box-body { padding: 28px 24px; }
+  .confirm-machine-card { background: #f0f4ff; border-radius: 8px; padding: 16px; border-left: 4px solid #0033CC; margin-bottom: 20px; }
+  .confirm-machine-card h3 { color: #0033CC; font-size: 15px; margin-bottom: 10px; }
+  .confirm-detail { font-size: 13px; color: #444; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .confirm-detail span { color: #888; font-size: 12px; white-space: nowrap; }
+  .confirm-detail strong { color: #222; text-align: right; }
+  .confirm-status-box { background: #d4edda; border-radius: 8px; padding: 24px 20px; text-align: center; border: 1px solid #c3e6cb; }
+  .confirm-status-box .icon { font-size: 44px; display: block; margin-bottom: 8px; }
+  .confirm-status-box h3 { color: #155724; font-size: 16px; margin-bottom: 6px; }
+  .confirm-status-box p { color: #155724; font-size: 13px; }
+  .btn-do-confirm { width: 100%; padding: 14px; background: #27ae60; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn-do-confirm:hover { background: #219150; }
+  .btn-do-confirm:disabled { background: #aaa; cursor: not-allowed; }
+  .confirm-disclaimer { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.6; }
 </style>
+
 <script src="msal-browser.min.js"></script>
 <script src="supabase.js"></script>
 </head>
@@ -259,6 +288,51 @@
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('modal-otchisli')">Отказ</button>
       <button class="btn-save red" onclick="submitOtchislyavane()">Отчисли машината</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: СПОДЕЛИ ЛИНК ЗА ПОТВЪРЖДЕНИЕ (за администратора) -->
+<div class="modal-overlay" id="modal-confirmation-share">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header" style="background:#27ae60;">
+      <h3>Изпратете линк за потвърждение</h3>
+      <button class="modal-close" onclick="closeModal('modal-confirmation-share')">×</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div id="confirm-share-machine-info" style="background:#f0faf4;border-radius:6px;padding:10px;margin-bottom:14px;border-left:4px solid #27ae60;text-align:left;font-size:13px;"></div>
+      <p style="font-size:13px;color:#555;margin-bottom:8px;">Покажете QR кода на получателя или му изпратете линка:</p>
+      <div class="qr-wrapper">
+        <img id="qr-code-img" src="" alt="QR код" style="width:200px;height:200px;display:block;margin:0 auto;">
+      </div>
+      <div class="confirm-link-row">
+        <input type="text" id="confirmation-link" readonly>
+        <button class="btn-save" onclick="copyConfirmLink()" style="padding:8px 14px;white-space:nowrap;">📋 Копирай</button>
+      </div>
+      <p style="font-size:11px;color:#999;margin-top:10px;">Получателят отваря линка и потвърждава получаването.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-confirmation-share')">Затвори</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION OVERLAY (показва се при отваряне на ?confirm=TOKEN) -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-box-header">
+      <h2>ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ</h2>
+      <p>Механизация и транспорт</p>
+    </div>
+    <div class="confirm-box-body">
+      <div id="confirm-loading" style="text-align:center;padding:30px;color:#666;"><span class="spinner"></span> Зареждане...</div>
+      <div id="confirm-machine-details"></div>
+      <div id="confirm-already-done" style="display:none;"></div>
+      <div id="confirm-content" style="display:none;">
+        <p style="font-size:13px;color:#444;margin-bottom:16px;line-height:1.6;">Моля, потвърдете, че сте получили горепосоченото оборудване в добро и работно състояние.</p>
+        <button class="btn-do-confirm" id="btn-do-confirm" onclick="submitConfirmation()">✓ Потвърждавам получаването</button>
+        <p class="confirm-disclaimer">С натискане на бутона потвърждавате, че сте получили оборудването и го приемате под отговорност.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -766,6 +840,7 @@ async function loadFromSharePoint() {
     return;
   }
   buildSpMap();
+  await loadConfirmations();
   renderTable();
   updateStats();
 }
@@ -834,7 +909,7 @@ function renderTable() {
 
   let html = '<div style="overflow-x:auto"><table><thead><tr>' +
     '<th>Инв./ДН №</th><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
-    '<th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
+    '<th>Потв.</th><th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
     '<th>Дата зачисл.</th>' + (currentRole === 'admin' ? '<th>Действие</th>' : '') +
     '</tr></thead><tbody>';
 
@@ -861,8 +936,21 @@ function renderTable() {
       }
     }
 
+    let confBadge = '<span style="color:#ccc;font-size:11px;">—</span>';
+    if (isBusy) {
+      const conf = confirmationsMap[m.kod];
+      if (conf && conf.confirmed) {
+        confBadge = '<span class="conf-badge confirmed">✓ Да</span>';
+      } else if (conf) {
+        const reshareAttr = currentRole === 'admin' ? ' onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линка отново"' : '';
+        confBadge = '<span class="conf-badge pending"' + reshareAttr + '>⏳ Очаква</span>';
+      } else {
+        confBadge = '<span class="conf-badge pending">⏳</span>';
+      }
+    }
     html += '<tr><td><strong>' + getMachineDN(m) + '</strong></td><td>' + m.kod + '</td><td>' + m.ime + '</td>' +
       '<td><span class="cat-badge">' + m.kat + '</span></td><td>' + badge + '</td>' +
+      '<td>' + confBadge + '</td>' +
       '<td style="font-size:12px;">' + dir2 + '</td><td style="font-size:12px;">' + priel + '</td>' +
       '<td style="font-size:12px;">' + mesto + '</td><td style="font-size:12px;">' + dz + '</td>' +
       btn + '</tr>';
@@ -913,7 +1001,23 @@ async function submitZachislyavane() {
     });
     const resText = await res.text();
     console.log('[FLOW_ZACHISLI] status:', res.status, 'body:', resText);
-    if (res.ok || res.status === 202) { closeModal('modal-zachisli'); showToast('Машината е зачислена успешно!'); setTimeout(() => loadFromSharePoint(), 4000); }
+    if (res.ok || res.status === 202) {
+      try {
+        const token = await createConfirmationRecord({
+          kod, ime: m ? m.ime : kod, kat: m ? m.kat : '',
+          cena: m ? m.cena : 0, dir, priel, mesto,
+          assignment_date: data, sluzhitel
+        });
+        closeModal('modal-zachisli');
+        showToast('Машината е зачислена успешно!');
+        showConfirmationShare(token, { ime: m ? m.ime : kod, priel, dir });
+      } catch(confErr) {
+        console.warn('[CONFIRM] Грешка при създаване на линк за потвърждение:', confErr);
+        closeModal('modal-zachisli');
+        showToast('Машината е зачислена успешно!');
+      }
+      setTimeout(() => loadFromSharePoint(), 4000);
+    }
     else { showToast('Грешка ' + res.status + ' при зачисляване! Виж конзолата.', true); }
   } catch(e) { console.error('[FLOW_ZACHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
 }
@@ -957,7 +1061,155 @@ function showToast(msg, err) {
   setTimeout(() => t.className = 'toast', 3500);
 }
 
+// ===== CONFIRMATION SYSTEM =====
+// Изисква: Супабазе таблица 'machinery_confirmations' с полета:
+// id uuid PK, machine_kod text, machine_name text, category text, price numeric,
+// direction text, recipient_name text, location text, assignment_date date,
+// employee_mit text, confirmed bool DEFAULT false,
+// confirmed_at timestamptz, created_at timestamptz DEFAULT now()
+
+let confirmationsMap = {};
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+async function loadConfirmations() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('machinery_confirmations')
+      .select('id, machine_kod, machine_name, recipient_name, direction, confirmed, confirmed_at, created_at')
+      .order('created_at', { ascending: false });
+    if (error) { console.warn('[CONFIRM] Грешка при зареждане:', error.message); return; }
+    confirmationsMap = {};
+    (data || []).forEach(c => {
+      const prev = confirmationsMap[c.machine_kod];
+      if (!prev || c.confirmed || new Date(c.created_at) > new Date(prev.created_at)) {
+        confirmationsMap[c.machine_kod] = c;
+      }
+    });
+  } catch(e) { console.warn('[CONFIRM] Грешка:', e.message); }
+}
+
+async function createConfirmationRecord({ kod, ime, kat, cena, dir, priel, mesto, assignment_date, sluzhitel }) {
+  const { data: result, error } = await supabaseClient
+    .from('machinery_confirmations')
+    .insert({
+      machine_kod: kod, machine_name: ime, category: kat, price: cena,
+      direction: dir, recipient_name: priel, location: mesto,
+      assignment_date: assignment_date, employee_mit: sluzhitel || null, confirmed: false
+    })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return result.id;
+}
+
+function showConfirmationShare(token, machineInfo) {
+  const url = window.location.origin + window.location.pathname + '?confirm=' + token;
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+  document.getElementById('qr-code-img').src = qrUrl;
+  document.getElementById('confirmation-link').value = url;
+  document.getElementById('confirm-share-machine-info').innerHTML =
+    '<strong>' + escapeHtml(machineInfo.ime) + '</strong><br>' +
+    '<span style="color:#555;">Получател: ' + escapeHtml(machineInfo.priel) + ' — ' + escapeHtml(machineInfo.dir) + '</span>';
+  document.getElementById('modal-confirmation-share').classList.add('open');
+}
+
+function copyConfirmLink() {
+  const link = document.getElementById('confirmation-link').value;
+  navigator.clipboard.writeText(link)
+    .then(() => showToast('Линкът е копиран!'))
+    .catch(() => showToast('Неуспешно копиране.', true));
+}
+
+async function reshareConfirmation(kod) {
+  const conf = confirmationsMap[kod];
+  if (!conf || !conf.id) { showToast('Няма активен линк за тази машина.', true); return; }
+  showConfirmationShare(conf.id, {
+    ime: conf.machine_name || kod,
+    priel: conf.recipient_name || '—',
+    dir: conf.direction || '—'
+  });
+}
+
+async function checkForConfirmation() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('confirm');
+  if (!token) return;
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('confirm-overlay').classList.add('show');
+  try {
+    const { data, error } = await supabaseClient
+      .from('machinery_confirmations')
+      .select('*').eq('id', token).maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      document.getElementById('confirm-loading').innerHTML = '<p style="color:#EE1C25;text-align:center;">Невалиден или изтекъл линк за потвърждение.</p>';
+      return;
+    }
+    populateConfirmDetails(data);
+    document.getElementById('confirm-loading').style.display = 'none';
+    if (data.confirmed) {
+      const dt = new Date(data.confirmed_at).toLocaleString('bg-BG');
+      document.getElementById('confirm-already-done').style.display = 'block';
+      document.getElementById('confirm-already-done').innerHTML =
+        '<div class="confirm-status-box"><span class="icon">✅</span>' +
+        '<h3>Получаването е потвърдено</h3>' +
+        '<p>Потвърдено на ' + escapeHtml(dt) + '</p></div>';
+    } else {
+      document.getElementById('confirm-content').style.display = 'block';
+      document.getElementById('btn-do-confirm').setAttribute('data-token', token);
+    }
+  } catch(e) {
+    document.getElementById('confirm-loading').innerHTML = '<p style="color:#EE1C25;text-align:center;">Грешка: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+function populateConfirmDetails(data) {
+  const fmtDate = d => d ? new Date(d).toLocaleDateString('bg-BG') : '—';
+  document.getElementById('confirm-machine-details').innerHTML =
+    '<div class="confirm-machine-card">' +
+    '<h3>' + escapeHtml(data.machine_name || '—') + '</h3>' +
+    '<div class="confirm-detail"><span>Код:</span><strong>' + escapeHtml(data.machine_kod || '—') + '</strong></div>' +
+    (data.category ? '<div class="confirm-detail"><span>Категория:</span><strong>' + escapeHtml(data.category) + '</strong></div>' : '') +
+    (data.direction ? '<div class="confirm-detail"><span>Направление:</span><strong>' + escapeHtml(data.direction) + '</strong></div>' : '') +
+    (data.recipient_name ? '<div class="confirm-detail"><span>Получател:</span><strong>' + escapeHtml(data.recipient_name) + '</strong></div>' : '') +
+    (data.location ? '<div class="confirm-detail"><span>Местонахождение:</span><strong>' + escapeHtml(data.location) + '</strong></div>' : '') +
+    (data.assignment_date ? '<div class="confirm-detail"><span>Дата зачисляване:</span><strong>' + escapeHtml(fmtDate(data.assignment_date)) + '</strong></div>' : '') +
+    (data.employee_mit ? '<div class="confirm-detail"><span>Служител МиТ:</span><strong>' + escapeHtml(data.employee_mit) + '</strong></div>' : '') +
+    '</div>';
+}
+
+async function submitConfirmation() {
+  const btn = document.getElementById('btn-do-confirm');
+  const token = btn.getAttribute('data-token');
+  if (!token) return;
+  btn.disabled = true;
+  btn.textContent = 'Потвърждаване...';
+  try {
+    const { error } = await supabaseClient
+      .from('machinery_confirmations')
+      .update({ confirmed: true, confirmed_at: new Date().toISOString() })
+      .eq('id', token).eq('confirmed', false);
+    if (error) throw error;
+    document.getElementById('confirm-content').style.display = 'none';
+    document.getElementById('confirm-already-done').style.display = 'block';
+    document.getElementById('confirm-already-done').innerHTML =
+      '<div class="confirm-status-box"><span class="icon">✅</span>' +
+      '<h3>Потвърдено успешно!</h3>' +
+      '<p>Благодарим! Получаването е регистрирано.</p></div>';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✓ Потвърждавам получаването';
+    showToast('Грешка при потвърждение: ' + escapeHtml(e.message), true);
+  }
+}
+// ===== END CONFIRMATION SYSTEM =====
+
 filterMachineSelect();
+checkForConfirmation();
 // Страницата се зарежда след успешен вход
 </script>
 </body>
