@@ -1001,7 +1001,39 @@ async function submitZachislyavane() {
   const sastoyanie = document.getElementById('z-sastoyanie').value;
   const zabelezhka = document.getElementById('z-zabelezhka').value;
   if (!kod || !data || !dir || !priel || !mesto || !sastoyanie) { showToast('Попълнете всички задължителни полета!', true); return; }
-  if (spMap[kod]) { showToast('Тази машина вече е зачислена!', true); return; }
+
+  // Свежа проверка от SharePoint преди изпращане — предотвратява двойно зачисляване
+  const btnSave = document.querySelector('#modal-zachisli .btn-save');
+  const origText = btnSave.textContent;
+  btnSave.disabled = true;
+  btnSave.textContent = 'Проверява се...';
+  try {
+    const chkRes = await fetch(FLOW_READ, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    const chkText = await chkRes.text();
+    if (chkText && chkText.trim() !== '') {
+      const chkData = JSON.parse(chkText);
+      let freshItems = [];
+      if (Array.isArray(chkData)) freshItems = chkData;
+      else if (Array.isArray(chkData.value)) freshItems = chkData.value;
+      else if (chkData.body && Array.isArray(chkData.body)) freshItems = chkData.body;
+      else if (chkData.body && Array.isArray(chkData.body.value)) freshItems = chkData.body.value;
+      spData = freshItems;
+      buildSpMap();
+    }
+  } catch(chkErr) {
+    console.warn('[ZACHISLI] Неуспешна свежа проверка, продължаваме с кеша:', chkErr.message);
+  }
+  btnSave.disabled = false;
+  btnSave.textContent = origText;
+
+  if (spMap[kod]) {
+    const m2 = MACHINES.find(x => x.kod === kod);
+    showToast('Машина "' + (m2 ? m2.ime : kod) + '" вече е зачислена!', true);
+    renderTable();
+    updateStats();
+    filterMachineSelect();
+    return;
+  }
   const m = MACHINES.find(x => x.kod === kod);
   try {
     const payload = { "secret": "RC-MIT-2024-xK9p", "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Състояние": sastoyanie, "Забележка": zabelezhka };
