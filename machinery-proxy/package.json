@@ -1,0 +1,16 @@
+{
+  "name": "machinery-proxy",
+  "version": "1.0.0",
+  "description": "Azure Function proxy — Machinery Handover (RAICOMMERCE / МиТ)",
+  "main": "src/functions/proxy.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests defined\" && exit 0"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

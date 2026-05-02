@@ -141,9 +141,36 @@
   .btn-do-confirm:hover { background: #219150; }
   .btn-do-confirm:disabled { background: #aaa; cursor: not-allowed; }
   .confirm-disclaimer { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.6; }
+
+  /* ===== IMPORT MODAL ===== */
+  .drop-zone { border: 2px dashed #0033CC; border-radius: 8px; padding: 36px 20px; text-align: center; cursor: pointer; color: #0033CC; font-size: 14px; transition: background 0.15s; }
+  .drop-zone:hover, .drop-zone.drag-over { background: #f0f4ff; }
+  .drop-zone .dz-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+  .drop-zone input[type=file] { display: none; }
+  .col-map-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .col-map-table th { background: #f0f4ff; color: #0033CC; padding: 7px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+  .col-map-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
+  .col-map-table select { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
+  .preview-table-wrap { max-height: 320px; overflow-y: auto; border-radius: 6px; border: 1px solid #eee; margin-top: 12px; }
+  .preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .preview-table th { background: #0033CC; color: #fff; padding: 7px 10px; text-align: left; position: sticky; top: 0; font-size: 11px; }
+  .preview-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
+  .preview-table tr.row-new td { background: #f0faf4; }
+  .preview-table tr.row-new td:first-child::before { content: '●'; color: #27ae60; margin-right: 4px; }
+  .preview-table tr.row-update td { background: #f0f4ff; }
+  .preview-table tr.row-update td:first-child::before { content: '●'; color: #0033CC; margin-right: 4px; }
+  .preview-table tr.row-warn td { background: #fff8e1; }
+  .import-legend { display: flex; gap: 16px; font-size: 11px; margin-top: 8px; flex-wrap: wrap; }
+  .import-legend span { display: flex; align-items: center; gap: 4px; }
+  .import-step { display: none; }
+  .import-step.active { display: block; }
+  .import-summary { background: #f0f4ff; border-radius: 6px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; }
+  .import-summary b { color: #0033CC; }
+  .warn-badge { background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 </style>
 
 <script src="msal-browser.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="supabase.js"></script>
 </head>
 <body>
@@ -156,6 +183,7 @@
     <div class="header-nav" id="header-nav">
       <span id="role-indicator" style="display:none;"></span>
       <button class="nav-btn primary" id="btn-zachislyavane" style="display:none;" onclick="showZachislyavane()">+ Зачисляване</button>
+      <button class="nav-btn" id="btn-import-machines" style="display:none;" onclick="openImportModal()">⬆ Импорт машини</button>
       <button class="logout-btn" id="btn-logout" style="display:none;" onclick="doLogout()">Изход</button>
     </div>
   </div>
@@ -210,7 +238,7 @@
       <button class="modal-close" onclick="closeModal('modal-debug')">×</button>
     </div>
     <div class="modal-body" style="padding:12px;">
-      <p style="font-size:12px;color:#666;margin-bottom:8px;">Брой записи: <strong id="debug-count">—</strong>. Ако е 0 или данните са грешни, провери FLOW_READ. Полетата с <code>OData__</code> са кирилски колони в SharePoint.</p>
+      <p style="font-size:12px;color:#666;margin-bottom:8px;">Брой записи: <strong id="debug-count">—</strong>. Ако е 0 или данните са грешни, провери прокси функцията. Полетата с <code>OData__</code> са кирилски колони в SharePoint.</p>
       <div class="debug-panel" id="debug-content">Зарежда...</div>
     </div>
     <div class="modal-footer">
@@ -347,6 +375,60 @@
   </div>
 </div>
 
+<!-- MODAL: ИМПОРТ МАШИНИ ОТ EXCEL -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal" style="width:700px;max-width:96vw;">
+    <div class="modal-header" style="background:#0033CC;">
+      <h3>⬆ Импорт на машини от Excel</h3>
+      <button class="modal-close" onclick="closeModal('modal-import')">×</button>
+    </div>
+    <div class="modal-body" style="min-height:240px;">
+      <!-- Стъпка 1: Качване на файл -->
+      <div class="import-step active" id="import-step-1">
+        <p style="font-size:13px;color:#555;margin-bottom:14px;">
+          Качете <strong>.xlsx</strong> файл с машини.<br>
+          Очаквани колони: <strong>Код WS, Наименование, Категория, Цена</strong>
+        </p>
+        <div class="drop-zone" id="import-dropzone">
+          <span class="dz-icon">📂</span>
+          Плъзнете .xlsx файл тук или натиснете за избор
+          <input type="file" id="import-file-input" accept=".xlsx,.xls">
+        </div>
+        <p style="font-size:11px;color:#aaa;margin-top:10px;text-align:center;">
+          Само първият лист от файла се обработва. Заглавният ред се пропуска автоматично.
+        </p>
+      </div>
+      <!-- Стъпка 2: Ръчно映射 на колони -->
+      <div class="import-step" id="import-step-2">
+        <p style="font-size:13px;color:#555;margin-bottom:10px;">
+          Не успяхме да разпознаем автоматично всички колони.
+          Моля, посочете кои колони от Excel съответстват на полетата:
+        </p>
+        <table class="col-map-table">
+          <thead><tr><th>Поле в базата данни</th><th>Колона в Excel файла</th></tr></thead>
+          <tbody id="import-col-map-body"></tbody>
+        </table>
+      </div>
+      <!-- Стъпка 3: Преглед -->
+      <div class="import-step" id="import-step-3">
+        <div class="import-summary" id="import-preview-summary"></div>
+        <div class="import-legend">
+          <span><span style="color:#27ae60;font-size:14px;">●</span> Нов запис</span>
+          <span><span style="color:#0033CC;font-size:14px;">●</span> Обновяване</span>
+          <span>⚠ Непозната категория — няма да се импортира</span>
+        </div>
+        <div class="preview-table-wrap" id="import-preview-table-wrap" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="import-modal-footer" data-step="1">
+      <button class="btn-cancel" onclick="closeModal('modal-import')">Отказ</button>
+      <button class="btn-cancel" id="import-btn-back" style="display:none;" onclick="importPrevStep()">← Назад</button>
+      <button class="btn-save" id="import-btn-next" style="display:none;" onclick="importNextStep()">Напред →</button>
+      <button class="btn-save" id="import-btn-confirm" style="display:none;" onclick="confirmImport()">✓ Потвърди импорта</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- LOGIN MODAL -->
@@ -369,9 +451,8 @@
 </div>
 
 <script>
-const FLOW_ZACHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/07dc0b5505724d4bb8ea8bcc01215a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=apdLUQR8CW4pzuioH5DaobPAC2XvKeO66mSMsOxijdw';
-const FLOW_OTCHISLI = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI';
-const FLOW_READ = 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc';
+const PROXY_URL      = 'https://wcsdjfsohqanxcppcvvk.supabase.co/functions/v1/proxy';
+const FUNCTION_SCOPE = 'api://0afb663f-c74b-4cc5-9a32-30cbf172b0de/user_impersonation';
 
 // --- AUTH (MSAL + Supabase roles) ---
 const SUPABASE_URL = 'https://wcsdjfsohqanxcppcvvk.supabase.co';
@@ -398,6 +479,34 @@ async function getMsal() {
   return msalInstance;
 }
 
+/** Acquires a Bearer token for the Azure Function proxy scope. */
+async function getProxyToken() {
+  const instance = await getMsal();
+  const accounts = instance.getAllAccounts();
+  if (!accounts.length) throw new Error('No logged-in account');
+  try {
+    const result = await instance.acquireTokenSilent({ scopes: [FUNCTION_SCOPE], account: accounts[0] });
+    return result.accessToken;
+  } catch {
+    const result = await instance.acquireTokenPopup({ scopes: [FUNCTION_SCOPE] });
+    return result.accessToken;
+  }
+}
+
+async function callProxy(action, body = {}) {
+  const token = await getProxyToken();
+  const res = await fetch(`${PROXY_URL}/${action}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  return { ok: res.ok || res.status === 202, status: res.status, text };
+}
+
 async function checkAdminRole(email) {
   const { data, error } = await supabaseClient
     .from('machinery_admins')
@@ -420,6 +529,7 @@ async function loginWithMicrosoft() {
     currentRole = isAdmin ? 'admin' : 'guest';
     document.getElementById('login-overlay').style.display = 'none';
     applyRoleUI();
+    await loadMachinesCatalog();
     loadFromSharePoint();
   } catch (err) {
     if (err.errorCode !== 'user_cancelled') {
@@ -437,6 +547,7 @@ function applyRoleUI() {
     ? `<span class="role-badge admin">🔐 ${currentUserName}</span>`
     : `<span class="role-badge guest">👁️ ${currentUserName}</span>`;
   document.getElementById('btn-zachislyavane').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('btn-import-machines').style.display = isAdmin ? 'inline-block' : 'none';
   document.getElementById('btn-logout').style.display = 'inline-block';
 }
 
@@ -455,7 +566,7 @@ async function doLogout() {
 }
 // --- END AUTH ---
 
-const MACHINES = [
+const MACHINES_DEFAULT = [
   // ВИБРОПЛОЧИ И ТРАМБОВКИ
   {kod:"08040208",ime:"0208 Виброплоча прикачна",kat:"Виброплочи и трамбовки",cena:10.23},
   {kod:"08030210",ime:"0210 Виброплоча прикачна",kat:"Виброплочи и трамбовки",cena:10.23},
@@ -748,6 +859,29 @@ const MACHINES = [
   {kod:"041034",ime:"Хюндай R220 LC - 9A С 08663",kat:"Багери",cena:298.39},
 ];
 
+// Активен каталог — зарежда се от Supabase при вход; fallback = MACHINES_DEFAULT
+let MACHINES = MACHINES_DEFAULT.slice();
+
+async function loadMachinesCatalog() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('machinery_catalog')
+      .select('kod, ime, kat, cena')
+      .order('kat').order('kod');
+    if (error) throw error;
+    if (data && data.length > 0) {
+      MACHINES = data;
+      console.log('[CATALOG] Заредени ' + data.length + ' машини от Supabase.');
+    } else {
+      MACHINES = MACHINES_DEFAULT.slice();
+      console.log('[CATALOG] Таблицата е празна, използва се вграден каталог (' + MACHINES.length + ').');
+    }
+  } catch(e) {
+    MACHINES = MACHINES_DEFAULT.slice();
+    console.warn('[CATALOG] Грешка при зареждане, използва се вграден каталог:', e.message);
+  }
+}
+
 // spData = активни зачисления от SharePoint
 // spMap  = { kod -> spItem } за бързо търсене
 let spData = [];
@@ -829,23 +963,18 @@ function updateStats() {
 async function loadFromSharePoint() {
   document.getElementById('table-container').innerHTML = '<div class="loading"><span class="spinner"></span>Зареждане от SharePoint...</div>';
   try {
-    const res = await fetch(FLOW_READ, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    const text = await res.text();
-    console.log('[FLOW_READ] status:', res.status, 'body:', text);
-    if (!text || text.trim() === '') throw new Error('Празен отговор от FLOW_READ');
+    const { status: readStatus, text } = await callProxy('read', {});
+    console.log('[READ] status:', readStatus, 'body:', text);
+    if (!text || text.trim() === '') throw new Error('Празен отговор от прокси');
     const data = JSON.parse(text);
     if (Array.isArray(data)) spData = data;
     else if (Array.isArray(data.value)) spData = data.value;
     else if (data.body && Array.isArray(data.body)) spData = data.body;
     else if (data.body && Array.isArray(data.body.value)) spData = data.body.value;
     else spData = [];
-    console.log('[FLOW_READ] заети машини (записи в SP):', spData.length);
+    console.log('[READ] заети машини (записи в SP):', spData.length);
   } catch(e) {
-    console.error('[FLOW_READ] error:', e);
+    console.error('[READ] error:', e);
     document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + e.message + '</div>';
     return;
   }
@@ -886,9 +1015,9 @@ function onMachinaSelect() {
   const kod = document.getElementById('z-mashina').value;
   const m = MACHINES.find(x => x.kod === kod);
   if (m) {
-    document.getElementById('z-cena').value = m.cena.toFixed(2) + ' лв/ден';
+    document.getElementById('z-cena').value = m.cena.toFixed(2) + ' EUR/ден';
     document.getElementById('z-kategoria').value = m.kat;
-    document.getElementById('zachisli-info').innerHTML = '<strong>' + m.ime + '</strong><span>Код WS: ' + m.kod + ' | ' + m.kat + ' | ' + m.cena.toFixed(2) + ' лв/ден</span>';
+    document.getElementById('zachisli-info').innerHTML = '<strong>' + m.ime + '</strong><span>Код WS: ' + m.kod + ' | ' + m.kat + ' | ' + m.cena.toFixed(2) + ' EUR/ден</span>';
   }
 }
 
@@ -1008,8 +1137,7 @@ async function submitZachislyavane() {
   btnSave.disabled = true;
   btnSave.textContent = 'Проверява се...';
   try {
-    const chkRes = await fetch(FLOW_READ, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-    const chkText = await chkRes.text();
+    const { text: chkText } = await callProxy('read', {});
     if (chkText && chkText.trim() !== '') {
       const chkData = JSON.parse(chkText);
       let freshItems = [];
@@ -1036,16 +1164,11 @@ async function submitZachislyavane() {
   }
   const m = MACHINES.find(x => x.kod === kod);
   try {
-    const payload = { "secret": "RC-MIT-2024-xK9p", "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Състояние": sastoyanie, "Забележка": zabelezhka };
-    console.log('[FLOW_ZACHISLI] sending:', payload);
-    const res = await fetch(FLOW_ZACHISLI, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const resText = await res.text();
-    console.log('[FLOW_ZACHISLI] status:', res.status, 'body:', resText);
-    if (res.ok || res.status === 202) {
+    const payload = { "Заглавие": m ? getMachineDN(m) : kod, "Код": kod, "Наименование": m ? m.ime : '', "Категория": m ? m.kat : '', "Цена": m ? m.cena : 0, "ДатаЗачисляване": data, "Направление": dir, "Приел": priel, "СлужителМиТ": sluzhitel, "Местонахождение": mesto, "Състояние": sastoyanie, "Забележка": zabelezhka };
+    console.log('[ZACHISLI] sending:', payload);
+    const { ok, status, text: resText } = await callProxy('zachisli', payload);
+    console.log('[ZACHISLI] status:', status, 'body:', resText);
+    if (ok) {
       try {
         const token = await createConfirmationRecord({
           kod, ime: m ? m.ime : kod, kat: m ? m.kat : '',
@@ -1063,7 +1186,7 @@ async function submitZachislyavane() {
       setTimeout(() => loadFromSharePoint(), 4000);
     }
     else { showToast('Грешка ' + res.status + ' при зачисляване! Виж конзолата.', true); }
-  } catch(e) { console.error('[FLOW_ZACHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
+  } catch(e) { console.error('[ZACHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
 }
 
 function openOtchisli(id, ime, kod) {
@@ -1082,18 +1205,13 @@ async function submitOtchislyavane() {
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
   if (currentOtchisliId == null) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
-    const payload = { "secret": "RC-MIT-2024-xK9p", ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel };
-    console.log('[FLOW_OTCHISLI] sending:', payload);
-    const res = await fetch(FLOW_OTCHISLI, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const resText = await res.text();
-    console.log('[FLOW_OTCHISLI] status:', res.status, 'body:', resText);
-    if (res.ok || res.status === 202) { closeModal('modal-otchisli'); showToast('Машината е отчислена успешно!'); setTimeout(() => loadFromSharePoint(), 4000); }
+    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel };
+    console.log('[OTCHISLI] sending:', payload);
+    const { ok, status, text: resText } = await callProxy('otchisli', payload);
+    console.log('[OTCHISLI] status:', status, 'body:', resText);
+    if (ok) { closeModal('modal-otchisli'); showToast('Машината е отчислена успешно!'); setTimeout(() => loadFromSharePoint(), 4000); }
     else { showToast('Грешка ' + res.status + ' при отчисляване! Виж конзолата.', true); }
-  } catch(e) { console.error('[FLOW_OTCHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
+  } catch(e) { console.error('[OTCHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1256,7 +1374,236 @@ async function submitConfirmation() {
 
 filterMachineSelect();
 checkForConfirmation();
-// Страницата се зарежда след успешен вход
+
+// ===== ИМПОРТ НА МАШИНИ ОТ EXCEL =====
+const VALID_CATEGORIES = [
+  'Асфалторезачки','Багери','Виброплочи и трамбовки','Генератори',
+  'Грундомати','Заваръчни машини','Компресори','Машини за ел. муфи',
+  'Пробивни машини','Укрепващи системи','Фрези','Хидравлични станции','Хидравлични чукове'
+];
+
+let importParsedData = [];
+let importExcelHeaders = [];
+let importColumnMap = { kod: null, ime: null, kat: null, cena: null };
+let importPreviewRows = [];
+let dropZoneInitialized = false;
+
+function openImportModal() {
+  if (currentRole !== 'admin') return;
+  importParsedData = [];
+  importExcelHeaders = [];
+  importColumnMap = { kod: null, ime: null, kat: null, cena: null };
+  importPreviewRows = [];
+  document.getElementById('import-dropzone').classList.remove('drag-over');
+  showImportStep(1);
+  if (!dropZoneInitialized) { setupDropZone(); dropZoneInitialized = true; }
+  document.getElementById('modal-import').classList.add('open');
+}
+
+function showImportStep(n) {
+  document.querySelectorAll('#modal-import .import-step').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('import-step-' + n);
+  if (el) el.classList.add('active');
+  document.getElementById('import-modal-footer').dataset.step = String(n);
+  document.getElementById('import-btn-back').style.display    = n > 1 ? 'inline-block' : 'none';
+  document.getElementById('import-btn-next').style.display    = n === 2 ? 'inline-block' : 'none';
+  document.getElementById('import-btn-confirm').style.display = n === 3 ? 'inline-block' : 'none';
+}
+
+function setupDropZone() {
+  const dz = document.getElementById('import-dropzone');
+  const fi = document.getElementById('import-file-input');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processImportFile(file);
+  });
+  dz.addEventListener('click', () => fi.click());
+  fi.addEventListener('change', () => { if (fi.files[0]) { processImportFile(fi.files[0]); fi.value = ''; } });
+}
+
+function processImportFile(file) {
+  if (!file.name.match(/\.xlsx?$/i)) { showToast('Моля, изберете .xlsx файл!', true); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      if (!json || json.length < 2) { showToast('Файлът е празен или няма данни!', true); return; }
+      importExcelHeaders = (json[0] || []).map(h => String(h).trim());
+      importParsedData   = json.slice(1).filter(row => row.some(c => c !== ''));
+      autoDetectColumns();
+      const allOk = Object.values(importColumnMap).every(v => v !== null);
+      if (allOk) {
+        if (!buildImportPreview()) return;
+        showImportStep(3);
+      } else {
+        buildColumnMapUI();
+        showImportStep(2);
+      }
+    } catch(err) { showToast('Грешка при четене на файла: ' + err.message, true); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function autoDetectColumns() {
+  const patterns = {
+    kod:  [/код\s*ws/i, /^код$/i, /\bkod\b/i],
+    ime:  [/наименование/i, /\bime\b/i, /описание/i],
+    kat:  [/категори/i, /\bkat\b/i],
+    cena: [/цена/i, /\bcena\b/i, /price/i]
+  };
+  importColumnMap = { kod: null, ime: null, kat: null, cena: null };
+  importExcelHeaders.forEach((h, idx) => {
+    for (const [field, pats] of Object.entries(patterns)) {
+      if (importColumnMap[field] === null) {
+        if (pats.some(p => p.test(h))) importColumnMap[field] = idx;
+      }
+    }
+  });
+}
+
+function buildColumnMapUI() {
+  const fields = [
+    { key: 'kod',  label: 'Код WS (уникален)' },
+    { key: 'ime',  label: 'Наименование' },
+    { key: 'kat',  label: 'Категория' },
+    { key: 'cena', label: 'Цена (лв/ден)' }
+  ];
+  const opts = importExcelHeaders.map((h, i) =>
+    '<option value="' + i + '">' + escapeHtml(h) + '</option>'
+  ).join('');
+  document.getElementById('import-col-map-body').innerHTML = fields.map(f =>
+    '<tr><td><strong>' + f.label + '</strong></td>' +
+    '<td><select class="col-map-select" data-field="' + f.key + '">' +
+      '<option value="">-- изберете --</option>' + opts +
+    '</select></td></tr>'
+  ).join('');
+  // Pre-select auto-detected values
+  document.querySelectorAll('#import-col-map-body .col-map-select').forEach(sel => {
+    const v = importColumnMap[sel.dataset.field];
+    if (v !== null) sel.value = String(v);
+  });
+}
+
+function readColumnMapFromUI() {
+  document.querySelectorAll('#import-col-map-body .col-map-select').forEach(sel => {
+    const v = sel.value;
+    importColumnMap[sel.dataset.field] = v !== '' ? parseInt(v) : null;
+  });
+}
+
+function buildImportPreview() {
+  const { kod: ki, ime: ii, kat: ki2, cena: ci } = importColumnMap;
+  if (ki === null || ii === null || ki2 === null || ci === null) {
+    showToast('Не са избрани всички задължителни колони!', true);
+    return false;
+  }
+  const existingMap = {};
+  MACHINES.forEach(m => { existingMap[m.kod] = m; });
+
+  importPreviewRows = importParsedData.map(row => {
+    const kod  = String(row[ki]  || '').trim();
+    const ime  = String(row[ii]  || '').trim();
+    const kat  = String(row[ki2] || '').trim();
+    const raw  = String(row[ci]  || '').replace(',', '.').replace(/[^\d.]/g, '');
+    const cena = parseFloat(raw) || 0;
+    if (!kod) return null;
+    const validKat  = VALID_CATEGORIES.includes(kat);
+    const existing  = existingMap[kod];
+    const rowType   = !validKat ? 'warn' : !existing ? 'new' : 'update';
+    return { kod, ime, kat, cena, rowType, validKat };
+  }).filter(Boolean);
+
+  const newCnt    = importPreviewRows.filter(r => r.rowType === 'new').length;
+  const updCnt    = importPreviewRows.filter(r => r.rowType === 'update').length;
+  const warnCnt   = importPreviewRows.filter(r => r.rowType === 'warn').length;
+
+  document.getElementById('import-preview-summary').innerHTML =
+    'Общо: <b>' + importPreviewRows.length + '</b> реда &nbsp;|&nbsp; ' +
+    '<span style="color:#27ae60">● Нови: <b>' + newCnt + '</b></span> &nbsp; ' +
+    '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>' +
+    (warnCnt > 0
+      ? ' &nbsp; <span class="warn-badge">⚠ Непозната категория: <b>' + warnCnt + '</b></span>'
+      : '');
+
+  document.getElementById('import-preview-table-wrap').innerHTML =
+    '<table class="preview-table">' +
+    '<thead><tr><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Цена</th><th>Статус</th></tr></thead><tbody>' +
+    importPreviewRows.map(r => {
+      const cls = 'row-' + r.rowType;
+      const lbl = r.rowType === 'new'    ? '<span style="color:#27ae60;font-weight:600;">Нов</span>'
+                : r.rowType === 'update' ? '<span style="color:#0033CC;font-weight:600;">Обновяване</span>'
+                                         : '<span class="warn-badge">⚠ Непозната кат.</span>';
+      return '<tr class="' + cls + '">' +
+        '<td>' + escapeHtml(r.kod) + '</td>' +
+        '<td>' + escapeHtml(r.ime) + '</td>' +
+        '<td>' + escapeHtml(r.kat) + '</td>' +
+        '<td>' + (r.cena > 0 ? r.cena.toFixed(2) + ' EUR' : '—') + '</td>' +
+        '<td>' + lbl + '</td></tr>';
+    }).join('') +
+    '</tbody></table>';
+  return true;
+}
+
+function importNextStep() {
+  const step = parseInt(document.getElementById('import-modal-footer').dataset.step);
+  if (step === 2) {
+    readColumnMapFromUI();
+    if (Object.values(importColumnMap).some(v => v === null)) {
+      showToast('Изберете колони за всички задължителни полета!', true);
+      return;
+    }
+    if (!buildImportPreview()) return;
+    showImportStep(3);
+  }
+}
+
+function importPrevStep() {
+  const step = parseInt(document.getElementById('import-modal-footer').dataset.step);
+  if (step === 3 && importExcelHeaders.length > 0) {
+    buildColumnMapUI();
+    showImportStep(2);
+  } else {
+    showImportStep(step - 1);
+  }
+}
+
+async function confirmImport() {
+  const validRows = importPreviewRows.filter(r => r.validKat);
+  if (!validRows.length) { showToast('Всички редове имат непозната категория!', true); return; }
+  const btnConfirm = document.getElementById('import-btn-confirm');
+  btnConfirm.disabled = true;
+  btnConfirm.textContent = 'Импортиране...';
+  try {
+    const upsertData = validRows.map(r => ({
+      kod: r.kod, ime: r.ime, kat: r.kat, cena: r.cena,
+      updated_at: new Date().toISOString()
+    }));
+    const { error } = await supabaseClient
+      .from('machinery_catalog')
+      .upsert(upsertData, { onConflict: 'kod' });
+    if (error) throw error;
+    const skipCnt = importPreviewRows.length - validRows.length;
+    closeModal('modal-import');
+    showToast('Импортирани ' + validRows.length + ' машини!' +
+      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — непозната категория)' : ''));
+    await loadMachinesCatalog();
+    filterMachineSelect();
+    updateStats();
+    renderTable();
+  } catch(e) {
+    showToast('Грешка при запис: ' + e.message, true);
+  } finally {
+    btnConfirm.disabled = false;
+    btnConfirm.textContent = '✓ Потвърди импорта';
+  }
+}
+// ===== КРАЙ ИМПОРТ =====
 </script>
 </body>
 </html>
