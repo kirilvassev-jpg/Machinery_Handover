@@ -76,7 +76,7 @@
   .table-header { background: #0033CC; color: #fff; padding: 13px 18px; display: flex; justify-content: space-between; align-items: center; }
   .table-header h3 { font-size: 14px; font-weight: 600; }
   .table-count { font-size: 11.5px; background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 10px; }
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; min-width: 1100px; }
   th { background: #EEF2F8; color: #4A5568; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; padding: 10px 14px; text-align: left; border-bottom: 1.5px solid #dde4ef; white-space: nowrap; }
   td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
   tr:nth-child(even) > td { background-color: #f8fafc; }
@@ -87,11 +87,12 @@
   .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
   .status-free { background: #DCFCE7; color: #166534; }
   .status-busy { background: #FEF3C7; color: #92400E; }
-  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; min-width: 90px; white-space: nowrap; }
+  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; min-width: 90px; white-space: nowrap; overflow: visible; }
   .action-btn:hover { opacity: 0.85; }
   .btn-zachisli { background: #0033CC; color: #fff; box-shadow: 0 1px 3px rgba(0,51,204,0.25); }
   .btn-otchisli { background: #C0392B; color: #fff; box-shadow: 0 1px 3px rgba(192,57,43,0.25); }
-  .btn-link { background: #fff; color: #475569; border: 1px solid #cbd5e1 !important; }
+  .btn-link { background: #fff; color: #475569; border: 1px solid #cbd5e1 !important; min-width: 85px; }
+  td.col-action, th.col-action { white-space: nowrap; min-width: 180px; }
 
   /* ===== MODALS ===== */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.5); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; }
@@ -319,6 +320,8 @@
         </div>
       </div>
     </div>
+    <!-- Динамични карти по категория -->
+    <div class="dashboard-cards" id="kat-cards-container" style="margin-top:12px;"></div>
   </div>
 
   <div class="filters">
@@ -1191,14 +1194,18 @@ function updateStats() {
     if (m) katCount[m.kat] = (katCount[m.kat] || 0) + 1;
   });
 
-  const container = document.getElementById('stats-container');
+  const container = document.getElementById('kat-cards-container');
+  if (!container) return;
   // Премахни старите динамични карти
   container.querySelectorAll('.stat-dynamic').forEach(el => el.remove());
   // Добави нови
   Object.entries(katCount).sort((a,b) => b[1]-a[1]).forEach(([kat, count]) => {
     const div = document.createElement('div');
-    div.className = 'stat stat-dynamic';
-    div.innerHTML = '<div class="stat-label">' + kat + '</div><div class="stat-value" style="font-size:22px;color:#C0392B">' + count + '</div>';
+    div.className = 'stat stat-dynamic dash-card';
+    div.style.cssText = 'display:flex;align-items:center;gap:12px;';
+    div.innerHTML = '<div class="dash-icon" style="background:#EEF2FF;font-size:16px;">🔩</div>' +
+      '<div class="dash-info"><div class="dash-label">' + kat + '</div>' +
+      '<div class="dash-value" style="font-size:24px;color:#C0392B;">' + count + '</div></div>';
     container.appendChild(div);
   });
 }
@@ -1292,7 +1299,7 @@ function renderTable() {
   let html = '<div style="overflow-x:auto"><table><thead><tr>' +
     '<th>Инв./ДН №</th><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
     '<th>Потв.</th><th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
-    '<th>Дата зачисл.</th>' + (currentRole === 'admin' ? '<th>Действие</th>' : '') +
+    '<th>Дата зачисл.</th>' + (currentRole === 'admin' ? '<th class="col-action">Действие</th>' : '') +
     '</tr></thead><tbody>';
 
   data.forEach(m => {
@@ -1319,12 +1326,12 @@ function renderTable() {
     if (currentRole === 'admin') {
       if (isBusy) {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
-        btn = '<td style="white-space:nowrap;">' +
+        btn = '<td class="col-action" style="white-space:nowrap;">' +
           '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
           ' <button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 QR/Линк</button>' +
           '</td>';
       } else {
-        btn = '<td><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
+        btn = '<td class="col-action"><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
       }
     }
 
