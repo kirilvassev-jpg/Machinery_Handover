@@ -76,7 +76,7 @@
   .table-header { background: #0033CC; color: #fff; padding: 13px 18px; display: flex; justify-content: space-between; align-items: center; }
   .table-header h3 { font-size: 14px; font-weight: 600; }
   .table-count { font-size: 11.5px; background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 10px; }
-  table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+  table { width: 100%; border-collapse: collapse; table-layout: auto; min-width: 1200px; }
   th { background: #EEF2F8; color: #4A5568; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; padding: 10px 14px; text-align: left; border-bottom: 1.5px solid #dde4ef; white-space: nowrap; }
   td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
   tr:nth-child(even) > td { background-color: #f8fafc; }
@@ -87,12 +87,13 @@
   .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
   .status-free { background: #DCFCE7; color: #166534; }
   .status-busy { background: #FEF3C7; color: #92400E; }
-  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; min-width: 90px; white-space: nowrap; overflow: visible; }
+  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; min-width: 90px; white-space: nowrap; overflow: visible; flex-shrink: 0; }
   .action-btn:hover { opacity: 0.85; }
   .btn-zachisli { background: #0033CC; color: #fff; box-shadow: 0 1px 3px rgba(0,51,204,0.25); }
   .btn-otchisli { background: #C0392B; color: #fff; box-shadow: 0 1px 3px rgba(192,57,43,0.25); }
   .btn-link { background: #fff; color: #475569; border: 1px solid #cbd5e1 !important; min-width: 85px; }
-  td.col-action, th.col-action { white-space: nowrap; min-width: 180px; }
+  td.col-action, th.col-action { white-space: nowrap; min-width: 220px; width: auto; }
+  .col-action-btns { display: flex; flex-wrap: nowrap; gap: 6px; min-width: 190px; align-items: center; }
 
   /* ===== MODALS ===== */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.5); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; }
@@ -1326,10 +1327,11 @@ function renderTable() {
     if (currentRole === 'admin') {
       if (isBusy) {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
-        btn = '<td class="col-action" style="white-space:nowrap;">' +
+        btn = '<td class="col-action">' +
+          '<div class="col-action-btns">' +
           '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-          ' <button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 QR/Линк</button>' +
-          '</td>';
+          '<button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 QR/Линк</button>' +
+          '</div></td>';
       } else {
         btn = '<td class="col-action"><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
       }
