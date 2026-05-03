@@ -1204,11 +1204,9 @@ function updateStats() {
     const div = document.createElement('div');
     div.className = 'stat stat-dynamic dash-card';
     div.style.cssText = 'display:flex;align-items:center;gap:12px;';
-    const pct = total > 0 ? Math.round(count / total * 100) : 0;
     div.style.borderLeft = '4px solid #0033CC';
     div.innerHTML = '<div class="dash-info"><div class="dash-label">' + kat + '</div>' +
-      '<div class="dash-value" style="font-size:24px;color:#C0392B;">' + count +
-      '<span style="font-size:12px;color:#94A3B8;font-weight:500;margin-left:6px;">' + pct + '%</span></div></div>';
+      '<div class="dash-value" style="font-size:24px;color:#C0392B;">' + count + '</div></div>';
     container.appendChild(div);
   });
 }
