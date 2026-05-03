@@ -260,7 +260,6 @@
 <div class="header">
   <div class="header-top"></div>
   <div class="header-main">
-    <div class="brand-name">RAICOMMERCE</div>
     <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>МЕХАНИЗАЦИЯ И ТРАНСПОРТ</span></div>
     <div class="header-nav" id="header-nav">
       <button class="notif-btn" id="notif-bell" style="display:none;" title="Неопотвърдени зачисления">
@@ -1322,7 +1321,7 @@ function renderTable() {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
         btn = '<td style="white-space:nowrap;">' +
           '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-          ' <button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 Линк</button>' +
+          ' <button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 QR/Линк</button>' +
           '</td>';
       } else {
         btn = '<td><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
