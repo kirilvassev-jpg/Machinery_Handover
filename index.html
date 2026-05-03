@@ -1204,8 +1204,7 @@ function updateStats() {
     const div = document.createElement('div');
     div.className = 'stat stat-dynamic dash-card';
     div.style.cssText = 'display:flex;align-items:center;gap:12px;';
-    div.innerHTML = '<div class="dash-icon" style="background:#EEF2FF;font-size:16px;">🔩</div>' +
-      '<div class="dash-info"><div class="dash-label">' + kat + '</div>' +
+    div.innerHTML = '<div class="dash-info"><div class="dash-label">' + kat + '</div>' +
       '<div class="dash-value" style="font-size:24px;color:#C0392B;">' + count + '</div></div>';
     container.appendChild(div);
   });
