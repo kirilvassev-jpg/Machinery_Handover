@@ -5,168 +5,250 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Приемно-предаване на машини и оборудване | Механизация и транспорт</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 14px; }
-  .header { background: #0033CC; }
-  .header-top { background: #EE1C25; height: 8px; }
-  .header-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; }
-  .header-logo { display: flex; align-items: center; }
-  .header-logo img { height: 48px; width: auto; }
-  .header-bottom { background: #EE1C25; height: 8px; }
-  .header-title { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 1px; text-align: center; flex: 1; padding: 0 20px; }
-  .header-title span { color: #fff; font-size: 12px; display: block; letter-spacing: 4px; font-weight: 400; }
-  .header-nav { display: flex; gap: 8px; }
-  .nav-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-  .nav-btn.primary { background: #EE1C25; border-color: #EE1C25; }
-  .debug-panel { background: #1e1e1e; color: #d4d4d4; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 6px; max-height: 60vh; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
-  .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .stat { background: #fff; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #0033CC; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .stat.free { border-left-color: #27ae60; }
-  .stat.busy { border-left-color: #EE1C25; }
-  .stat-label { font-size: 11px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-value { font-size: 28px; font-weight: 700; color: #0033CC; }
-  .stat.free .stat-value { color: #27ae60; }
-  .stat.busy .stat-value { color: #EE1C25; }
-  .filters { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .filters input, .filters select { padding: 7px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: #f9f9f9; }
-  .filters input { flex: 1; min-width: 200px; }
-  .filter-label { font-size: 12px; color: #666; font-weight: 600; }
-  .table-wrap { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
-  .table-header { background: #0033CC; color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+  body { font-family: 'Inter', Arial, sans-serif; background: #F0F4F8; color: #1e293b; font-size: 14px; }
+
+  /* ===== HEADER ===== */
+  .header { background: #0033CC; position: sticky; top: 0; z-index: 100; }
+  .header-top { background: #C0392B; height: 4px; }
+  .header-main { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 58px; gap: 16px; }
+  .brand-name { color: #fff; font-size: 18px; font-weight: 900; letter-spacing: 3px; white-space: nowrap; flex-shrink: 0; }
+  .header-title { color: rgba(255,255,255,0.88); font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px; text-align: center; flex: 1; padding: 0 16px; line-height: 1.4; }
+  .header-title span { color: rgba(255,255,255,0.52); font-size: 9.5px; display: block; letter-spacing: 3px; font-weight: 400; text-transform: uppercase; margin-top: 2px; }
+  .header-bottom { background: #C0392B; height: 4px; }
+  .header-nav { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+  /* User avatar */
+  .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; cursor: default; border: 2px solid rgba(255,255,255,0.38); letter-spacing: 0.5px; flex-shrink: 0; }
+
+  /* Admin dropdown */
+  .admin-dropdown { position: relative; }
+  .admin-dropdown-btn { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.28); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .admin-dropdown-btn:hover { background: rgba(255,255,255,0.22); }
+  .admin-menu { position: absolute; right: 0; top: calc(100% + 8px); background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.16); min-width: 190px; overflow: hidden; z-index: 500; border: 1px solid rgba(0,0,0,0.08); display: none; }
+  .admin-menu.open { display: block; animation: fadeInDown 0.15s ease; }
+  .admin-menu button { display: block; width: 100%; padding: 12px 16px; text-align: left; background: none; border: none; font-family: 'Inter', Arial, sans-serif; font-size: 13px; font-weight: 500; color: #334155; cursor: pointer; transition: background 0.12s; }
+  .admin-menu button:hover { background: #f0f4ff; color: #0033CC; }
+  @keyframes fadeInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Notification bell */
+  .notif-btn { background: none; border: none; color: rgba(255,255,255,0.72); font-size: 18px; cursor: pointer; position: relative; padding: 6px 8px; border-radius: 8px; display: inline-flex; align-items: center; transition: background 0.12s; }
+  .notif-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+  .notif-count { position: absolute; top: 0; right: 0; background: #C0392B; color: #fff; border-radius: 10px; font-size: 9px; font-weight: 700; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 3px; line-height: 1; border: 1.5px solid #0033CC; }
+
+  .logout-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.22); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; }
+  .logout-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* ===== DASHBOARD CARDS ===== */
+  .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .dash-card { background: #fff; border-radius: 14px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); border: 0.5px solid rgba(0,0,0,0.07); display: flex; align-items: center; gap: 16px; }
+  .dash-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .dash-icon.blue { background: #EEF2FF; }
+  .dash-icon.orange { background: #FEF3C7; }
+  .dash-icon.green { background: #DCFCE7; }
+  .dash-icon.grey { background: #F1F5F9; }
+  .dash-info { flex: 1; min-width: 0; }
+  .dash-label { font-size: 11.5px; color: #64748B; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
+  .dash-value { font-size: 30px; font-weight: 700; line-height: 1; }
+  .dash-value.blue { color: #0033CC; }
+  .dash-value.orange { color: #D97706; }
+  .dash-value.green { color: #16A34A; }
+  .dash-value.grey { color: #94A3B8; }
+
+  /* ===== OLD STATS (hidden by dashboard) ===== */
+  .stats { display: none; }
+
+  /* ===== FILTERS ===== */
+  .filters { background: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 0.5px solid rgba(0,0,0,0.06); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .filter-label { font-size: 12px; color: #64748B; font-weight: 600; letter-spacing: 0.3px; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none; opacity: 0.55; }
+  .filters input { padding: 8px 12px 8px 30px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #f8fafc; font-family: 'Inter', Arial, sans-serif; width: 100%; }
+  .filters select { padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: #f8fafc; font-family: 'Inter', Arial, sans-serif; }
+  .filters input:focus, .filters select:focus { outline: none; border-color: #0033CC; background: #fff; box-shadow: 0 0 0 3px rgba(0,51,204,0.08); }
+
+  /* ===== TABLE ===== */
+  .table-wrap { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 0.5px solid rgba(0,0,0,0.06); overflow: hidden; }
+  .table-header { background: #0033CC; color: #fff; padding: 13px 18px; display: flex; justify-content: space-between; align-items: center; }
   .table-header h3 { font-size: 14px; font-weight: 600; }
-  .table-count { font-size: 12px; opacity: 0.8; }
+  .table-count { font-size: 11.5px; background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 10px; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: #f0f4ff; color: #0033CC; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; border-bottom: 2px solid #dde4f5; white-space: nowrap; }
-  td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; vertical-align: middle; }
-  tr:hover td { background: #f8f9ff; }
-  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .status-free { background: #d4edda; color: #155724; }
-  .status-busy { background: #f8d7da; color: #721c24; }
-  .action-btn { padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; }
-  .btn-zachisli { background: #0033CC; color: #fff; }
-  .btn-otchisli { background: #EE1C25; color: #fff; }
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+  th { background: #EEF2F8; color: #4A5568; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; padding: 10px 14px; text-align: left; border-bottom: 1.5px solid #dde4ef; white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+  tr:nth-child(even) > td { background-color: #f8fafc; }
+  tr:hover > td { background-color: #f0f4ff !important; }
+  tr.row-pending > td:first-child { box-shadow: inset 3px 0 0 #F59E0B; }
+  tr.row-confirmed > td:first-child { box-shadow: inset 3px 0 0 #16A34A; }
+  tr.row-otchislena > td:first-child { box-shadow: inset 3px 0 0 #94A3B8; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .status-free { background: #DCFCE7; color: #166534; }
+  .status-busy { background: #FEF3C7; color: #92400E; }
+  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; }
+  .action-btn:hover { opacity: 0.85; }
+  .btn-zachisli { background: #0033CC; color: #fff; box-shadow: 0 1px 3px rgba(0,51,204,0.25); }
+  .btn-otchisli { background: #C0392B; color: #fff; box-shadow: 0 1px 3px rgba(192,57,43,0.25); }
+  .btn-link { background: #fff; color: #475569; border: 1px solid #cbd5e1 !important; }
+
+  /* ===== MODALS ===== */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.5); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
-  .modal { background: #fff; border-radius: 10px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,51,0.2); }
-  .modal-header { background: #0033CC; color: #fff; padding: 16px 20px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; }
-  .modal-header.red { background: #EE1C25; }
-  .modal-header h3 { font-size: 15px; }
-  .modal-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+  .modal { background: #fff; border-radius: 14px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,51,0.2); border: 0.5px solid rgba(0,0,0,0.1); }
+  .modal-header { background: #0033CC; color: #fff; padding: 16px 20px; border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header.red { background: #C0392B; }
+  .modal-header.green { background: #16A34A; }
+  .modal-header h3 { font-size: 14.5px; font-weight: 600; }
+  .modal-close { background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 16px; cursor: pointer; width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; }
+  .modal-close:hover { background: rgba(255,255,255,0.28); }
   .modal-body { padding: 20px; }
-  .machine-info { background: #f0f4ff; border-radius: 6px; padding: 12px; margin-bottom: 16px; border-left: 4px solid #0033CC; }
+  .machine-info { background: #EEF2FF; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; border-left: 4px solid #0033CC; }
   .machine-info strong { color: #0033CC; font-size: 14px; }
-  .machine-info span { font-size: 12px; color: #666; display: block; margin-top: 2px; }
+  .machine-info span { font-size: 12px; color: #64748B; display: block; margin-top: 3px; }
+
+  /* Form sections */
+  .form-section { margin-bottom: 18px; }
+  .form-section-title { font-size: 10.5px; font-weight: 700; color: #0033CC; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-bottom: 7px; border-bottom: 1.5px solid #EEF2F8; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-group { display: flex; flex-direction: column; gap: 4px; }
   .form-group.full { grid-column: 1/-1; }
-  .form-group label { font-size: 12px; font-weight: 600; color: #444; }
-  .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
-  .readonly { background: #f5f5f5; color: #666; }
-  .modal-footer { padding: 14px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 8px; }
-  .btn-cancel { padding: 8px 18px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; }
-  .btn-save { padding: 8px 22px; background: #0033CC; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
-  .btn-save.red { background: #EE1C25; }
-  .toast { position: fixed; bottom: 24px; right: 24px; background: #27ae60; color: #fff; padding: 12px 20px; border-radius: 6px; font-size: 13px; z-index: 2000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-  .toast.error { background: #EE1C25; }
-  .toast.show { display: block; }
-  .loading { text-align: center; padding: 40px; color: #666; }
-  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #ddd; border-top-color: #0033CC; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  .form-group label { font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 2px; }
+  .required-star { color: #C0392B; }
+  .form-group input, .form-group select, .form-group textarea { padding: 8px 11px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: 'Inter', Arial, sans-serif; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #0033CC; box-shadow: 0 0 0 3px rgba(0,51,204,0.1); }
+  .readonly { background: #f8fafc !important; color: #64748B; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 8px; background: #fafbfc; border-radius: 0 0 14px 14px; }
+  .btn-cancel { padding: 8px 20px; border: 1.5px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: #475569; font-family: 'Inter', Arial, sans-serif; }
+  .btn-cancel:hover { background: #f8fafc; }
+  .btn-save { padding: 8px 22px; background: #0033CC; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,51,204,0.2); font-family: 'Inter', Arial, sans-serif; }
+  .btn-save:hover { background: #0028b3; }
+  .btn-save.red { background: #C0392B; box-shadow: 0 2px 6px rgba(192,57,43,0.2); }
+  .btn-save.red:hover { background: #a93226; }
+  .btn-save.green { background: #16A34A; box-shadow: 0 2px 6px rgba(22,163,74,0.2); }
+  .btn-save.green:hover { background: #15803d; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #16A34A; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 2000; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2); font-weight: 500; }
+  .toast.error { background: #C0392B; }
+  .toast.show { display: block; animation: slideUp 0.2s ease; }
+  @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .loading { text-align: center; padding: 40px; color: #64748B; }
+  .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid #e2e8f0; border-top-color: #0033CC; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
-  .cat-badge { font-size: 11px; background: #e8eeff; color: #0033CC; padding: 2px 8px; border-radius: 10px; }
+  .empty { text-align: center; padding: 40px; color: #94A3B8; font-size: 14px; }
+  .cat-badge { font-size: 11px; background: #EEF2FF; color: #0033CC; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
   .price-tag { font-size: 11px; color: #0033CC; font-weight: 600; }
+  .debug-panel { background: #1e1e1e; color: #d4d4d4; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 6px; max-height: 60vh; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
 
-  /* LOGIN MODAL */
-  .login-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,51,0.88); z-index: 9999; align-items: center; justify-content: center; }
-  .login-box { background: #fff; border-radius: 12px; width: 500px; max-width: 95vw; box-shadow: 0 16px 56px rgba(0,0,51,0.35); overflow: hidden; }
-  .login-header { background: #0033CC; padding: 28px 24px 22px; text-align: center; border-bottom: 5px solid #EE1C25; }
+  /* ===== LOGIN MODAL ===== */
+  .login-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,10,40,0.9); z-index: 9999; align-items: center; justify-content: center; }
+  .login-box { background: #fff; border-radius: 16px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,51,0.4); overflow: hidden; }
+  .login-header { background: #0033CC; padding: 30px 24px 24px; text-align: center; border-bottom: 5px solid #C0392B; }
   .login-header h2 { color: #fff; font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
-  .login-header p { color: rgba(255,255,255,0.75); font-size: 12px; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; }
-  .login-body { padding: 28px 28px 24px; }
-  .login-choose-label { font-size: 12px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; text-align: center; }
-  .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .role-card { border: 2px solid #e0e0e0; border-radius: 10px; padding: 22px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s, transform 0.15s; user-select: none; }
+  .login-header p { color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 6px; letter-spacing: 2.5px; text-transform: uppercase; }
+  .login-body { padding: 30px 28px 26px; }
+  .login-choose-label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; text-align: center; }
+  .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .role-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 22px 16px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s; user-select: none; }
   .role-card:hover { transform: translateY(-2px); }
   .role-card.admin-card:hover { border-color: #0033CC; background: #f0f4ff; }
-  .role-card.guest-card:hover { border-color: #27ae60; background: #f0faf4; }
+  .role-card.guest-card:hover { border-color: #16A34A; background: #f0faf4; }
   .role-card.selected { border-width: 2px; }
   .role-card.admin-card.selected { border-color: #0033CC; background: #f0f4ff; }
-  .role-icon { font-size: 38px; margin-bottom: 10px; line-height: 1; }
-  .role-title { font-size: 15px; font-weight: 700; color: #222; }
-  .role-desc { font-size: 11px; color: #777; margin-top: 5px; line-height: 1.4; }
-  .login-pass-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee; display: none; }
-  .login-pass-section label { font-size: 12px; font-weight: 600; color: #444; display: block; margin-bottom: 6px; }
+  .role-icon { font-size: 36px; margin-bottom: 10px; line-height: 1; }
+  .role-title { font-size: 14.5px; font-weight: 700; color: #1e293b; }
+  .role-desc { font-size: 11px; color: #64748B; margin-top: 5px; line-height: 1.4; }
+  .login-pass-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; display: none; }
+  .login-pass-section label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
   .login-pass-row { display: flex; gap: 8px; }
-  .login-pass-row input { flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
-  .login-pass-row input:focus { border-color: #0033CC; }
-  .login-pass-row button { padding: 10px 18px; background: #0033CC; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .login-pass-row button:hover { background: #0022aa; }
-  .login-error { color: #EE1C25; font-size: 12px; margin-top: 8px; display: none; }
-  .login-guest-btn { margin-top: 16px; display: none; width: 100%; padding: 11px; background: #27ae60; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .login-guest-btn:hover { background: #219150; }
-  .role-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 14px; font-size: 12px; font-weight: 600; }
-  .role-badge.admin { background: #e8eeff; color: #0033CC; }
-  .role-badge.guest { background: #d4edda; color: #155724; }
-  .logout-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-  .logout-btn:hover { background: rgba(255,255,255,0.25); }
-  .ms-login-btn { display: inline-flex; align-items: center; gap: 10px; padding: 11px 20px; background: #fff; border: 1px solid #8c8c8c; border-radius: 4px; font-size: 14px; font-weight: 600; color: #5e5e5e; cursor: pointer; margin-top: 20px; width: 100%; justify-content: center; transition: background 0.15s; }
-  .ms-login-btn:hover { background: #f3f3f3; }
-  .login-ms-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid #eee; text-align: center; display: none; }
+  .login-pass-row input { flex: 1; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; font-family: 'Inter', Arial, sans-serif; }
+  .login-pass-row input:focus { border-color: #0033CC; box-shadow: 0 0 0 3px rgba(0,51,204,0.08); }
+  .login-pass-row button { padding: 10px 18px; background: #0033CC; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', Arial, sans-serif; }
+  .login-pass-row button:hover { background: #0028b3; }
+  .login-error { color: #C0392B; font-size: 12px; margin-top: 8px; display: none; }
+  .login-guest-btn { margin-top: 16px; display: none; width: 100%; padding: 11px; background: #16A34A; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Inter', Arial, sans-serif; }
+  .login-guest-btn:hover { background: #15803d; }
+  .role-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 14px; font-size: 11.5px; font-weight: 600; }
+  .role-badge.admin { background: #EEF2FF; color: #0033CC; }
+  .role-badge.guest { background: #DCFCE7; color: #166534; }
+  .ms-login-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; background: #fff; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-weight: 600; color: #334155; cursor: pointer; margin-top: 20px; width: 100%; justify-content: center; transition: background 0.12s, border-color 0.12s; font-family: 'Inter', Arial, sans-serif; }
+  .ms-login-btn:hover { background: #f8fafc; border-color: #0033CC; }
+  .login-ms-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; text-align: center; display: none; }
 
   /* ===== CONFIRMATION SYSTEM ===== */
-  .conf-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
-  .conf-badge.confirmed { background: #d4edda; color: #155724; }
-  .conf-badge.pending { background: #fff3cd; color: #856404; cursor: pointer; }
-  .qr-wrapper { background: #f5f5f5; border-radius: 8px; padding: 18px; display: inline-block; margin: 8px 0; }
+  .conf-badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .conf-badge.confirmed { background: #DCFCE7; color: #166534; }
+  .conf-badge.pending { background: #FEF3C7; color: #92400E; cursor: pointer; }
+  .qr-wrapper { background: #f8fafc; border-radius: 10px; padding: 18px; display: inline-block; margin: 8px 0; border: 1px solid #e2e8f0; }
   .confirm-link-row { display: flex; gap: 8px; margin-top: 10px; }
-  .confirm-link-row input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; background: #f5f5f5; color: #333; }
-  .confirm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f0f2f5; z-index: 9998; overflow-y: auto; padding: 20px; }
+  .confirm-link-row input { flex: 1; padding: 8px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 11px; background: #f8fafc; color: #475569; font-family: 'Inter', Arial, sans-serif; }
+  .confirm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F0F4F8; z-index: 9998; overflow-y: auto; padding: 20px; }
   .confirm-overlay.show { display: block; }
-  .confirm-box { max-width: 520px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,51,0.15); }
-  .confirm-box-header { background: #0033CC; color: #fff; padding: 24px 20px; text-align: center; border-bottom: 4px solid #27ae60; }
-  .confirm-box-header h2 { font-size: 18px; margin-bottom: 4px; font-weight: 700; }
-  .confirm-box-header p { font-size: 12px; opacity: 0.75; letter-spacing: 1px; text-transform: uppercase; }
+  .confirm-box { max-width: 520px; margin: 40px auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,51,0.12); border: 0.5px solid rgba(0,0,0,0.07); }
+  .confirm-box-header { background: #0033CC; color: #fff; padding: 26px 24px; text-align: center; border-bottom: 4px solid #16A34A; }
+  .confirm-box-header h2 { font-size: 17px; margin-bottom: 4px; font-weight: 700; }
+  .confirm-box-header p { font-size: 11px; opacity: 0.7; letter-spacing: 2px; text-transform: uppercase; }
   .confirm-box-body { padding: 28px 24px; }
-  .confirm-machine-card { background: #f0f4ff; border-radius: 8px; padding: 16px; border-left: 4px solid #0033CC; margin-bottom: 20px; }
-  .confirm-machine-card h3 { color: #0033CC; font-size: 15px; margin-bottom: 10px; }
-  .confirm-detail { font-size: 13px; color: #444; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .confirm-detail span { color: #888; font-size: 12px; white-space: nowrap; }
-  .confirm-detail strong { color: #222; text-align: right; }
-  .confirm-status-box { background: #d4edda; border-radius: 8px; padding: 24px 20px; text-align: center; border: 1px solid #c3e6cb; }
+
+  /* Confirmation timeline */
+  .confirm-timeline { display: flex; align-items: flex-start; margin-bottom: 28px; }
+  .timeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .timeline-circle { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; border: 2.5px solid; flex-shrink: 0; }
+  .timeline-circle.done { background: #16A34A; border-color: #16A34A; color: #fff; }
+  .timeline-circle.current { background: #0033CC; border-color: #0033CC; color: #fff; }
+  .timeline-circle.future { background: #fff; border-color: #CBD5E1; color: #94A3B8; }
+  .timeline-label { font-size: 10.5px; font-weight: 600; text-align: center; color: #475569; line-height: 1.3; max-width: 80px; }
+  .timeline-label.done-lbl { color: #16A34A; }
+  .timeline-label.current-lbl { color: #0033CC; }
+  .timeline-line { flex: 1; height: 2.5px; background: #E2E8F0; margin-top: 17px; }
+  .timeline-line.done { background: #16A34A; }
+
+  .confirm-machine-card { background: #EEF2FF; border-radius: 10px; padding: 16px; border-left: 4px solid #0033CC; margin-bottom: 20px; }
+  .confirm-machine-card h3 { color: #0033CC; font-size: 15px; margin-bottom: 10px; font-weight: 700; }
+  .confirm-detail { font-size: 13px; color: #475569; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .confirm-detail span { color: #94A3B8; font-size: 12px; white-space: nowrap; }
+  .confirm-detail strong { color: #1e293b; text-align: right; }
+  .confirm-status-box { background: #DCFCE7; border-radius: 10px; padding: 24px 20px; text-align: center; border: 1px solid #bbf7d0; }
   .confirm-status-box .icon { font-size: 44px; display: block; margin-bottom: 8px; }
-  .confirm-status-box h3 { color: #155724; font-size: 16px; margin-bottom: 6px; }
-  .confirm-status-box p { color: #155724; font-size: 13px; }
-  .btn-do-confirm { width: 100%; padding: 14px; background: #27ae60; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-  .btn-do-confirm:hover { background: #219150; }
-  .btn-do-confirm:disabled { background: #aaa; cursor: not-allowed; }
-  .confirm-disclaimer { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.6; }
+  .confirm-status-box h3 { color: #166534; font-size: 16px; margin-bottom: 6px; }
+  .confirm-status-box p { color: #166534; font-size: 13px; }
+  .btn-do-confirm { width: 100%; padding: 16px; background: #16A34A; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s; box-shadow: 0 4px 14px rgba(22,163,74,0.3); font-family: 'Inter', Arial, sans-serif; }
+  .btn-do-confirm:hover { background: #15803d; }
+  .btn-do-confirm:disabled { background: #94A3B8; cursor: not-allowed; box-shadow: none; }
+  .confirm-disclaimer { font-size: 11px; color: #94A3B8; text-align: center; margin-top: 12px; line-height: 1.6; }
 
   /* ===== IMPORT MODAL ===== */
-  .drop-zone { border: 2px dashed #0033CC; border-radius: 8px; padding: 36px 20px; text-align: center; cursor: pointer; color: #0033CC; font-size: 14px; transition: background 0.15s; }
-  .drop-zone:hover, .drop-zone.drag-over { background: #f0f4ff; }
+  .drop-zone { border: 2px dashed #0033CC; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; color: #0033CC; font-size: 14px; transition: background 0.12s; background: #f8fafc; }
+  .drop-zone:hover, .drop-zone.drag-over { background: #EEF2FF; }
   .drop-zone .dz-icon { font-size: 36px; display: block; margin-bottom: 8px; }
   .drop-zone input[type=file] { display: none; }
   .col-map-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-  .col-map-table th { background: #f0f4ff; color: #0033CC; padding: 7px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
-  .col-map-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
-  .col-map-table select { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
-  .preview-table-wrap { max-height: 320px; overflow-y: auto; border-radius: 6px; border: 1px solid #eee; margin-top: 12px; }
+  .col-map-table th { background: #EEF2F8; color: #0033CC; padding: 8px 12px; text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .col-map-table td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; }
+  .col-map-table select { padding: 6px 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 12px; font-family: 'Inter', Arial, sans-serif; }
+  .col-map-table select:focus { outline: none; border-color: #0033CC; }
+  .import-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .import-stat-card { background: #f8fafc; border-radius: 10px; padding: 12px 8px; text-align: center; border: 1px solid #e2e8f0; }
+  .isc-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+  .isc-value { font-size: 22px; font-weight: 700; display: block; line-height: 1.2; }
+  .isc-label { font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+  .preview-table-wrap { max-height: 300px; overflow-y: auto; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
   .preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .preview-table th { background: #0033CC; color: #fff; padding: 7px 10px; text-align: left; position: sticky; top: 0; font-size: 11px; }
-  .preview-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
+  .preview-table th { background: #0033CC; color: #fff; padding: 8px 10px; text-align: left; position: sticky; top: 0; font-size: 10.5px; letter-spacing: 0.3px; }
+  .preview-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; }
+  .preview-table tr:hover td { background: #f0f4ff; }
   .preview-table tr.row-new td { background: #f0faf4; }
-  .preview-table tr.row-new td:first-child::before { content: '●'; color: #27ae60; margin-right: 4px; }
-  .preview-table tr.row-update td { background: #f0f4ff; }
+  .preview-table tr.row-new td:first-child::before { content: '●'; color: #16A34A; margin-right: 4px; }
+  .preview-table tr.row-update td { background: #EEF2FF; }
   .preview-table tr.row-update td:first-child::before { content: '●'; color: #0033CC; margin-right: 4px; }
-  .preview-table tr.row-warn td { background: #fff8e1; }
+  .preview-table tr.row-warn td { background: #fffbeb; }
   .import-legend { display: flex; gap: 16px; font-size: 11px; margin-top: 8px; flex-wrap: wrap; }
   .import-legend span { display: flex; align-items: center; gap: 4px; }
   .import-step { display: none; }
   .import-step.active { display: block; }
-  .import-summary { background: #f0f4ff; border-radius: 6px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; }
+  .import-summary { background: #EEF2FF; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; border: 1px solid #c7d2fe; }
   .import-summary b { color: #0033CC; }
-  .warn-badge { background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .warn-badge { background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 </style>
 
 <script src="msal-browser.min.js"></script>
@@ -178,12 +260,20 @@
 <div class="header">
   <div class="header-top"></div>
   <div class="header-main">
-
+    <div class="brand-name">RAICOMMERCE</div>
     <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>МЕХАНИЗАЦИЯ И ТРАНСПОРТ</span></div>
     <div class="header-nav" id="header-nav">
+      <button class="notif-btn" id="notif-bell" style="display:none;" title="Неопотвърдени зачисления">
+        🔔<span class="notif-count" id="notif-count">0</span>
+      </button>
+      <div class="admin-dropdown" id="admin-dropdown" style="display:none;">
+        <button class="admin-dropdown-btn" onclick="toggleAdminMenu()">⚙ Админ ▾</button>
+        <div class="admin-menu" id="admin-menu">
+          <button onclick="showZachislyavane(); closeAdminMenu()">+ Зачисляване</button>
+          <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
+        </div>
+      </div>
       <span id="role-indicator" style="display:none;"></span>
-      <button class="nav-btn primary" id="btn-zachislyavane" style="display:none;" onclick="showZachislyavane()">+ Зачисляване</button>
-      <button class="nav-btn" id="btn-import-machines" style="display:none;" onclick="openImportModal()">⬆ Импорт машини</button>
       <button class="logout-btn" id="btn-logout" style="display:none;" onclick="doLogout()">Изход</button>
     </div>
   </div>
@@ -191,15 +281,52 @@
 </div>
 
 <div class="main">
+  <!-- Hidden legacy stats (JS still updates these values) -->
   <div class="stats" id="stats-container">
     <div class="stat"><div class="stat-label">Общо машини</div><div class="stat-value" id="stat-total">-</div></div>
     <div class="stat free"><div class="stat-label">Свободни</div><div class="stat-value" id="stat-free">-</div></div>
     <div class="stat busy"><div class="stat-label">Заети</div><div class="stat-value" id="stat-busy">-</div></div>
   </div>
 
+  <!-- Dashboard summary cards -->
+  <div id="dashboard-section" style="display:none;">
+    <div class="dashboard-cards">
+      <div class="dash-card">
+        <div class="dash-icon blue">🔧</div>
+        <div class="dash-info">
+          <div class="dash-label">Зачислени машини</div>
+          <div class="dash-value blue" id="dash-total">—</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-icon orange">⏳</div>
+        <div class="dash-info">
+          <div class="dash-label">Очакват потвърждение</div>
+          <div class="dash-value orange" id="dash-pending">—</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-icon green">✅</div>
+        <div class="dash-info">
+          <div class="dash-label">Потвърдени</div>
+          <div class="dash-value green" id="dash-confirmed">—</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-icon grey">📦</div>
+        <div class="dash-info">
+          <div class="dash-label">Отчислени</div>
+          <div class="dash-value grey" id="dash-otchisleni">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="filters">
     <span class="filter-label">Филтри:</span>
-    <input type="text" id="search" placeholder="Търсене по код WS или наименование..." oninput="renderTable()">
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Търсене по код WS или наименование..." oninput="renderTable()">
+    </div>
     <select id="filter-cat" onchange="renderTable()">
       <option value="">Всички категории</option>
       <option>Асфалторезачки</option><option>Багери</option><option>Виброплочи и трамбовки</option>
@@ -256,49 +383,68 @@
       <button class="modal-close" onclick="closeModal('modal-zachisli')">×</button>
     </div>
     <div class="modal-body">
-      <div class="machine-info" id="zachisli-info"><span style="color:#666;font-size:13px;">Изберете машина от списъка</span></div>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>Филтър по категория</label>
-          <select id="z-filter-kat" onchange="filterMachineSelect()">
-            <option value="">-- Всички категории --</option>
-            <option>Асфалторезачки</option><option>Багери</option><option>Виброплочи и трамбовки</option>
-            <option>Генератори</option><option>Грундомати</option><option>Заваръчни машини</option>
-            <option>Компресори</option><option>Машини за ел. муфи</option><option>Пробивни машини</option>
-            <option>Укрепващи системи</option><option>Фрези</option><option>Хидравлични станции</option><option>Хидравлични чукове</option>
-          </select>
+      <div class="machine-info" id="zachisli-info"><span style="color:#64748B;font-size:13px;">Изберете машина от списъка</span></div>
+
+      <!-- Секция: Машина -->
+      <div class="form-section">
+        <div class="form-section-title">🔧 Машина</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Филтър по категория</label>
+            <select id="z-filter-kat" onchange="filterMachineSelect()">
+              <option value="">-- Всички категории --</option>
+              <option>Асфалторезачки</option><option>Багери</option><option>Виброплочи и трамбовки</option>
+              <option>Генератори</option><option>Грундомати</option><option>Заваръчни машини</option>
+              <option>Компресори</option><option>Машини за ел. муфи</option><option>Пробивни машини</option>
+              <option>Укрепващи системи</option><option>Фрези</option><option>Хидравлични станции</option><option>Хидравлични чукове</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Машина <span class="required-star">*</span></label>
+            <select id="z-mashina" onchange="onMachinaSelect()">
+              <option value="">-- Изберете машина --</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Цена (мсм/ден)</label><input type="text" id="z-cena" class="readonly" readonly></div>
+          <div class="form-group"><label>Категория</label><input type="text" id="z-kategoria" class="readonly" readonly></div>
         </div>
-        <div class="form-group full">
-          <label>Машина *</label>
-          <select id="z-mashina" onchange="onMachinaSelect()">
-            <option value="">-- Изберете машина --</option>
-          </select>
+      </div>
+
+      <!-- Секция: Получател -->
+      <div class="form-section">
+        <div class="form-section-title">👤 Получател и направление</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Дата зачисляване <span class="required-star">*</span></label><input type="date" id="z-data"></div>
+          <div class="form-group">
+            <label>Направление <span class="required-star">*</span></label>
+            <select id="z-napravlenie">
+              <option value="">-- Изберете --</option>
+              <option>Инфраструктурно строителство</option><option>ВиК Строителство и поддръжка</option>
+              <option>Безизкопни технологии</option><option>Механизация и транспорт</option>
+              <option>РаТек ООД</option><option>Строителство на сгради и съоръжения</option>
+              <option>ТЕСТ</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Приел (ползвател) <span class="required-star">*</span></label><input type="text" id="z-priel" placeholder="Три имена"></div>
+          <div class="form-group"><label>Местонахождение <span class="required-star">*</span></label><input type="text" id="z-mesto" placeholder="Обект/адрес"></div>
+          <div class="form-group full"><label>Служител МиТ</label><select id="z-sluzhitel"><option value="">-- Изберете служител --</option><option>Атанас Валентинов Милчев</option><option>Васил Василев Палакарски</option><option>Васил Яворов Палакарски</option><option>Венелин Александров Захариев</option><option>Георги Пламенов Василев</option><option>Мирослав Велинов Велков</option><option>Ричърд Елвисов Архангелов</option><option>Стоян Симеонов Първанов</option></select></div>
         </div>
-        <div class="form-group"><label>Дата зачисляване *</label><input type="date" id="z-data"></div>
-        <div class="form-group">
-          <label>Направление *</label>
-          <select id="z-napravlenie">
-            <option value="">-- Изберете --</option>
-            <option>Инфраструктурно строителство</option><option>ВиК Строителство и поддръжка</option>
-            <option>Безизкопни технологии</option><option>Механизация и транспорт</option>
-            <option>РаТек ООД</option><option>Строителство на сгради и съоръжения</option>
-            <option>ТЕСТ</option>
-          </select>
+      </div>
+
+      <!-- Секция: Детайли -->
+      <div class="form-section">
+        <div class="form-section-title">📋 Детайли</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Състояние при предаване <span class="required-star">*</span></label>
+            <select id="z-sastoyanie">
+              <option value="">-- Изберете --</option>
+              <option value="В изправност">В изправност</option>
+              <option value="Неизправно (за ремонт)">Неизправно (за ремонт)</option>
+            </select>
+          </div>
+          <div class="form-group full"><label>Забележка</label><textarea id="z-zabelezhka" rows="3" placeholder="Допълнителни бележки (незадължително)"></textarea></div>
         </div>
-        <div class="form-group"><label>Приел (ползвател) *</label><input type="text" id="z-priel" placeholder="Три имена"></div>
-        <div class="form-group"><label>Местонахождение *</label><input type="text" id="z-mesto" placeholder="Обект/адрес"></div>
-        <div class="form-group"><label>Служител МиТ</label><select id="z-sluzhitel"><option value="">-- Изберете служител --</option><option>Атанас Валентинов Милчев</option><option>Васил Василев Палакарски</option><option>Васил Яворов Палакарски</option><option>Венелин Александров Захариев</option><option>Георги Пламенов Василев</option><option>Мирослав Велинов Велков</option><option>Ричърд Елвисов Архангелов</option><option>Стоян Симеонов Първанов</option></select></div>
-        <div class="form-group"><label>Цена (мсм/ден)</label><input type="text" id="z-cena" class="readonly" readonly></div>
-        <div class="form-group"><label>Категория</label><input type="text" id="z-kategoria" class="readonly" readonly></div>
-        <div class="form-group full">
-          <label>Състояние при предаване *</label>
-          <select id="z-sastoyanie">
-            <option value="">-- Изберете --</option>
-            <option value="В изправност">В изправност</option>
-            <option value="Неизправно (за ремонт)">Неизправно (за ремонт)</option>
-          </select>
-        </div>
-        <div class="form-group full"><label>Забележка</label><textarea id="z-zabelezhka" rows="3" placeholder="Допълнителни бележки (незадължително)"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -333,8 +479,8 @@
 <!-- MODAL: СПОДЕЛИ ЛИНК ЗА ПОТВЪРЖДЕНИЕ (за администратора) -->
 <div class="modal-overlay" id="modal-confirmation-share">
   <div class="modal" style="width:480px;">
-    <div class="modal-header" style="background:#27ae60;">
-      <h3>Изпратете линк за потвърждение</h3>
+    <div class="modal-header green">
+      <h3>🔗 Изпратете линк за потвърждение</h3>
       <button class="modal-close" onclick="closeModal('modal-confirmation-share')">×</button>
     </div>
     <div class="modal-body" style="text-align:center;">
@@ -345,7 +491,7 @@
       </div>
       <div class="confirm-link-row">
         <input type="text" id="confirmation-link" readonly>
-        <button class="btn-save" onclick="copyConfirmLink()" style="padding:8px 14px;white-space:nowrap;">📋 Копирай</button>
+        <button class="btn-save green" onclick="copyConfirmLink()" style="padding:8px 14px;white-space:nowrap;">📋 Копирай</button>
       </div>
       <p style="font-size:11px;color:#999;margin-top:10px;">Получателят отваря линка и потвърждава получаването.</p>
     </div>
@@ -363,6 +509,23 @@
       <p>Механизация и транспорт</p>
     </div>
     <div class="confirm-box-body">
+      <!-- Visual timeline -->
+      <div class="confirm-timeline" id="confirm-timeline">
+        <div class="timeline-step">
+          <div class="timeline-circle done">✓</div>
+          <div class="timeline-label done-lbl">Зачислена</div>
+        </div>
+        <div class="timeline-line" id="tl-line-1"></div>
+        <div class="timeline-step">
+          <div class="timeline-circle" id="tl-circle-2">2</div>
+          <div class="timeline-label" id="tl-label-2">Потвърдена от получател</div>
+        </div>
+        <div class="timeline-line" id="tl-line-2"></div>
+        <div class="timeline-step">
+          <div class="timeline-circle future" id="tl-circle-3">3</div>
+          <div class="timeline-label" id="tl-label-3">Отчислена</div>
+        </div>
+      </div>
       <div id="confirm-loading" style="text-align:center;padding:30px;color:#666;"><span class="spinner"></span> Зареждане...</div>
       <div id="confirm-machine-details"></div>
       <div id="confirm-already-done" style="display:none;"></div>
@@ -378,7 +541,7 @@
 <!-- MODAL: ИМПОРТ МАШИНИ ОТ EXCEL -->
 <div class="modal-overlay" id="modal-import">
   <div class="modal" style="width:700px;max-width:96vw;">
-    <div class="modal-header" style="background:#0033CC;">
+    <div class="modal-header">
       <h3>⬆ Импорт на машини от Excel</h3>
       <button class="modal-close" onclick="closeModal('modal-import')">×</button>
     </div>
@@ -411,6 +574,28 @@
       </div>
       <!-- Стъпка 3: Преглед -->
       <div class="import-step" id="import-step-3">
+        <div class="import-stats" id="import-stats-cards" style="display:none;">
+          <div class="import-stat-card">
+            <span class="isc-icon">📊</span>
+            <span class="isc-value" id="isc-total" style="color:#0033CC;">—</span>
+            <span class="isc-label">Общо</span>
+          </div>
+          <div class="import-stat-card">
+            <span class="isc-icon">✨</span>
+            <span class="isc-value" id="isc-new" style="color:#16A34A;">—</span>
+            <span class="isc-label">Нови</span>
+          </div>
+          <div class="import-stat-card">
+            <span class="isc-icon">🔄</span>
+            <span class="isc-value" id="isc-update" style="color:#0033CC;">—</span>
+            <span class="isc-label">Обновени</span>
+          </div>
+          <div class="import-stat-card">
+            <span class="isc-icon">⚠️</span>
+            <span class="isc-value" id="isc-skip" style="color:#D97706;">—</span>
+            <span class="isc-label">Пропуснати</span>
+          </div>
+        </div>
         <div class="import-summary" id="import-preview-summary"></div>
         <div class="import-legend">
           <span><span style="color:#27ae60;font-size:14px;">●</span> Нов запис</span>
@@ -541,15 +726,45 @@ async function loginWithMicrosoft() {
 
 function applyRoleUI() {
   const isAdmin = currentRole === 'admin';
+  // Avatar with initials
   const ri = document.getElementById('role-indicator');
   ri.style.display = 'inline-flex';
-  ri.innerHTML = isAdmin
-    ? `<span class="role-badge admin">🔐 ${currentUserName}</span>`
-    : `<span class="role-badge guest">👁️ ${currentUserName}</span>`;
-  document.getElementById('btn-zachislyavane').style.display = isAdmin ? 'inline-block' : 'none';
-  document.getElementById('btn-import-machines').style.display = isAdmin ? 'inline-block' : 'none';
+  const initials = getInitials(currentUserName);
+  ri.innerHTML = `<span class="user-avatar" title="${currentUserName}">${initials}</span>`;
+  // Admin dropdown
+  const adminDd = document.getElementById('admin-dropdown');
+  if (adminDd) adminDd.style.display = isAdmin ? 'inline-block' : 'none';
+  // Notification bell (for admins)
+  const bell = document.getElementById('notif-bell');
+  if (bell) bell.style.display = isAdmin ? 'inline-flex' : 'none';
+  // Logout
   document.getElementById('btn-logout').style.display = 'inline-block';
+  // Dashboard
+  const dash = document.getElementById('dashboard-section');
+  if (dash) dash.style.display = 'block';
 }
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+function toggleAdminMenu() {
+  const menu = document.getElementById('admin-menu');
+  if (menu) menu.classList.toggle('open');
+}
+
+function closeAdminMenu() {
+  const menu = document.getElementById('admin-menu');
+  if (menu) menu.classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('admin-dropdown');
+  if (dd && !dd.contains(e.target)) closeAdminMenu();
+});
 
 async function doLogout() {
   if (msalInstance) {
@@ -559,9 +774,15 @@ async function doLogout() {
   currentRole = null;
   currentUserName = '';
   document.getElementById('role-indicator').style.display = 'none';
-  document.getElementById('btn-zachislyavane').style.display = 'none';
+  const adminDd = document.getElementById('admin-dropdown');
+  if (adminDd) adminDd.style.display = 'none';
+  const bell = document.getElementById('notif-bell');
+  if (bell) bell.style.display = 'none';
   document.getElementById('btn-logout').style.display = 'none';
   document.getElementById('login-error').style.display = 'none';
+  const dash = document.getElementById('dashboard-section');
+  if (dash) dash.style.display = 'none';
+  confirmationsMap = {};
   document.getElementById('login-overlay').style.display = 'flex';
 }
 // --- END AUTH ---
@@ -941,6 +1162,29 @@ function updateStats() {
   document.getElementById('stat-free').textContent = free;
   document.getElementById('stat-busy').textContent = busy;
 
+  // Dashboard cards
+  const pendingConf = busyKods.filter(k => {
+    const c = confirmationsMap[k];
+    return !c || !c.confirmed;
+  }).length;
+  const confirmedConf = busyKods.filter(k => {
+    const c = confirmationsMap[k];
+    return c && c.confirmed;
+  }).length;
+  const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
+  const otchisleniCount = spData.filter(item =>
+    Object.keys(item).some(k => k.startsWith(DZ_KEY) && k !== DZ_KEY && item[k])
+  ).length;
+
+  const dashTotal = document.getElementById('dash-total');
+  const dashPending = document.getElementById('dash-pending');
+  const dashConfirmed = document.getElementById('dash-confirmed');
+  const dashOtchisleni = document.getElementById('dash-otchisleni');
+  if (dashTotal) dashTotal.textContent = busy;
+  if (dashPending) dashPending.textContent = pendingConf;
+  if (dashConfirmed) dashConfirmed.textContent = confirmedConf;
+  if (dashOtchisleni) dashOtchisleni.textContent = otchisleniCount;
+
   // Динамични карти по категория — само тези с поне 1 заета машина
   const katCount = {};
   busyKods.forEach(k => {
@@ -955,7 +1199,7 @@ function updateStats() {
   Object.entries(katCount).sort((a,b) => b[1]-a[1]).forEach(([kat, count]) => {
     const div = document.createElement('div');
     div.className = 'stat stat-dynamic';
-    div.innerHTML = '<div class="stat-label">' + kat + '</div><div class="stat-value" style="font-size:22px;color:#EE1C25">' + count + '</div>';
+    div.innerHTML = '<div class="stat-label">' + kat + '</div><div class="stat-value" style="font-size:22px;color:#C0392B">' + count + '</div>';
     container.appendChild(div);
   });
 }
@@ -1065,29 +1309,39 @@ function renderTable() {
     const safeIme = m.ime.replace(/'/g,"\\'");
     const safeKod = m.kod.replace(/'/g,"\\'");
 
+    // Row class for colored left border
+    let rowClass = '';
+    if (isBusy) {
+      const conf = confirmationsMap[m.kod];
+      rowClass = (conf && conf.confirmed) ? 'row-confirmed' : 'row-pending';
+    }
+
     let btn = '';
     if (currentRole === 'admin') {
       if (isBusy) {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
-        btn = '<td><button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button></td>';
+        btn = '<td style="white-space:nowrap;">' +
+          '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
+          ' <button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 Линк</button>' +
+          '</td>';
       } else {
         btn = '<td><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
       }
     }
 
-    let confBadge = '<span style="color:#ccc;font-size:11px;">—</span>';
+    let confBadge = '<span style="color:#CBD5E1;font-size:11px;">—</span>';
     if (isBusy) {
       const conf = confirmationsMap[m.kod];
       if (conf && conf.confirmed) {
-        confBadge = '<span class="conf-badge confirmed">✓ Да</span>';
+        confBadge = '<span class="conf-badge confirmed">✓ Потвърдено</span>';
       } else if (conf) {
         const reshareAttr = currentRole === 'admin' ? ' onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линка отново"' : '';
         confBadge = '<span class="conf-badge pending"' + reshareAttr + '>⏳ Очаква</span>';
       } else {
-        confBadge = '<span class="conf-badge pending">⏳</span>';
+        confBadge = '<span class="conf-badge pending">⏳ Очаква</span>';
       }
     }
-    html += '<tr><td><strong>' + getMachineDN(m) + '</strong></td><td>' + m.kod + '</td><td>' + m.ime + '</td>' +
+    html += '<tr class="' + rowClass + '"><td><strong>' + getMachineDN(m) + '</strong></td><td>' + m.kod + '</td><td>' + m.ime + '</td>' +
       '<td><span class="cat-badge">' + m.kat + '</span></td><td>' + badge + '</td>' +
       '<td>' + confBadge + '</td>' +
       '<td style="font-size:12px;">' + dir2 + '</td><td style="font-size:12px;">' + priel + '</td>' +
@@ -1251,7 +1505,14 @@ async function loadConfirmations() {
         confirmationsMap[c.machine_kod] = c;
       }
     });
+    updateNotifBell();
   } catch(e) { console.warn('[CONFIRM] Грешка:', e.message); }
+}
+
+function updateNotifBell() {
+  const pendingCount = Object.values(confirmationsMap).filter(c => !c.confirmed).length;
+  const countEl = document.getElementById('notif-count');
+  if (countEl) countEl.textContent = pendingCount;
 }
 
 async function createConfirmationRecord({ kod, ime, kat, cena, dir, priel, mesto, assignment_date, sluzhitel, sastoyanie }) {
@@ -1309,12 +1570,13 @@ async function checkForConfirmation() {
       .select('*').eq('id', token).maybeSingle();
     if (error) throw error;
     if (!data) {
-      document.getElementById('confirm-loading').innerHTML = '<p style="color:#EE1C25;text-align:center;">Невалиден или изтекъл линк за потвърждение.</p>';
+      document.getElementById('confirm-loading').innerHTML = '<p style="color:#C0392B;text-align:center;">Невалиден или изтекъл линк за потвърждение.</p>';
       return;
     }
     populateConfirmDetails(data);
     document.getElementById('confirm-loading').style.display = 'none';
     if (data.confirmed) {
+      updateConfirmTimeline(true);
       const dt = new Date(data.confirmed_at).toLocaleString('bg-BG');
       document.getElementById('confirm-already-done').style.display = 'block';
       document.getElementById('confirm-already-done').innerHTML =
@@ -1322,11 +1584,12 @@ async function checkForConfirmation() {
         '<h3>Получаването е потвърдено</h3>' +
         '<p>Потвърдено на ' + escapeHtml(dt) + '</p></div>';
     } else {
+      updateConfirmTimeline(false);
       document.getElementById('confirm-content').style.display = 'block';
       document.getElementById('btn-do-confirm').setAttribute('data-token', token);
     }
   } catch(e) {
-    document.getElementById('confirm-loading').innerHTML = '<p style="color:#EE1C25;text-align:center;">Грешка: ' + escapeHtml(e.message) + '</p>';
+    document.getElementById('confirm-loading').innerHTML = '<p style="color:#C0392B;text-align:center;">Грешка: ' + escapeHtml(e.message) + '</p>';
   }
 }
 
@@ -1358,6 +1621,7 @@ async function submitConfirmation() {
       .update({ confirmed: true, confirmed_at: new Date().toISOString() })
       .eq('id', token).eq('confirmed', false);
     if (error) throw error;
+    updateConfirmTimeline(true);
     document.getElementById('confirm-content').style.display = 'none';
     document.getElementById('confirm-already-done').style.display = 'block';
     document.getElementById('confirm-already-done').innerHTML =
@@ -1371,6 +1635,20 @@ async function submitConfirmation() {
   }
 }
 // ===== END CONFIRMATION SYSTEM =====
+
+function updateConfirmTimeline(isConfirmed) {
+  const c2 = document.getElementById('tl-circle-2');
+  const l2 = document.getElementById('tl-label-2');
+  const line1 = document.getElementById('tl-line-1');
+  if (isConfirmed) {
+    if (c2) { c2.className = 'timeline-circle done'; c2.textContent = '✓'; }
+    if (l2) l2.className = 'timeline-label done-lbl';
+    if (line1) line1.classList.add('done');
+  } else {
+    if (c2) { c2.className = 'timeline-circle current'; c2.textContent = '2'; }
+    if (l2) l2.className = 'timeline-label current-lbl';
+  }
+}
 
 filterMachineSelect();
 checkForConfirmation();
@@ -1522,6 +1800,20 @@ function buildImportPreview() {
   const newCnt    = importPreviewRows.filter(r => r.rowType === 'new').length;
   const updCnt    = importPreviewRows.filter(r => r.rowType === 'update').length;
   const warnCnt   = importPreviewRows.filter(r => r.rowType === 'warn').length;
+
+  // Update stats cards
+  const statsCards = document.getElementById('import-stats-cards');
+  if (statsCards) {
+    statsCards.style.display = 'grid';
+    const iscTotal = document.getElementById('isc-total');
+    const iscNew = document.getElementById('isc-new');
+    const iscUpdate = document.getElementById('isc-update');
+    const iscSkip = document.getElementById('isc-skip');
+    if (iscTotal) iscTotal.textContent = importPreviewRows.length;
+    if (iscNew) iscNew.textContent = newCnt;
+    if (iscUpdate) iscUpdate.textContent = updCnt;
+    if (iscSkip) iscSkip.textContent = warnCnt;
+  }
 
   document.getElementById('import-preview-summary').innerHTML =
     'Общо: <b>' + importPreviewRows.length + '</b> реда &nbsp;|&nbsp; ' +
