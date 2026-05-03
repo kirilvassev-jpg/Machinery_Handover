@@ -1328,10 +1328,8 @@ function renderTable() {
       if (isBusy) {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
         btn = '<td class="col-action">' +
-          '<div class="col-action-btns">' +
           '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-          '<button class="action-btn btn-link" onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк">🔗 QR/Линк</button>' +
-          '</div></td>';
+          '</td>';
       } else {
         btn = '<td class="col-action"><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
       }
