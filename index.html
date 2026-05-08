@@ -1364,9 +1364,10 @@ function renderTable() {
     if (currentRole === 'admin') {
       if (isBusy) {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
-        btn = '<td class="col-action">' +
+        btn = '<td class="col-action"><div class="col-action-btns">' +
           '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-          '</td>';
+          '<button class="action-btn btn-qr" style="background:#fff;color:#0033CC;border:1.5px solid #0033CC;min-width:90px;" onclick="reshareConfirmation(\'' + safeKod + '\')">🔗 QR/Линк</button>' +
+          '</div></td>';
       } else {
         btn = '<td class="col-action"><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
       }
