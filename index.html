@@ -253,6 +253,7 @@
   .warn-badge { background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 </style>
 
+<script src="config.js"></script>
 <script src="msal-browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="supabase.js"></script>
@@ -332,10 +333,6 @@
     </div>
     <select id="filter-cat" onchange="renderTable()">
       <option value="">Всички категории</option>
-      <option>Асфалторезачки</option><option>Багери</option><option>Виброплочи и трамбовки</option>
-      <option>Генератори</option><option>Грундомати</option><option>Заваръчни машини</option>
-      <option>Компресори</option><option>Машини за ел. муфи</option><option>Пробивни машини</option>
-      <option>Укрепващи системи</option><option>Фрези</option><option>Хидравлични станции</option><option>Хидравлични чукове</option>
     </select>
     <select id="filter-status" onchange="renderTable()">
       <option value="">Всички статуси</option>
@@ -344,10 +341,6 @@
     </select>
     <select id="filter-dir" onchange="renderTable()">
       <option value="">Всички направления</option>
-      <option>Инфраструктурно строителство</option><option>ВиК Строителство и поддръжка</option>
-      <option>Безизкопни технологии</option><option>Механизация и транспорт</option>
-      <option>РаТек ООД</option><option>Строителство на сгради и съоръжения</option>
-      <option>ТЕСТ</option>
     </select>
   </div>
 
@@ -396,10 +389,6 @@
             <label>Филтър по категория</label>
             <select id="z-filter-kat" onchange="filterMachineSelect()">
               <option value="">-- Всички категории --</option>
-              <option>Асфалторезачки</option><option>Багери</option><option>Виброплочи и трамбовки</option>
-              <option>Генератори</option><option>Грундомати</option><option>Заваръчни машини</option>
-              <option>Компресори</option><option>Машини за ел. муфи</option><option>Пробивни машини</option>
-              <option>Укрепващи системи</option><option>Фрези</option><option>Хидравлични станции</option><option>Хидравлични чукове</option>
             </select>
           </div>
           <div class="form-group full">
@@ -422,15 +411,11 @@
             <label>Направление <span class="required-star">*</span></label>
             <select id="z-napravlenie">
               <option value="">-- Изберете --</option>
-              <option>Инфраструктурно строителство</option><option>ВиК Строителство и поддръжка</option>
-              <option>Безизкопни технологии</option><option>Механизация и транспорт</option>
-              <option>РаТек ООД</option><option>Строителство на сгради и съоръжения</option>
-              <option>ТЕСТ</option>
             </select>
           </div>
           <div class="form-group"><label>Приел (ползвател) <span class="required-star">*</span></label><input type="text" id="z-priel" placeholder="Три имена"></div>
           <div class="form-group"><label>Местонахождение <span class="required-star">*</span></label><input type="text" id="z-mesto" placeholder="Обект/адрес"></div>
-          <div class="form-group full"><label>Служител МиТ</label><select id="z-sluzhitel"><option value="">-- Изберете служител --</option><option>Атанас Валентинов Милчев</option><option>Васил Василев Палакарски</option><option>Васил Яворов Палакарски</option><option>Венелин Александров Захариев</option><option>Георги Пламенов Василев</option><option>Мирослав Велинов Велков</option><option>Ричърд Елвисов Архангелов</option><option>Стоян Симеонов Първанов</option></select></div>
+          <div class="form-group full"><label>Служител МиТ</label><select id="z-sluzhitel"><option value="">-- Изберете служител --</option></select></div>
         </div>
       </div>
 
@@ -469,7 +454,7 @@
       <div class="form-grid">
         <div class="form-group"><label>Дата отчисляване *</label><input type="date" id="o-data"></div>
         <div class="form-group"><label>Предал (върнал) *</label><input type="text" id="o-predal" placeholder="Три имена"></div>
-        <div class="form-group full"><label>Служител МиТ (приел)</label><select id="o-sluzhitel"><option value="">-- Изберете служител --</option><option>Атанас Валентинов Милчев</option><option>Васил Василев Палакарски</option><option>Васил Яворов Палакарски</option><option>Венелин Александров Захариев</option><option>Георги Пламенов Василев</option><option>Мирослав Велинов Велков</option><option>Ричърд Елвисов Архангелов</option><option>Стоян Симеонов Първанов</option></select></div>
+        <div class="form-group full"><label>Служител МиТ (приел)</label><select id="o-sluzhitel"><option value="">-- Изберете служител --</option></select></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -639,18 +624,16 @@
 </div>
 
 <script>
-const PROXY_URL      = 'https://wcsdjfsohqanxcppcvvk.supabase.co/functions/v1/proxy';
-const FUNCTION_SCOPE = 'api://0afb663f-c74b-4cc5-9a32-30cbf172b0de/user_impersonation';
+const PROXY_URL      = APP_CONFIG.proxyUrl;
+const FUNCTION_SCOPE = APP_CONFIG.functionScope;
 
 // --- AUTH (MSAL + Supabase roles) ---
-const SUPABASE_URL = 'https://wcsdjfsohqanxcppcvvk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_aMxRatJ2BJxE5vQIhffing_8_zMpBDO';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseKey);
 
 const msalConfig = {
   auth: {
-    clientId: '62029787-9853-404f-9a43-eff6e9762d13',
-    authority: 'https://login.microsoftonline.com/0b822811-c53c-4f5e-9444-350c2fb3f935',
+    clientId:    APP_CONFIG.msal.clientId,
+    authority:   `https://login.microsoftonline.com/${APP_CONFIG.msal.tenantId}`,
     redirectUri: window.location.origin + window.location.pathname
   },
   cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
@@ -1106,6 +1089,52 @@ async function loadMachinesCatalog() {
   }
 }
 
+// ── SharePoint OData field names (URL-encoded Cyrillic column names) ──────────
+// Use these constants everywhere instead of raw OData__ strings.
+const SP_FIELDS = {
+  datZachislyavane: 'OData__x0414__x0430__x0442__x0430__x04',  // Дата зачисляване
+  kod:              'OData__x041a__x043e__x0434_',               // Код
+  kategoriya:       'OData__x041a__x0430__x0442__x0435__x04',   // Категория
+  naimenovanie:     'OData__x041d__x0430__x0438__x043c__x04',   // Наименование
+  napravlenie:      'OData__x041d__x0430__x043f__x0440__x04',   // Направление
+  priel:            'OData__x041f__x0440__x0438__x0435__x04',   // Приел
+  mestopolozhenie:  'OData__x041c__x0435__x0441__x0442__x04',   // Местоположение
+  cena:             'OData__x0426__x0435__x043d__x0430__x00',   // Цена
+};
+// Полетата за дата на отчисляване започват с datZachislyavane,
+// но са различни ключове — проверяваме по prefix.
+const SP_DAT_OTCHISLYAVANE_PREFIX = SP_FIELDS.datZachislyavane;
+
+// ── Централизирани данни за падащи менюта ────────────────────────────────────
+const KATEGORII = [
+  'Асфалторезачки','Багери','Виброплочи и трамбовки','Генератори',
+  'Грундомати','Заваръчни машини','Компресори','Машини за ел. муфи',
+  'Пробивни машини','Укрепващи системи','Фрези','Хидравлични станции',
+  'Хидравлични чукове',
+];
+const NAPRAVLENIYA = [
+  'Инфраструктурно строителство','ВиК Строителство и поддръжка',
+  'Безизкопни технологии','Механизация и транспорт',
+  'РаТек ООД','Строителство на сгради и съоръжения','ТЕСТ',
+];
+const SLUZHITELI = [
+  'Атанас Валентинов Милчев','Васил Василев Палакарски',
+  'Васил Яворов Палакарски','Венелин Александров Захариев',
+  'Георги Пламенов Василев','Мирослав Велинов Велков',
+  'Ричърд Елвисов Архангелов','Стоян Симеонов Първанов',
+];
+
+/** Добавя <option> елементи към select с дадено id. */
+function populateSelect(id, items) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  items.forEach(function(val) {
+    const opt = document.createElement('option');
+    opt.textContent = val;
+    sel.appendChild(opt);
+  });
+}
+
 // spData = активни зачисления от SharePoint
 // spMap  = { kod -> spItem } за бързо търсене
 let spData = [];
@@ -1115,14 +1144,14 @@ let currentOtchisliId = null;
 // Извлича поле от SharePoint OData item
 function f(item, key) {
   const map = {
-    dz:    'OData__x0414__x0430__x0442__x0430__x04',
-    kod:   'OData__x041a__x043e__x0434_',
-    kat:   'OData__x041a__x0430__x0442__x0435__x04',
-    ime:   'OData__x041d__x0430__x0438__x043c__x04',
-    dir:   'OData__x041d__x0430__x043f__x0440__x04',
-    priel: 'OData__x041f__x0440__x0438__x0435__x04',
-    mesto: 'OData__x041c__x0435__x0441__x0442__x04',
-    cena:  'OData__x0426__x0435__x043d__x0430__x00',
+    dz:    SP_FIELDS.datZachislyavane,
+    kod:   SP_FIELDS.kod,
+    kat:   SP_FIELDS.kategoriya,
+    ime:   SP_FIELDS.naimenovanie,
+    dir:   SP_FIELDS.napravlenie,
+    priel: SP_FIELDS.priel,
+    mesto: SP_FIELDS.mestopolozhenie,
+    cena:  SP_FIELDS.cena,
   };
   const v = item[map[key]];
   if (v && typeof v === 'object') return v.Value || '';
@@ -1144,11 +1173,10 @@ function getMachineDN(m) {
 
 function buildSpMap() {
   spMap = {};
-  const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
   spData.forEach(item => {
     // Ако има попълнена дата на отчисляване - машината е свободна, пропускаме
     const isOtchislena = Object.keys(item).some(k =>
-      k.startsWith(DZ_KEY) && k !== DZ_KEY && item[k]
+      k.startsWith(SP_DAT_OTCHISLYAVANE_PREFIX) && k !== SP_DAT_OTCHISLYAVANE_PREFIX && item[k]
     );
     if (isOtchislena) return;
     const kod = f(item, 'kod');
@@ -1174,9 +1202,8 @@ function updateStats() {
     const c = confirmationsMap[k];
     return c && c.confirmed;
   }).length;
-  const DZ_KEY = 'OData__x0414__x0430__x0442__x0430__x04';
   const otchisleniCount = spData.filter(item =>
-    Object.keys(item).some(k => k.startsWith(DZ_KEY) && k !== DZ_KEY && item[k])
+    Object.keys(item).some(k => k.startsWith(SP_DAT_OTCHISLYAVANE_PREFIX) && k !== SP_DAT_OTCHISLYAVANE_PREFIX && item[k])
   ).length;
 
   const dashTotal = document.getElementById('dash-total');
@@ -1902,6 +1929,14 @@ async function confirmImport() {
   }
 }
 // ===== КРАЙ ИМПОРТ =====
+
+// ── Попълване на падащите менюта при зареждане ───────────────────────────────
+populateSelect('filter-cat', KATEGORII);
+populateSelect('z-filter-kat', KATEGORII);
+populateSelect('filter-dir', NAPRAVLENIYA);
+populateSelect('z-napravlenie', NAPRAVLENIYA);
+populateSelect('z-sluzhitel', SLUZHITELI);
+populateSelect('o-sluzhitel', SLUZHITELI);
 </script>
 </body>
 </html>
