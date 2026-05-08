@@ -650,16 +650,22 @@ async function getMsal() {
   return msalInstance;
 }
 
-/** Acquires a Bearer token for the Azure Function proxy scope. */
+/** Acquires a Bearer token for the proxy. */
 async function getProxyToken() {
   const instance = await getMsal();
   const accounts = instance.getAllAccounts();
-  if (!accounts.length) throw new Error('No logged-in account');
+  if (!accounts.length) throw new Error('Not logged in');
   try {
-    const result = await instance.acquireTokenSilent({ scopes: [FUNCTION_SCOPE], account: accounts[0] });
+    const result = await instance.acquireTokenSilent({
+      scopes: ['https://graph.microsoft.com/User.Read'],
+      account: accounts[0]
+    });
     return result.accessToken;
-  } catch {
-    const result = await instance.acquireTokenPopup({ scopes: [FUNCTION_SCOPE] });
+  } catch(e) {
+    console.error('[TOKEN] грешка:', e);
+    const result = await instance.acquireTokenPopup({
+      scopes: ['https://graph.microsoft.com/User.Read']
+    });
     return result.accessToken;
   }
 }
@@ -1241,7 +1247,11 @@ function updateStats() {
 async function loadFromSharePoint() {
   document.getElementById('table-container').innerHTML = '<div class="loading"><span class="spinner"></span>Зареждане от SharePoint...</div>';
   try {
-    const { status: readStatus, text } = await callProxy('read', {});
+    console.log('[DEBUG] Извиква се callProxy read...');
+    const result = await callProxy('read', {});
+    console.log('[DEBUG] callProxy резултат:', result);
+    console.log('[DEBUG] result.text:', result.text);
+    const { status: readStatus, text } = result;
     console.log('[READ] status:', readStatus, 'body:', text);
     if (!text || text.trim() === '') throw new Error('Празен отговор от прокси');
     const data = JSON.parse(text);
