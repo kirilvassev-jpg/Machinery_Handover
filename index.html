@@ -296,22 +296,22 @@
       <div class="dash-card">
         <div class="dash-icon blue">🔧</div>
         <div class="dash-info">
-          <div class="dash-label">Зачислени машини</div>
+          <div class="dash-label">Брой машини</div>
           <div class="dash-value blue" id="dash-total">—</div>
-        </div>
-      </div>
-      <div class="dash-card">
-        <div class="dash-icon orange">⏳</div>
-        <div class="dash-info">
-          <div class="dash-label">Очакват потвърждение</div>
-          <div class="dash-value orange" id="dash-pending">—</div>
         </div>
       </div>
       <div class="dash-card">
         <div class="dash-icon green">✅</div>
         <div class="dash-info">
-          <div class="dash-label">Потвърдени</div>
-          <div class="dash-value green" id="dash-confirmed">—</div>
+          <div class="dash-label">Свободни машини</div>
+          <div class="dash-value green" id="dash-free">—</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-icon orange">⏳</div>
+        <div class="dash-info">
+          <div class="dash-label">Заети машини</div>
+          <div class="dash-value orange" id="dash-busy">—</div>
         </div>
       </div>
       <div class="dash-card">
@@ -1207,12 +1207,12 @@ function updateStats() {
   ).length;
 
   const dashTotal = document.getElementById('dash-total');
-  const dashPending = document.getElementById('dash-pending');
-  const dashConfirmed = document.getElementById('dash-confirmed');
+  const dashFree = document.getElementById('dash-free');
+  const dashBusy = document.getElementById('dash-busy');
   const dashOtchisleni = document.getElementById('dash-otchisleni');
-  if (dashTotal) dashTotal.textContent = busy;
-  if (dashPending) dashPending.textContent = pendingConf;
-  if (dashConfirmed) dashConfirmed.textContent = confirmedConf;
+  if (dashTotal) dashTotal.textContent = total;
+  if (dashFree) dashFree.textContent = free;
+  if (dashBusy) dashBusy.textContent = busy;
   if (dashOtchisleni) dashOtchisleni.textContent = otchisleniCount;
 
   // Динамични карти по категория — само тези с поне 1 заета машина
