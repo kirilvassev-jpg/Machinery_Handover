@@ -683,6 +683,7 @@ async function callProxy(action, body = {}) {
     body: JSON.stringify(body),
   });
   const text = await res.text();
+  console.log(`[proxy/${action}] status:`, res.status);
   return { ok: res.ok || res.status === 202, status: res.status, text };
 }
 
