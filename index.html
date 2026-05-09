@@ -348,7 +348,6 @@
     <div class="table-header">
       <h3>Списък на механизацията</h3>
       <span class="table-count" id="table-count"></span>
-      <button id="btn-debug" onclick="showDebug()" style="font-size:11px;padding:4px 10px;background:#1e1e1e;color:#d4d4d4;border:none;border-radius:4px;cursor:pointer;display:none;">🔍 Debug</button>
     </div>
     <div id="table-container"><div class="loading"><span class="spinner"></span>Зареждане...</div></div>
   </div>
@@ -731,9 +730,6 @@ function applyRoleUI() {
   // Notification bell (for admins)
   const bell = document.getElementById('notif-bell');
   if (bell) bell.style.display = isAdmin ? 'inline-flex' : 'none';
-  // Debug button (admin only)
-  const btnDebug = document.getElementById('btn-debug');
-  if (btnDebug) btnDebug.style.display = isAdmin ? 'inline-block' : 'none';
   // Logout
   document.getElementById('btn-logout').style.display = 'inline-block';
   // Dashboard
