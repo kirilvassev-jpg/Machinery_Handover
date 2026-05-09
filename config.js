@@ -21,7 +21,4 @@ const APP_CONFIG = {
     tenantId:   '0b822811-c53c-4f5e-9444-350c2fb3f935',
   },
 
-  flowRead:     'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/47d5301442cf4a26aeed97ae54d137ce/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QvS85nDqyR1aIgU_9Rrl0iqhpS-tReETrf7M91Rccwc',
-  flowZachisli: 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/07dc0b5505724d4bb8ea8bcc01215a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=apdLUQR8CW4pzuioH5DaobPAC2XvKeO66mSMsOxijdw',
-  flowOtchisli: 'https://default0b822811c53c4f5e9444350c2fb3f9.35.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/41ad71417a524069a8a3e7ec4cc1b6e3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=pueap1yYjKeRFdipMPKnFZnbo3ZcK9PMw1PRWqmNlpI',
 };
