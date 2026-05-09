@@ -87,14 +87,13 @@
   .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
   .status-free { background: #DCFCE7; color: #166534; }
   .status-busy { background: #FEF3C7; color: #92400E; }
-  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; min-width: 90px; white-space: nowrap; overflow: visible; flex-shrink: 0; }
+  .action-btn { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 500; font-family: 'Inter', Arial, sans-serif; transition: opacity 0.12s; min-width: 95px; white-space: nowrap; overflow: visible; flex-shrink: 0; }
   .action-btn:hover { opacity: 0.85; }
   .btn-zachisli { background: #0033CC; color: #fff; box-shadow: 0 1px 3px rgba(0,51,204,0.25); }
   .btn-otchisli { background: #C0392B; color: #fff; box-shadow: 0 1px 3px rgba(192,57,43,0.25); }
   .btn-link { background: #fff; color: #475569; border: 1px solid #cbd5e1 !important; min-width: 85px; }
-  td.col-action, th.col-action { white-space: nowrap; min-width: 240px; width: 240px; }
-  .col-action-btns { display: flex; flex-wrap: nowrap; gap: 6px; min-width: 220px; }
-  .action-btn { min-width: 85px; white-space: nowrap; flex-shrink: 0; }
+  td.col-action, th.col-action { white-space: nowrap; min-width: 270px; }
+  .col-action-btns { display: flex; flex-wrap: nowrap; gap: 6px; min-width: 250px; }
 
   /* ===== MODALS ===== */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.5); backdrop-filter: blur(3px); z-index: 1000; align-items: center; justify-content: center; }
@@ -1373,7 +1372,7 @@ function renderTable() {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
         btn = '<td class="col-action"><div class="col-action-btns">' +
           '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-          '<button class="action-btn btn-qr" style="background:#fff;color:#0033CC;border:1.5px solid #0033CC;min-width:90px;" onclick="reshareConfirmation(\'' + safeKod + '\')">🔗 QR/Линк</button>' +
+          '<button class="action-btn btn-qr" style="background:#fff;color:#0033CC;border:1.5px solid #0033CC;min-width:110px;" onclick="reshareConfirmation(\'' + safeKod + '\')">🔗 QR/Линк</button>' +
           '</div></td>';
       } else {
         btn = '<td class="col-action"><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
