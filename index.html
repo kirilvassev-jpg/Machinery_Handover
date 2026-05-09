@@ -672,13 +672,14 @@ async function getProxyToken() {
 }
 
 async function callProxy(action, body = {}) {
-  const token = await getProxyToken();
-  const res = await fetch(`${PROXY_URL}/${action}`, {
+  const urls = {
+    read:     APP_CONFIG.flowRead,
+    zachisli: APP_CONFIG.flowZachisli,
+    otchisli: APP_CONFIG.flowOtchisli,
+  };
+  const res = await fetch(urls[action], {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   const text = await res.text();
