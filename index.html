@@ -1944,10 +1944,13 @@ async function confirmImport() {
   btnConfirm.disabled = true;
   btnConfirm.textContent = 'Импортиране...';
   try {
-    const upsertData = validRows.map(r => ({
+    const dedupMap = new Map();
+    for (const r of validRows) dedupMap.set(r.kod, r);
+    const upsertData = Array.from(dedupMap.values()).map(r => ({
       kod: r.kod, ime: r.ime, kat: r.kat, cena: r.cena,
       updated_at: new Date().toISOString()
     }));
+    const dupCount = validRows.length - dedupMap.size;
     if (replaceAll) {
       btnConfirm.textContent = 'Изтриване и запис...';
       const result = await callProxy('catalog-replace', { machines: upsertData });
@@ -1970,8 +1973,9 @@ async function confirmImport() {
     closeModal('modal-import');
     showToast(
       (replaceAll ? 'Списъкът е заменен! ' : 'Импортирани ') +
-      validRows.length + ' машини!' +
-      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — непозната категория)' : '')
+      dedupMap.size + ' машини!' +
+      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — непозната категория)' : '') +
+      (dupCount > 0 ? ' (' + dupCount + ' дублирани кода — взет последният)' : '')
     );
     await loadMachinesCatalog();
     filterMachineSelect();
