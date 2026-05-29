@@ -1931,6 +1931,7 @@ async function confirmImport() {
   const validRows = importPreviewRows.filter(r => r.validKat);
   if (!validRows.length) { showToast('Всички редове имат непозната категория!', true); return; }
   const replaceAll = document.getElementById('import-replace-all').checked;
+  console.log('[import] v3 start — replaceAll:', replaceAll, 'rows:', validRows.length);
   if (replaceAll) {
     const ok = confirm(
       '⚠ Сигурни ли сте?\n\n' +
@@ -1958,6 +1959,7 @@ async function confirmImport() {
     } else {
       btnConfirm.textContent = 'Записване...';
       const result2 = await callProxy('catalog-upsert', { machines: upsertData });
+      console.log('[import] catalog-upsert response:', result2.status, result2.text.substring(0, 300));
       if (!result2.ok) {
         let errMsg2 = `[${result2.status}] ${result2.text}`;
         try { errMsg2 = JSON.parse(result2.text).error || errMsg2; } catch { /* ignore */ }
@@ -1976,6 +1978,7 @@ async function confirmImport() {
     updateStats();
     renderTable();
   } catch(e) {
+    console.error('[import] грешка:', e);
     showToast('Грешка при запис: ' + e.message, true);
   } finally {
     btnConfirm.disabled = false;
