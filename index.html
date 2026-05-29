@@ -1957,10 +1957,12 @@ async function confirmImport() {
       }
     } else {
       btnConfirm.textContent = 'Записване...';
-      const { error } = await supabaseClient
-        .from('machinery_catalog')
-        .upsert(upsertData, { onConflict: 'kod' });
-      if (error) throw error;
+      const result2 = await callProxy('catalog-upsert', { machines: upsertData });
+      if (!result2.ok) {
+        let errMsg2 = 'Грешка от сървъра';
+        try { errMsg2 = JSON.parse(result2.text).error || errMsg2; } catch { /* ignore */ }
+        throw new Error(errMsg2);
+      }
     }
     const skipCnt = importPreviewRows.length - validRows.length;
     closeModal('modal-import');

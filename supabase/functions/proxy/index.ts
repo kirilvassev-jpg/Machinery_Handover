@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
   const urlAction = new URL(req.url).pathname.split('/').pop()?.toLowerCase() ?? '';
   const action    = (urlAction || String(body.action ?? '')).toLowerCase();
 
-  const ALLOWED_ACTIONS = ['read', 'zachisli', 'otchisli', 'catalog-replace'];
+  const ALLOWED_ACTIONS = ['read', 'zachisli', 'otchisli', 'catalog-replace', 'catalog-upsert'];
   if (!ALLOWED_ACTIONS.includes(action)) {
     return json({ error: `Невалидно действие: ${action}` }, 400);
   }
@@ -90,6 +90,22 @@ Deno.serve(async (req: Request) => {
         return json({ error: 'Грешка при запис: ' + insErr.message }, 500);
       }
       console.log(`[proxy] catalog-replace: ${machines.length} машини от ${userEmail}`);
+      return json({ ok: true, count: machines.length }, 200);
+    }
+
+    if (action === 'catalog-upsert') {
+      const machines = body.machines as Array<{kod:string,ime:string,kat:string,cena:number}> | undefined;
+      if (!Array.isArray(machines) || machines.length === 0) {
+        return json({ error: 'Невалидни данни — липсва масив machines' }, 400);
+      }
+      const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+      const rows = machines.map(m => ({ kod: m.kod, ime: m.ime, kat: m.kat, cena: m.cena, updated_at: new Date().toISOString() }));
+      const { error: upsErr } = await db.from('machinery_catalog').upsert(rows, { onConflict: 'kod' });
+      if (upsErr) {
+        console.error('[proxy] catalog-upsert error:', upsErr);
+        return json({ error: 'Грешка при запис: ' + upsErr.message }, 500);
+      }
+      console.log(`[proxy] catalog-upsert: ${machines.length} машини от ${userEmail}`);
       return json({ ok: true, count: machines.length }, 200);
     }
   }
