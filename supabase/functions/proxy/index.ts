@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
   const urlAction = new URL(req.url).pathname.split('/').pop()?.toLowerCase() ?? '';
   const action    = (urlAction || String(body.action ?? '')).toLowerCase();
 
-  const ALLOWED_ACTIONS = ['read', 'zachisli', 'otchisli'];
+  const ALLOWED_ACTIONS = ['read', 'zachisli', 'otchisli', 'catalog-replace'];
   if (!ALLOWED_ACTIONS.includes(action)) {
     return json({ error: `Невалидно действие: ${action}` }, 400);
   }
@@ -70,6 +70,27 @@ Deno.serve(async (req: Request) => {
     if (!adminRow) {
       console.warn(`[proxy] ЗАБРАНЕНО: ${userEmail} → ${action}`);
       return json({ error: 'Forbidden — изисква се администраторска роля' }, 403);
+    }
+
+    if (action === 'catalog-replace') {
+      const machines = body.machines as Array<{kod:string,ime:string,kat:string,cena:number}> | undefined;
+      if (!Array.isArray(machines) || machines.length === 0) {
+        return json({ error: 'Невалидни данни — липсва масив machines' }, 400);
+      }
+      const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { error: delErr } = await db.from('machinery_catalog').delete().not('kod', 'is', null);
+      if (delErr) {
+        console.error('[proxy] catalog-replace delete error:', delErr);
+        return json({ error: 'Грешка при изтриване: ' + delErr.message }, 500);
+      }
+      const rows = machines.map(m => ({ kod: m.kod, ime: m.ime, kat: m.kat, cena: m.cena, updated_at: new Date().toISOString() }));
+      const { error: insErr } = await db.from('machinery_catalog').insert(rows);
+      if (insErr) {
+        console.error('[proxy] catalog-replace insert error:', insErr);
+        return json({ error: 'Грешка при запис: ' + insErr.message }, 500);
+      }
+      console.log(`[proxy] catalog-replace: ${machines.length} машини от ${userEmail}`);
+      return json({ ok: true, count: machines.length }, 200);
     }
   }
 

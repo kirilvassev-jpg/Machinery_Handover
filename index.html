@@ -1943,23 +1943,25 @@ async function confirmImport() {
   btnConfirm.disabled = true;
   btnConfirm.textContent = 'Импортиране...';
   try {
-    if (replaceAll) {
-      btnConfirm.textContent = 'Изтриване на стари...';
-      const { error: delErr } = await supabaseClient
-        .from('machinery_catalog')
-        .delete()
-        .not('kod', 'is', null);
-      if (delErr) throw delErr;
-    }
-    btnConfirm.textContent = 'Записване...';
     const upsertData = validRows.map(r => ({
       kod: r.kod, ime: r.ime, kat: r.kat, cena: r.cena,
       updated_at: new Date().toISOString()
     }));
-    const { error } = await supabaseClient
-      .from('machinery_catalog')
-      .upsert(upsertData, { onConflict: 'kod' });
-    if (error) throw error;
+    if (replaceAll) {
+      btnConfirm.textContent = 'Изтриване и запис...';
+      const result = await callProxy('catalog-replace', { machines: upsertData });
+      if (!result.ok) {
+        let errMsg = 'Грешка от сървъра';
+        try { errMsg = JSON.parse(result.text).error || errMsg; } catch { /* ignore */ }
+        throw new Error(errMsg);
+      }
+    } else {
+      btnConfirm.textContent = 'Записване...';
+      const { error } = await supabaseClient
+        .from('machinery_catalog')
+        .upsert(upsertData, { onConflict: 'kod' });
+      if (error) throw error;
+    }
     const skipCnt = importPreviewRows.length - validRows.length;
     closeModal('modal-import');
     showToast(
