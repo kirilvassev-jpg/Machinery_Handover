@@ -1928,10 +1928,11 @@ function importPrevStep() {
 }
 
 async function confirmImport() {
-  const validRows = importPreviewRows.filter(r => r.validKat);
-  if (!validRows.length) { showToast('Всички редове имат непозната категория!', true); return; }
+  const allRows = importPreviewRows.filter(r => r.kod);
+  if (!allRows.length) { showToast('Няма редове за импорт!', true); return; }
+  const validRows = allRows.filter(r => r.validKat);
   const replaceAll = document.getElementById('import-replace-all').checked;
-  console.log('[import] v3 start — replaceAll:', replaceAll, 'rows:', validRows.length);
+  console.log('[import] v3 start — replaceAll:', replaceAll, 'rows:', allRows.length);
   if (replaceAll) {
     const ok = confirm(
       '⚠ Сигурни ли сте?\n\n' +
@@ -1945,12 +1946,13 @@ async function confirmImport() {
   btnConfirm.textContent = 'Импортиране...';
   try {
     const dedupMap = new Map();
-    for (const r of validRows) dedupMap.set(r.kod, r);
+    for (const r of allRows) dedupMap.set(r.kod, r);
     const upsertData = Array.from(dedupMap.values()).map(r => ({
       kod: r.kod, ime: r.ime, kat: r.kat, cena: r.cena,
       updated_at: new Date().toISOString()
     }));
-    const dupCount = validRows.length - dedupMap.size;
+    const dupCount = allRows.length - dedupMap.size;
+    const warnCount = allRows.length - validRows.length;
     if (replaceAll) {
       btnConfirm.textContent = 'Изтриване и запис...';
       const result = await callProxy('catalog-replace', { machines: upsertData });
@@ -1969,13 +1971,14 @@ async function confirmImport() {
         throw new Error(errMsg2);
       }
     }
-    const skipCnt = importPreviewRows.length - validRows.length;
+    const skipCnt = importPreviewRows.length - allRows.length;
     closeModal('modal-import');
     showToast(
       (replaceAll ? 'Списъкът е заменен! ' : 'Импортирани ') +
       dedupMap.size + ' машини!' +
-      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — непозната категория)' : '') +
-      (dupCount > 0 ? ' (' + dupCount + ' дублирани кода — взет последният)' : '')
+      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — без код)' : '') +
+      (dupCount > 0 ? ' (' + dupCount + ' дублирани)' : '') +
+      (warnCount > 0 ? ' (' + warnCount + ' с непозната категория)' : '')
     );
     await loadMachinesCatalog();
     filterMachineSelect();
