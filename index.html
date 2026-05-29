@@ -1951,7 +1951,7 @@ async function confirmImport() {
       btnConfirm.textContent = 'Изтриване и запис...';
       const result = await callProxy('catalog-replace', { machines: upsertData });
       if (!result.ok) {
-        let errMsg = 'Грешка от сървъра';
+        let errMsg = `[${result.status}] ${result.text}`;
         try { errMsg = JSON.parse(result.text).error || errMsg; } catch { /* ignore */ }
         throw new Error(errMsg);
       }
@@ -1959,7 +1959,7 @@ async function confirmImport() {
       btnConfirm.textContent = 'Записване...';
       const result2 = await callProxy('catalog-upsert', { machines: upsertData });
       if (!result2.ok) {
-        let errMsg2 = 'Грешка от сървъра';
+        let errMsg2 = `[${result2.status}] ${result2.text}`;
         try { errMsg2 = JSON.parse(result2.text).error || errMsg2; } catch { /* ignore */ }
         throw new Error(errMsg2);
       }
