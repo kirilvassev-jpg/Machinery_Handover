@@ -591,6 +591,15 @@
           <span>⚠ Непозната категория — няма да се импортира</span>
         </div>
         <div class="preview-table-wrap" id="import-preview-table-wrap" style="margin-top:10px;"></div>
+        <div id="import-replace-section" style="margin-top:14px;padding:12px 14px;background:#fff3cd;border-radius:8px;border:1.5px solid #ffc107;">
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
+            <input type="checkbox" id="import-replace-all" style="margin-top:3px;flex-shrink:0;width:16px;height:16px;accent-color:#C0392B;">
+            <span style="font-size:13px;color:#856404;">
+              <strong>⚠ Замени целия списък</strong> — изтрий всички стари машини от каталога и запиши само тези от файла
+              <span style="display:block;font-size:11.5px;font-weight:400;margin-top:4px;color:#92400E;">Машините, присъстващи само в старото, ще бъдат <strong>окончателно изтрити</strong>. Историческите записи за предаване не се засягат.</span>
+            </span>
+          </label>
+        </div>
       </div>
     </div>
     <div class="modal-footer" id="import-modal-footer" data-step="1">
@@ -1921,10 +1930,28 @@ function importPrevStep() {
 async function confirmImport() {
   const validRows = importPreviewRows.filter(r => r.validKat);
   if (!validRows.length) { showToast('Всички редове имат непозната категория!', true); return; }
+  const replaceAll = document.getElementById('import-replace-all').checked;
+  if (replaceAll) {
+    const ok = confirm(
+      '⚠ Сигурни ли сте?\n\n' +
+      'Всички стари машини от каталога ще бъдат ИЗТРИТИ и заменени с ' + validRows.length + ' нови.\n\n' +
+      'Операцията е необратима.'
+    );
+    if (!ok) return;
+  }
   const btnConfirm = document.getElementById('import-btn-confirm');
   btnConfirm.disabled = true;
   btnConfirm.textContent = 'Импортиране...';
   try {
+    if (replaceAll) {
+      btnConfirm.textContent = 'Изтриване на стари...';
+      const { error: delErr } = await supabaseClient
+        .from('machinery_catalog')
+        .delete()
+        .not('kod', 'is', null);
+      if (delErr) throw delErr;
+    }
+    btnConfirm.textContent = 'Записване...';
     const upsertData = validRows.map(r => ({
       kod: r.kod, ime: r.ime, kat: r.kat, cena: r.cena,
       updated_at: new Date().toISOString()
@@ -1935,8 +1962,11 @@ async function confirmImport() {
     if (error) throw error;
     const skipCnt = importPreviewRows.length - validRows.length;
     closeModal('modal-import');
-    showToast('Импортирани ' + validRows.length + ' машини!' +
-      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — непозната категория)' : ''));
+    showToast(
+      (replaceAll ? 'Списъкът е заменен! ' : 'Импортирани ') +
+      validRows.length + ' машини!' +
+      (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — непозната категория)' : '')
+    );
     await loadMachinesCatalog();
     filterMachineSelect();
     updateStats();
