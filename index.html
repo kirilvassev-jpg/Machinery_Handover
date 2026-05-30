@@ -1892,7 +1892,12 @@ function buildImportPreview() {
     '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>';
   if (warnCnt > 0) summary += ' &nbsp; <span class="warn-badge">⚠ Непозната категория: <b>' + warnCnt + '</b></span>';
   if (duplicateKods.length > 0) {
-    summary += '<br><span style="color:#C0392B;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '): ' + duplicateKods.slice(0,10).map(escapeHtml).join(', ') + (duplicateKods.length > 10 ? ', ...' : '') + '</span>';
+    summary += '<br><span style="color:#C0392B;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '):<br>' + duplicateKods.map(escapeHtml).join(', ') + '</span>';
+  }
+  // Покажи всички непознати категории
+  const unknownCats = Array.from(new Set(importPreviewRows.filter(r => !r.validKat).map(r => r.kat))).filter(Boolean);
+  if (unknownCats.length > 0) {
+    summary += '<br><span style="color:#92400E;font-size:13px;">Непознати категории (' + unknownCats.length + '):<br>' + unknownCats.map(escapeHtml).join(', ') + '</span>';
   }
   document.getElementById('import-preview-summary').innerHTML = summary;
 
