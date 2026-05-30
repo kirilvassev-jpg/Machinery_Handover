@@ -1846,6 +1846,14 @@ function buildImportPreview() {
   const existingMap = {};
   MACHINES.forEach(m => { existingMap[m.kod] = m; });
 
+  // Открий дублирани кодове
+  const kodCounts = {};
+  importParsedData.forEach(row => {
+    const kod = String(row[ki] || '').trim();
+    if (kod) kodCounts[kod] = (kodCounts[kod] || 0) + 1;
+  });
+  const duplicateKods = Object.keys(kodCounts).filter(k => kodCounts[k] > 1);
+
   importPreviewRows = importParsedData.map(row => {
     const kod  = String(row[ki]  || '').trim();
     const ime  = String(row[ii]  || '').trim();
@@ -1856,7 +1864,8 @@ function buildImportPreview() {
     const validKat  = VALID_CATEGORIES.includes(kat);
     const existing  = existingMap[kod];
     const rowType   = !validKat ? 'warn' : !existing ? 'new' : 'update';
-    return { kod, ime, kat, cena, rowType, validKat };
+    const isDup     = duplicateKods.includes(kod);
+    return { kod, ime, kat, cena, rowType, validKat, isDup };
   }).filter(Boolean);
 
   const newCnt    = importPreviewRows.filter(r => r.rowType === 'new').length;
@@ -1877,28 +1886,31 @@ function buildImportPreview() {
     if (iscSkip) iscSkip.textContent = warnCnt;
   }
 
-  document.getElementById('import-preview-summary').innerHTML =
+  let summary =
     'Общо: <b>' + importPreviewRows.length + '</b> реда &nbsp;|&nbsp; ' +
     '<span style="color:#27ae60">● Нови: <b>' + newCnt + '</b></span> &nbsp; ' +
-    '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>' +
-    (warnCnt > 0
-      ? ' &nbsp; <span class="warn-badge">⚠ Непозната категория: <b>' + warnCnt + '</b></span>'
-      : '');
+    '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>';
+  if (warnCnt > 0) summary += ' &nbsp; <span class="warn-badge">⚠ Непозната категория: <b>' + warnCnt + '</b></span>';
+  if (duplicateKods.length > 0) {
+    summary += '<br><span style="color:#C0392B;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '): ' + duplicateKods.slice(0,10).map(escapeHtml).join(', ') + (duplicateKods.length > 10 ? ', ...' : '') + '</span>';
+  }
+  document.getElementById('import-preview-summary').innerHTML = summary;
 
   document.getElementById('import-preview-table-wrap').innerHTML =
     '<table class="preview-table">' +
     '<thead><tr><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Цена</th><th>Статус</th></tr></thead><tbody>' +
     importPreviewRows.map(r => {
-      const cls = 'row-' + r.rowType;
+      const cls = 'row-' + r.rowType + (r.isDup ? ' row-dup' : '');
       const lbl = r.rowType === 'new'    ? '<span style="color:#27ae60;font-weight:600;">Нов</span>'
                 : r.rowType === 'update' ? '<span style="color:#0033CC;font-weight:600;">Обновяване</span>'
                                          : '<span class="warn-badge">⚠ Непозната кат.</span>';
+      const dupLbl = r.isDup ? ' <span style="color:#C0392B;font-size:12px;">(дубликат)</span>' : '';
       return '<tr class="' + cls + '">' +
         '<td>' + escapeHtml(r.kod) + '</td>' +
         '<td>' + escapeHtml(r.ime) + '</td>' +
         '<td>' + escapeHtml(r.kat) + '</td>' +
         '<td>' + (r.cena > 0 ? r.cena.toFixed(2) + ' EUR' : '—') + '</td>' +
-        '<td>' + lbl + '</td></tr>';
+        '<td>' + lbl + dupLbl + '</td></tr>';
     }).join('') +
     '</tbody></table>';
   return true;
