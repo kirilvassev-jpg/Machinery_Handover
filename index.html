@@ -1397,7 +1397,7 @@ function renderTable() {
       if (conf && conf.confirmed) {
         confBadge = '<span class="conf-badge confirmed">✓ Потвърдено</span>';
       } else if (conf) {
-        const reshareAttr = currentRole === 'admin' ? ' onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линка отново"' : '';
+        const reshareAttr = currentRole === 'admin' ? ' onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк отново"' : '';
         confBadge = '<span class="conf-badge pending"' + reshareAttr + '>⏳ Очаква</span>';
       } else {
         confBadge = '<span class="conf-badge pending">⏳ Очаква</span>';
@@ -1860,41 +1860,31 @@ function buildImportPreview() {
     const kat  = String(row[ki2] || '').trim();
     const raw  = String(row[ci]  || '').replace(',', '.').replace(/[^\d.]/g, '');
     const cena = parseFloat(raw) || 0;
-    if (!kod) return null;
-    // Категорията е валидна ако съвпада с някоя от VALID_CATEGORIES (без значение за член/множествено/единствено число, case-insensitive, startsWith)
-    const validKat = VALID_CATEGORIES.some(vc => {
+    const validKat  = VALID_CATEGORIES.some(vc => {
       if (!kat) return false;
       return kat.toLowerCase().startsWith(vc.toLowerCase().replace(/\s+и\s+|\s+системи|\s+машини|\s+станции|\s+чукове|\s+фрези|\s+муфи|\s+кат$/g, ''));
     });
-    const existing  = existingMap[kod];
-    const rowType   = !validKat ? 'warn' : !existing ? 'new' : 'update';
-    const isDup     = duplicateKods.includes(kod);
+    const existing  = kod ? existingMap[kod] : null;
+    const isDup     = kod && duplicateKods.includes(kod);
+    let rowType = '';
+    if (!kod) rowType = 'no-kod';
+    else if (!validKat) rowType = 'warn';
+    else if (!existing) rowType = 'new';
+    else rowType = 'update';
     return { kod, ime, kat, cena, rowType, validKat, isDup };
-  }).filter(Boolean);
+  });
 
   const newCnt    = importPreviewRows.filter(r => r.rowType === 'new').length;
   const updCnt    = importPreviewRows.filter(r => r.rowType === 'update').length;
   const warnCnt   = importPreviewRows.filter(r => r.rowType === 'warn').length;
-
-  // Update stats cards
-  const statsCards = document.getElementById('import-stats-cards');
-  if (statsCards) {
-    statsCards.style.display = 'grid';
-    const iscTotal = document.getElementById('isc-total');
-    const iscNew = document.getElementById('isc-new');
-    const iscUpdate = document.getElementById('isc-update');
-    const iscSkip = document.getElementById('isc-skip');
-    if (iscTotal) iscTotal.textContent = importPreviewRows.length;
-    if (iscNew) iscNew.textContent = newCnt;
-    if (iscUpdate) iscUpdate.textContent = updCnt;
-    if (iscSkip) iscSkip.textContent = warnCnt;
-  }
+  const noKodCnt  = importPreviewRows.filter(r => r.rowType === 'no-kod').length;
 
   let summary =
     'Общо: <b>' + importPreviewRows.length + '</b> реда &nbsp;|&nbsp; ' +
     '<span style="color:#27ae60">● Нови: <b>' + newCnt + '</b></span> &nbsp; ' +
     '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>';
   if (warnCnt > 0) summary += ' &nbsp; <span class="warn-badge">⚠ Непозната категория: <b>' + warnCnt + '</b></span>';
+  if (noKodCnt > 0) summary += ' &nbsp; <span style="color:#B71C1C;font-size:13px;">⚠ Без код: <b>' + noKodCnt + '</b></span>';
   if (duplicateKods.length > 0) {
     summary += '<br><span style="color:#C0392B;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '):<br>' + duplicateKods.map(escapeHtml).join(', ') + '</span>';
   }
@@ -1910,9 +1900,11 @@ function buildImportPreview() {
     '<thead><tr><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Цена</th><th>Статус</th></tr></thead><tbody>' +
     importPreviewRows.map(r => {
       const cls = 'row-' + r.rowType + (r.isDup ? ' row-dup' : '');
-      const lbl = r.rowType === 'new'    ? '<span style="color:#27ae60;font-weight:600;">Нов</span>'
-                : r.rowType === 'update' ? '<span style="color:#0033CC;font-weight:600;">Обновяване</span>'
-                                         : '<span class="warn-badge">⚠ Непозната кат.</span>';
+      let lbl = '';
+      if (r.rowType === 'new') lbl = '<span style="color:#27ae60;font-weight:600;">Нов</span>';
+      else if (r.rowType === 'update') lbl = '<span style="color:#0033CC;font-weight:600;">Обновяване</span>';
+      else if (r.rowType === 'warn') lbl = '<span class="warn-badge">⚠ Непозната кат.</span>';
+      else if (r.rowType === 'no-kod') lbl = '<span style="color:#B71C1C;font-weight:600;">Без код</span>';
       const dupLbl = r.isDup ? ' <span style="color:#C0392B;font-size:12px;">(дубликат)</span>' : '';
       return '<tr class="' + cls + '">' +
         '<td>' + escapeHtml(r.kod) + '</td>' +
