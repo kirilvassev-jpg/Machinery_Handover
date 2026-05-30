@@ -84,10 +84,13 @@ Deno.serve(async (req: Request) => {
         return json({ error: 'Грешка при изтриване: ' + delErr.message }, 500);
       }
       const rows = machines.map(m => ({ kod: m.kod, ime: m.ime, kat: m.kat, cena: m.cena, updated_at: new Date().toISOString() }));
-      const { error: insErr } = await db.from('machinery_catalog').insert(rows);
-      if (insErr) {
-        console.error('[proxy] catalog-replace insert error:', insErr);
-        return json({ error: 'Грешка при запис: ' + insErr.message }, 500);
+      const BATCH = 500;
+      for (let i = 0; i < rows.length; i += BATCH) {
+        const { error: insErr } = await db.from('machinery_catalog').insert(rows.slice(i, i + BATCH));
+        if (insErr) {
+          console.error('[proxy] catalog-replace insert error:', insErr);
+          return json({ error: 'Грешка при запис: ' + insErr.message }, 500);
+        }
       }
       console.log(`[proxy] catalog-replace: ${machines.length} машини от ${userEmail}`);
       return json({ ok: true, count: machines.length }, 200);
@@ -100,10 +103,13 @@ Deno.serve(async (req: Request) => {
       }
       const db = createClient(SUPABASE_URL, SUPABASE_KEY);
       const rows = machines.map(m => ({ kod: m.kod, ime: m.ime, kat: m.kat, cena: m.cena, updated_at: new Date().toISOString() }));
-      const { error: upsErr } = await db.from('machinery_catalog').upsert(rows, { onConflict: 'kod' });
-      if (upsErr) {
-        console.error('[proxy] catalog-upsert error:', upsErr);
-        return json({ error: 'Грешка при запис: ' + upsErr.message }, 500);
+      const BATCH = 500;
+      for (let i = 0; i < rows.length; i += BATCH) {
+        const { error: upsErr } = await db.from('machinery_catalog').upsert(rows.slice(i, i + BATCH), { onConflict: 'kod' });
+        if (upsErr) {
+          console.error('[proxy] catalog-upsert error:', upsErr);
+          return json({ error: 'Грешка при запис: ' + upsErr.message }, 500);
+        }
       }
       console.log(`[proxy] catalog-upsert: ${machines.length} машини от ${userEmail}`);
       return json({ ok: true, count: machines.length }, 200);
