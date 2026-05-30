@@ -1861,7 +1861,11 @@ function buildImportPreview() {
     const raw  = String(row[ci]  || '').replace(',', '.').replace(/[^\d.]/g, '');
     const cena = parseFloat(raw) || 0;
     if (!kod) return null;
-    const validKat  = VALID_CATEGORIES.includes(kat);
+    // Категорията е валидна ако съвпада с някоя от VALID_CATEGORIES (без значение за член/множествено/единствено число, case-insensitive, startsWith)
+    const validKat = VALID_CATEGORIES.some(vc => {
+      if (!kat) return false;
+      return kat.toLowerCase().startsWith(vc.toLowerCase().replace(/\s+и\s+|\s+системи|\s+машини|\s+станции|\s+чукове|\s+фрези|\s+муфи|\s+кат$/g, ''));
+    });
     const existing  = existingMap[kod];
     const rowType   = !validKat ? 'warn' : !existing ? 'new' : 'update';
     const isDup     = duplicateKods.includes(kod);
