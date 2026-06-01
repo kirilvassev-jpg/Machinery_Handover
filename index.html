@@ -1103,6 +1103,19 @@ async function loadMachinesCatalog() {
     MACHINES = MACHINES_DEFAULT.slice();
     console.warn('[CATALOG] Грешка при зареждане, използва се вграден каталог:', e.message);
   }
+  refreshKategoriiFromMachines();
+}
+
+function refreshKategoriiFromMachines() {
+  const cats = Array.from(new Set(MACHINES.map(m => m.kat).filter(Boolean))).sort();
+  ['filter-cat', 'z-filter-kat'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">-- Всички --</option>';
+    cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+    if (prev && cats.includes(prev)) sel.value = prev;
+  });
 }
 
 // ── SharePoint OData field names (URL-encoded Cyrillic column names) ──────────
@@ -1989,6 +2002,7 @@ async function confirmImport() {
 // ── Попълване на падащите менюта при зареждане ───────────────────────────────
 populateSelect('filter-cat', KATEGORII);
 populateSelect('z-filter-kat', KATEGORII);
+// refreshKategoriiFromMachines() се вика след loadMachinesCatalog()
 populateSelect('filter-dir', NAPRAVLENIYA);
 populateSelect('z-napravlenie', NAPRAVLENIYA);
 populateSelect('z-sluzhitel', SLUZHITELI);
