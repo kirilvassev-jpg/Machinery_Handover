@@ -588,7 +588,7 @@
         <div class="import-legend">
           <span><span style="color:#27ae60;font-size:14px;">●</span> Нов запис</span>
           <span><span style="color:#0033CC;font-size:14px;">●</span> Обновяване</span>
-          <span>⚠ Непозната категория — ще се импортира с предупреждение</span>
+          <span>Категорията се взема директно от файла</span>
         </div>
         <div class="preview-table-wrap" id="import-preview-table-wrap" style="margin-top:10px;"></div>
         <div id="import-replace-section" style="margin-top:14px;padding:12px 14px;background:#fff3cd;border-radius:8px;border:1.5px solid #ffc107;">
@@ -1716,11 +1716,6 @@ filterMachineSelect();
 checkForConfirmation();
 
 // ===== ИМПОРТ НА МАШИНИ ОТ EXCEL =====
-const VALID_CATEGORIES = [
-  'Асфалторезачки','Багери','Виброплочи','Трамбовки','Генератори',
-  'Грундомати','Заваръчни машини','Компресори','Машини за ел. муфи',
-  'Пробивни машини','Укрепващи системи','Фрези','Хидравлични станции','Хидравлични чукове'
-];
 
 let importParsedData = [];
 let importExcelHeaders = [];
@@ -1860,38 +1855,26 @@ function buildImportPreview() {
     const kat  = String(row[ki2] || '').trim();
     const raw  = String(row[ci]  || '').replace(',', '.').replace(/[^\d.]/g, '');
     const cena = parseFloat(raw) || 0;
-    const validKat  = VALID_CATEGORIES.some(vc => {
-      if (!kat) return false;
-      return kat.toLowerCase().startsWith(vc.toLowerCase().replace(/\s+и\s+|\s+системи|\s+машини|\s+станции|\s+чукове|\s+фрези|\s+муфи|\s+кат$/g, ''));
-    });
     const existing  = kod ? existingMap[kod] : null;
     const isDup     = kod && duplicateKods.includes(kod);
     let rowType = '';
     if (!kod) rowType = 'no-kod';
-    else if (!validKat) rowType = 'warn';
     else if (!existing) rowType = 'new';
     else rowType = 'update';
-    return { kod, ime, kat, cena, rowType, validKat, isDup };
+    return { kod, ime, kat, cena, rowType, isDup };
   });
 
   const newCnt    = importPreviewRows.filter(r => r.rowType === 'new').length;
   const updCnt    = importPreviewRows.filter(r => r.rowType === 'update').length;
-  const warnCnt   = importPreviewRows.filter(r => r.rowType === 'warn').length;
   const noKodCnt  = importPreviewRows.filter(r => r.rowType === 'no-kod').length;
 
   let summary =
     'Общо: <b>' + importPreviewRows.length + '</b> реда &nbsp;|&nbsp; ' +
     '<span style="color:#27ae60">● Нови: <b>' + newCnt + '</b></span> &nbsp; ' +
     '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>';
-  if (warnCnt > 0) summary += ' &nbsp; <span class="warn-badge">⚠ Непозната категория: <b>' + warnCnt + '</b></span>';
   if (noKodCnt > 0) summary += ' &nbsp; <span style="color:#B71C1C;font-size:13px;">⚠ Без код: <b>' + noKodCnt + '</b></span>';
   if (duplicateKods.length > 0) {
     summary += '<br><span style="color:#C0392B;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '):<br>' + duplicateKods.map(escapeHtml).join(', ') + '</span>';
-  }
-  // Покажи всички непознати категории
-  const unknownCats = Array.from(new Set(importPreviewRows.filter(r => !r.validKat).map(r => r.kat))).filter(Boolean);
-  if (unknownCats.length > 0) {
-    summary += '<br><span style="color:#92400E;font-size:13px;">Непознати категории (' + unknownCats.length + '):<br>' + unknownCats.map(escapeHtml).join(', ') + '</span>';
   }
   document.getElementById('import-preview-summary').innerHTML = summary;
 
@@ -1903,7 +1886,6 @@ function buildImportPreview() {
       let lbl = '';
       if (r.rowType === 'new') lbl = '<span style="color:#27ae60;font-weight:600;">Нов</span>';
       else if (r.rowType === 'update') lbl = '<span style="color:#0033CC;font-weight:600;">Обновяване</span>';
-      else if (r.rowType === 'warn') lbl = '<span class="warn-badge">⚠ Непозната кат.</span>';
       else if (r.rowType === 'no-kod') lbl = '<span style="color:#B71C1C;font-weight:600;">Без код</span>';
       const dupLbl = r.isDup ? ' <span style="color:#C0392B;font-size:12px;">(дубликат)</span>' : '';
       return '<tr class="' + cls + '">' +
@@ -1943,7 +1925,6 @@ function importPrevStep() {
 async function confirmImport() {
   const allRows = importPreviewRows.filter(r => r.kod);
   if (!allRows.length) { showToast('Няма редове за импорт!', true); return; }
-  const validRows = allRows.filter(r => r.validKat);
   const replaceAll = document.getElementById('import-replace-all').checked;
   console.log('[import] v3 start — replaceAll:', replaceAll, 'rows:', allRows.length);
   if (replaceAll) {
@@ -1965,7 +1946,6 @@ async function confirmImport() {
       updated_at: new Date().toISOString()
     }));
     const dupCount = allRows.length - dedupMap.size;
-    const warnCount = allRows.length - validRows.length;
     if (replaceAll) {
       btnConfirm.textContent = 'Изтриване и запис...';
       const result = await callProxy('catalog-replace', { machines: upsertData });
@@ -1990,8 +1970,7 @@ async function confirmImport() {
       (replaceAll ? 'Списъкът е заменен! ' : 'Импортирани ') +
       dedupMap.size + ' машини!' +
       (skipCnt > 0 ? ' (' + skipCnt + ' пропуснати — без код)' : '') +
-      (dupCount > 0 ? ' (' + dupCount + ' дублирани)' : '') +
-      (warnCount > 0 ? ' (' + warnCount + ' с непозната категория)' : '')
+      (dupCount > 0 ? ' (' + dupCount + ' дублирани)' : '')
     );
     await loadMachinesCatalog();
     filterMachineSelect();
