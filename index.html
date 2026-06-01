@@ -1136,10 +1136,10 @@ const SP_DAT_OTCHISLYAVANE_PREFIX = SP_FIELDS.datZachislyavane;
 
 // ── Централизирани данни за падащи менюта ────────────────────────────────────
 const KATEGORII = [
-  'Асфалторезачки','Багери','Виброплочи','Трамбовки','Генератори',
-  'Грундомати','Заваръчни машини','Компресори','Машини за ел. муфи',
-  'Пробивни машини','Укрепващи системи','Фрези','Хидравлични станции',
-  'Хидравлични чукове',
+  'Асфалторезачка','Багер','Виброплоча','Трамбовка','Генератор',
+  'Грундомат','Заваръчна машина','Компресор','Машина за ел. муфи',
+  'Пробивна машина','Укрепваща система','Фреза','Хидравлична станция',
+  'Хидравличен чук','Хидравлична фреза',
 ];
 const NAPRAVLENIYA = [
   'Инфраструктурно строителство','ВиК Строителство и поддръжка',
@@ -2000,8 +2000,9 @@ async function confirmImport() {
 // ===== КРАЙ ИМПОРТ =====
 
 // ── Попълване на падащите менюта при зареждане ───────────────────────────────
-populateSelect('filter-cat', KATEGORII);
-populateSelect('z-filter-kat', KATEGORII);
+// Категориите се попълват динамично след loadMachinesCatalog() чрез refreshKategoriiFromMachines()
+// populateSelect('filter-cat', KATEGORII);
+// populateSelect('z-filter-kat', KATEGORII);
 // refreshKategoriiFromMachines() се вика след loadMachinesCatalog()
 populateSelect('filter-dir', NAPRAVLENIYA);
 populateSelect('z-napravlenie', NAPRAVLENIYA);
