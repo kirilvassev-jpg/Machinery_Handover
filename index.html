@@ -1169,6 +1169,7 @@ function populateSelect(id, items) {
 let spData = [];
 let spMap = {};
 let currentOtchisliId = null;
+let currentOtchisliKod = null;
 
 // Извлича поле от SharePoint OData item
 function f(item, key) {
@@ -1520,6 +1521,7 @@ async function submitZachislyavane() {
 
 function openOtchisli(id, ime, kod) {
   currentOtchisliId = id;
+  currentOtchisliKod = kod;
   document.getElementById('otchisli-info').innerHTML = '<strong>' + ime + '</strong><span>Код WS: ' + kod + '</span>';
   document.getElementById('o-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('o-predal').value = '';
@@ -1534,7 +1536,17 @@ async function submitOtchislyavane() {
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
   if (currentOtchisliId == null) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
-    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel };
+    let billingDays = 0, suma = 0;
+const spItem = spData.find(item => (item.ID ?? item.id) == currentOtchisliId);
+if (spItem) {
+  const startDate = f(spItem, 'dz');
+  const price = parseFloat(f(spItem, 'cena')) || 0;
+  if (startDate && data) {
+    billingDays = calcBillingDays(startDate, data);
+    suma = Math.round(billingDays * price * 100) / 100;
+  }
+}
+const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel, "БройДни": billingDays, "Сума": suma };
     console.log('[OTCHISLI] sending:', payload);
     const { ok, status, text: resText } = await callProxy('otchisli', payload);
     console.log('[OTCHISLI] status:', status, 'body:', resText);
@@ -2004,6 +2016,23 @@ async function confirmImport() {
 // populateSelect('filter-cat', KATEGORII);
 // populateSelect('z-filter-kat', KATEGORII);
 // refreshKategoriiFromMachines() се вика след loadMachinesCatalog()
+function calcBillingDays(startDateStr, endDateStr) {
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  let total = 0;
+  let current = new Date(start.getFullYear(), start.getMonth(), 1);
+  while (current <= end) {
+    const nextMonth = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+    const monthEnd = new Date(nextMonth.getTime() - 86400000);
+    const effStart = start > current ? start : current;
+    const effEnd = end < monthEnd ? end : monthEnd;
+    const days = Math.round((effEnd - effStart) / 86400000) + 1;
+    if (days > 0) total += Math.min(days, 29);
+    current = nextMonth;
+  }
+  return total;
+}
+
 populateSelect('filter-dir', NAPRAVLENIYA);
 populateSelect('z-napravlenie', NAPRAVLENIYA);
 populateSelect('z-sluzhitel', SLUZHITELI);
