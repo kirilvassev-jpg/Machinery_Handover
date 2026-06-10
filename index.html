@@ -1551,7 +1551,7 @@ const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data,
     const { ok, status, text: resText } = await callProxy('otchisli', payload);
     console.log('[OTCHISLI] status:', status, 'body:', resText);
     if (ok) { closeModal('modal-otchisli'); showToast('Машината е отчислена успешно!'); setTimeout(() => loadFromSharePoint(), 4000); }
-    else { showToast('Грешка ' + res.status + ' при отчисляване! Виж конзолата.', true); }
+    else { showToast('Грешка ' + status + ' при отчисляване! Виж конзолата.', true); }
   } catch(e) { console.error('[OTCHISLI] error:', e); showToast('Грешка при връзка: ' + e.message, true); }
 }
 
