@@ -12,13 +12,14 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         run: |
-          curl -sf -o /dev/null -w "REST API: %{http_code}\n" \
+          curl -s -o /dev/null -w "REST API: %{http_code}\n" \
             "https://wcsdjfsohqanxcppcvvk.supabase.co/rest/v1/" \
-            -H "apikey: sb_publishable_aMxRatJ2BJxE5vQIhffing_8_zMpBDO"
+            -H "apikey: sb_publishable_aMxRatJ2BJxE5vQIhffing_8_zMpBDO" \
+            -H "Authorization: Bearer sb_publishable_aMxRatJ2BJxE5vQIhffing_8_zMpBDO"
 
       - name: Ping proxy Edge Function
         run: |
-          curl -sf -o /dev/null -w "Edge Function: %{http_code}\n" \
+          curl -s -o /dev/null -w "Edge Function: %{http_code}\n" \
             -X OPTIONS "https://wcsdjfsohqanxcppcvvk.supabase.co/functions/v1/proxy/read" \
             -H "Origin: https://kirilvassev-jpg.github.io" \
             -H "Access-Control-Request-Method: POST"
