@@ -1,0 +1,24 @@
+name: Supabase Keep-Alive
+
+# Prevents the free-tier Supabase project from auto-pausing due to inactivity.
+on:
+  schedule:
+    - cron: '0 6 */3 * *'  # every 3 days at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          curl -sf -o /dev/null -w "REST API: %{http_code}\n" \
+            "https://wcsdjfsohqanxcppcvvk.supabase.co/rest/v1/" \
+            -H "apikey: sb_publishable_aMxRatJ2BJxE5vQIhffing_8_zMpBDO"
+
+      - name: Ping proxy Edge Function
+        run: |
+          curl -sf -o /dev/null -w "Edge Function: %{http_code}\n" \
+            -X OPTIONS "https://wcsdjfsohqanxcppcvvk.supabase.co/functions/v1/proxy/read" \
+            -H "Origin: https://kirilvassev-jpg.github.io" \
+            -H "Access-Control-Request-Method: POST"
