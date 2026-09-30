@@ -251,6 +251,20 @@
   .import-summary { background: #EEF2FF; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; border: 1px solid #c7d2fe; }
   .import-summary b { color: #0033CC; }
   .warn-badge { background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+
+  /* ===== REPORT MODAL ===== */
+  .report-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .report-table th { background: #0033CC; color: #fff; padding: 8px 10px; text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; position: sticky; top: 0; }
+  .report-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; }
+  .report-table tr.report-group-total { background: #EEF2FF; font-weight: 700; border-bottom: 2px solid #0033CC; }
+  .report-table tr.report-grand-total { background: #0033CC; color: #fff; font-weight: 700; font-size: 13.5px; }
+  .report-table tr.report-grand-total td { border-bottom: none; }
+  @media print {
+    body * { visibility: hidden; }
+    #modal-report, #modal-report * { visibility: visible; }
+    #modal-report { position: absolute; top: 0; left: 0; width: 100%; }
+    .modal-footer, #rep-btn-excel, #rep-btn-pdf, .form-grid, #modal-report .btn-save { display: none !important; }
+  }
 </style>
 
 <script src="config.js"></script>
@@ -273,6 +287,7 @@
         <div class="admin-menu" id="admin-menu">
           <button onclick="showZachislyavane(); closeAdminMenu()">+ Зачисляване</button>
           <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
+          <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
         </div>
       </div>
       <span id="role-indicator" style="display:none;"></span>
@@ -522,6 +537,46 @@
         <button class="btn-do-confirm" id="btn-do-confirm" onclick="submitConfirmation()">✓ Потвърждавам получаването</button>
         <p class="confirm-disclaimer">С натискане на бутона потвърждавате, че сте получили оборудването и го приемате под отговорност.</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: СПРАВКА ПО ПЕРИОД -->
+<div class="modal-overlay" id="modal-report">
+  <div class="modal" style="width:1000px;max-width:98vw;">
+    <div class="modal-header">
+      <h3>📊 Справка за потребление на механизация</h3>
+      <button class="modal-close" onclick="closeModal('modal-report')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:75vh;overflow-y:auto;">
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>Начална дата <span class="required-star">*</span></label>
+          <input type="date" id="rep-start">
+        </div>
+        <div class="form-group">
+          <label>Крайна дата <span class="required-star">*</span></label>
+          <input type="date" id="rep-end">
+        </div>
+        <div class="form-group">
+          <label>Направление</label>
+          <select id="rep-dir"><option value="">-- Всички --</option></select>
+        </div>
+        <div class="form-group">
+          <label>Категория</label>
+          <select id="rep-kat"><option value="">-- Всички --</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="btn-save" onclick="generateReport()">Генерирай справка</button>
+        <button class="btn-cancel" id="rep-btn-excel" style="display:none;" onclick="exportReportExcel()">⬇ Excel</button>
+        <button class="btn-cancel" id="rep-btn-pdf" style="display:none;" onclick="exportReportPDF()">⬇ PDF</button>
+      </div>
+      <div id="rep-summary" style="margin-bottom:12px;"></div>
+      <div id="rep-table-wrap" style="overflow-x:auto;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-report')">Затвори</button>
     </div>
   </div>
 </div>
@@ -1119,7 +1174,6 @@ function refreshKategoriiFromMachines() {
 }
 
 // ── SharePoint OData field names (URL-encoded Cyrillic column names) ──────────
-// Use these constants everywhere instead of raw OData__ strings.
 const SP_FIELDS = {
   datZachislyavane: 'OData__x0414__x0430__x0442__x0430__x04',  // Дата зачисляване
   kod:              'OData__x041a__x043e__x0434_',               // Код
@@ -1130,8 +1184,6 @@ const SP_FIELDS = {
   mestopolozhenie:  'OData__x041c__x0435__x0441__x0442__x04',   // Местоположение
   cena:             'OData__x0426__x0435__x043d__x0430__x00',   // Цена
 };
-// Полетата за дата на отчисляване започват с datZachislyavane,
-// но са различни ключове — проверяваме по prefix.
 const SP_DAT_OTCHISLYAVANE_PREFIX = SP_FIELDS.datZachislyavane;
 
 // ── Централизирани данни за падащи менюта ────────────────────────────────────
@@ -1255,9 +1307,7 @@ function updateStats() {
 
   const container = document.getElementById('kat-cards-container');
   if (!container) return;
-  // Премахни старите динамични карти
   container.querySelectorAll('.stat-dynamic').forEach(el => el.remove());
-  // Добави нови
   Object.entries(katCount).sort((a,b) => b[1]-a[1]).forEach(([kat, count]) => {
     const div = document.createElement('div');
     div.className = 'stat stat-dynamic dash-card';
@@ -1311,7 +1361,6 @@ function filterMachineSelect() {
   const kat = document.getElementById('z-filter-kat').value;
   const sel = document.getElementById('z-mashina');
   sel.innerHTML = '<option value="">-- Изберете машина --</option>';
-  // Показва само СВОБОДНИ машини за зачисляване
   const available = (kat ? MACHINES.filter(m => m.kat === kat) : MACHINES).filter(m => !spMap[m.kod]);
   available.forEach(m => {
     const o = document.createElement('option');
@@ -1340,7 +1389,6 @@ function renderTable() {
   const st = document.getElementById('filter-status').value;
   const dir = document.getElementById('filter-dir').value;
 
-  // Итерираме ВСИЧКИ машини, статусът се определя от spMap
   const data = MACHINES.filter(m => {
     const isBusy = !!spMap[m.kod];
     const status = isBusy ? 'busy' : 'free';
@@ -1378,7 +1426,6 @@ function renderTable() {
     const safeIme = m.ime.replace(/'/g,"\\'");
     const safeKod = m.kod.replace(/'/g,"\\'");
 
-    // Row class for colored left border
     let rowClass = '';
     if (isBusy) {
       const conf = confirmationsMap[m.kod];
@@ -1461,7 +1508,6 @@ async function submitZachislyavane() {
   const zabelezhka = document.getElementById('z-zabelezhka').value;
   if (!kod || !data || !dir || !priel || !mesto || !sastoyanie) { showToast('Попълнете всички задължителни полета!', true); return; }
 
-  // Свежа проверка от SharePoint преди изпращане — предотвратява двойно зачисляване
   const btnSave = document.querySelector('#modal-zachisli .btn-save');
   const origText = btnSave.textContent;
   btnSave.disabled = true;
@@ -1537,16 +1583,16 @@ async function submitOtchislyavane() {
   if (currentOtchisliId == null) { showToast('Грешка: липсва ID на машината!', true); return; }
   try {
     let billingDays = 0, suma = 0;
-const spItem = spData.find(item => (item.ID ?? item.id) == currentOtchisliId);
-if (spItem) {
-  const startDate = f(spItem, 'dz');
-  const price = parseFloat(f(spItem, 'cena')) || 0;
-  if (startDate && data) {
-    billingDays = calcBillingDays(startDate, data);
-    suma = Math.round(billingDays * price * 100) / 100;
-  }
-}
-const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel, "БройДни": billingDays, "Сума": suma };
+    const spItem = spData.find(item => (item.ID ?? item.id) == currentOtchisliId);
+    if (spItem) {
+      const startDate = f(spItem, 'dz');
+      const price = parseFloat(f(spItem, 'cena')) || 0;
+      if (startDate && data) {
+        billingDays = calcBillingDays(startDate, data);
+        suma = Math.round(billingDays * price * 100) / 100;
+      }
+    }
+    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel, "БройДни": billingDays, "Сума": suma };
     console.log('[OTCHISLI] sending:', payload);
     const { ok, status, text: resText } = await callProxy('otchisli', payload);
     console.log('[OTCHISLI] status:', status, 'body:', resText);
@@ -1565,12 +1611,6 @@ function showToast(msg, err) {
 }
 
 // ===== CONFIRMATION SYSTEM =====
-// Изисква: Супабазе таблица 'machinery_confirmations' с полета:
-// id uuid PK, machine_kod text, machine_name text, category text, price numeric,
-// direction text, recipient_name text, location text, assignment_date date,
-// employee_mit text, condition text, confirmed bool DEFAULT false,
-// confirmed_at timestamptz, created_at timestamptz DEFAULT now()
-
 let confirmationsMap = {};
 
 function escapeHtml(str) {
@@ -1843,7 +1883,6 @@ function buildColumnMapUI() {
       '<option value="">-- изберете --</option>' + opts +
     '</select></td></tr>'
   ).join('');
-  // Pre-select auto-detected values
   document.querySelectorAll('#import-col-map-body .col-map-select').forEach(sel => {
     const v = importColumnMap[sel.dataset.field];
     if (v !== null) sel.value = String(v);
@@ -1866,7 +1905,6 @@ function buildImportPreview() {
   const existingMap = {};
   MACHINES.forEach(m => { existingMap[m.kod] = m; });
 
-  // Открий дублирани кодове
   const kodCounts = {};
   importParsedData.forEach(row => {
     const kod = String(row[ki] || '').trim();
@@ -2011,11 +2049,171 @@ async function confirmImport() {
 }
 // ===== КРАЙ ИМПОРТ =====
 
-// ── Попълване на падащите менюта при зареждане ───────────────────────────────
-// Категориите се попълват динамично след loadMachinesCatalog() чрез refreshKategoriiFromMachines()
-// populateSelect('filter-cat', KATEGORII);
-// populateSelect('z-filter-kat', KATEGORII);
-// refreshKategoriiFromMachines() се вика след loadMachinesCatalog()
+// ===== СПРАВКА ЗА ПОТРЕБЛЕНИЕ =====
+let reportRows = [];
+
+function openReportModal() {
+  if (currentRole !== 'admin') return;
+  const dirSel = document.getElementById('rep-dir');
+  const katSel = document.getElementById('rep-kat');
+  dirSel.innerHTML = '<option value="">-- Всички --</option>';
+  katSel.innerHTML = '<option value="">-- Всички --</option>';
+  NAPRAVLENIYA.forEach(d => { const o = document.createElement('option'); o.textContent = d; dirSel.appendChild(o); });
+  Array.from(new Set(MACHINES.map(m => m.kat))).sort().forEach(k => { const o = document.createElement('option'); o.textContent = k; katSel.appendChild(o); });
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  document.getElementById('rep-start').value = firstDay.toISOString().split('T')[0];
+  document.getElementById('rep-end').value = today.toISOString().split('T')[0];
+  document.getElementById('rep-summary').innerHTML = '';
+  document.getElementById('rep-table-wrap').innerHTML = '';
+  document.getElementById('rep-btn-excel').style.display = 'none';
+  document.getElementById('rep-btn-pdf').style.display = 'none';
+  document.getElementById('modal-report').classList.add('open');
+}
+
+// Изчислява припокриващите се фактурируеми дни (правило: макс 29 дни/месец) между
+// периода на ползване [assignStart, assignEnd] и филтърния период [rangeStart, rangeEnd]
+function calcOverlapBillingDays(assignStartStr, assignEndStr, rangeStartStr, rangeEndStr) {
+  const aStart = new Date(assignStartStr);
+  const aEnd = assignEndStr ? new Date(assignEndStr) : new Date(rangeEndStr);
+  const rStart = new Date(rangeStartStr);
+  const rEnd = new Date(rangeEndStr);
+  const start = aStart > rStart ? aStart : rStart;
+  const end = aEnd < rEnd ? aEnd : rEnd;
+  if (start > end) return { days: 0, start: null, end: null };
+  return { days: calcBillingDays(start.toISOString().split('T')[0], end.toISOString().split('T')[0]), start, end };
+}
+
+function generateReport() {
+  const startStr = document.getElementById('rep-start').value;
+  const endStr = document.getElementById('rep-end').value;
+  const dirFilter = document.getElementById('rep-dir').value;
+  const katFilter = document.getElementById('rep-kat').value;
+  if (!startStr || !endStr) { showToast('Изберете начална и крайна дата!', true); return; }
+  if (new Date(startStr) > new Date(endStr)) { showToast('Началната дата трябва да е преди крайната!', true); return; }
+
+  reportRows = [];
+  spData.forEach(item => {
+    const kod = f(item, 'kod');
+    const m = MACHINES.find(x => x.kod === kod);
+    if (!m) return;
+    if (dirFilter && f(item, 'dir') !== dirFilter) return;
+    if (katFilter && m.kat !== katFilter) return;
+    const dz = f(item, 'dz');
+    if (!dz) return;
+    const dot = Object.keys(item).find(k => k.startsWith(SP_DAT_OTCHISLYAVANE_PREFIX) && k !== SP_DAT_OTCHISLYAVANE_PREFIX && item[k]);
+    const dotVal = dot ? item[dot] : null;
+    const overlap = calcOverlapBillingDays(dz, dotVal, startStr, endStr);
+    if (overlap.days <= 0) return;
+    const cena = parseFloat(f(item, 'cena')) || m.cena || 0;
+    reportRows.push({
+      dir: f(item, 'dir') || '—',
+      kat: m.kat,
+      ime: m.ime,
+      kod: m.kod,
+      periodStart: overlap.start.toLocaleDateString('bg-BG'),
+      periodEnd: overlap.end.toLocaleDateString('bg-BG'),
+      days: overlap.days,
+      cena: cena,
+      suma: Math.round(overlap.days * cena * 100) / 100
+    });
+  });
+
+  renderReportTable();
+}
+
+function renderReportTable() {
+  const wrap = document.getElementById('rep-table-wrap');
+  const summary = document.getElementById('rep-summary');
+  if (reportRows.length === 0) {
+    wrap.innerHTML = '<div class="empty">Няма данни за избрания период и филтри.</div>';
+    summary.innerHTML = '';
+    document.getElementById('rep-btn-excel').style.display = 'none';
+    document.getElementById('rep-btn-pdf').style.display = 'none';
+    return;
+  }
+
+  const groups = {};
+  reportRows.forEach(r => {
+    const key = r.dir + '|||' + r.kat;
+    if (!groups[key]) groups[key] = { dir: r.dir, kat: r.kat, rows: [], days: 0, suma: 0 };
+    groups[key].rows.push(r);
+    groups[key].days += r.days;
+    groups[key].suma += r.suma;
+  });
+
+  let grandDays = 0, grandSuma = 0, grandMachines = reportRows.length;
+  let html = '<table class="report-table"><thead><tr>' +
+    '<th>Направление</th><th>Категория</th><th>Машина</th><th>Код</th>' +
+    '<th>Период</th><th>Дни</th><th>Цена/ден (€)</th><th>Стойност (€)</th>' +
+    '</tr></thead><tbody>';
+
+  Object.values(groups).sort((a,b) => a.dir.localeCompare(b.dir) || a.kat.localeCompare(b.kat)).forEach(g => {
+    g.rows.forEach(r => {
+      html += '<tr><td>' + escapeHtml(r.dir) + '</td><td>' + escapeHtml(r.kat) + '</td>' +
+        '<td>' + escapeHtml(r.ime) + '</td><td>' + escapeHtml(r.kod) + '</td>' +
+        '<td>' + r.periodStart + ' – ' + r.periodEnd + '</td>' +
+        '<td style="text-align:right;">' + r.days + '</td>' +
+        '<td style="text-align:right;">' + r.cena.toFixed(2) + '</td>' +
+        '<td style="text-align:right;font-weight:600;">' + r.suma.toFixed(2) + '</td></tr>';
+    });
+    html += '<tr class="report-group-total"><td colspan="5">Общо — ' + escapeHtml(g.dir) + ' / ' + escapeHtml(g.kat) +
+      ' (' + g.rows.length + ' машини)</td>' +
+      '<td style="text-align:right;">' + g.days + '</td><td></td>' +
+      '<td style="text-align:right;">' + g.suma.toFixed(2) + '</td></tr>';
+    grandDays += g.days; grandSuma += g.suma;
+  });
+
+  html += '<tr class="report-grand-total"><td colspan="5">ОБЩО ЗА ПЕРИОДА (' + grandMachines + ' машини)</td>' +
+    '<td style="text-align:right;">' + grandDays + '</td><td></td>' +
+    '<td style="text-align:right;">' + grandSuma.toFixed(2) + '</td></tr>';
+  html += '</tbody></table>';
+
+  wrap.innerHTML = html;
+  summary.innerHTML = '<div class="import-summary" style="background:#EEF2FF;border-radius:8px;padding:10px 14px;font-size:13px;">' +
+    'Период: <b>' + document.getElementById('rep-start').value + ' – ' + document.getElementById('rep-end').value + '</b> &nbsp;|&nbsp; ' +
+    'Машини: <b>' + grandMachines + '</b> &nbsp;|&nbsp; Общо дни: <b>' + grandDays + '</b> &nbsp;|&nbsp; ' +
+    'Обща стойност: <b style="color:#0033CC;">' + grandSuma.toFixed(2) + ' €</b></div>';
+
+  document.getElementById('rep-btn-excel').style.display = 'inline-block';
+  document.getElementById('rep-btn-pdf').style.display = 'inline-block';
+}
+
+function exportReportExcel() {
+  if (reportRows.length === 0) { showToast('Няма данни за износ!', true); return; }
+  const wsData = [
+    ['Направление','Категория','Машина','Код','Период от','Период до','Дни','Цена/ден (€)','Стойност (€)']
+  ];
+  const groups = {};
+  reportRows.forEach(r => {
+    const key = r.dir + '|||' + r.kat;
+    if (!groups[key]) groups[key] = { dir: r.dir, kat: r.kat, rows: [], days: 0, suma: 0 };
+    groups[key].rows.push(r); groups[key].days += r.days; groups[key].suma += r.suma;
+  });
+  let grandDays = 0, grandSuma = 0;
+  Object.values(groups).sort((a,b) => a.dir.localeCompare(b.dir) || a.kat.localeCompare(b.kat)).forEach(g => {
+    g.rows.forEach(r => wsData.push([r.dir, r.kat, r.ime, r.kod, r.periodStart, r.periodEnd, r.days, r.cena, r.suma]));
+    wsData.push(['Общо — ' + g.dir + ' / ' + g.kat, '', '', '', '', '', g.days, '', g.suma]);
+    grandDays += g.days; grandSuma += g.suma;
+  });
+  wsData.push([]);
+  wsData.push(['ОБЩО ЗА ПЕРИОДА', '', '', '', '', '', grandDays, '', grandSuma]);
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{wch:26},{wch:20},{wch:32},{wch:16},{wch:12},{wch:12},{wch:8},{wch:12},{wch:12}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Справка');
+  const start = document.getElementById('rep-start').value;
+  const end = document.getElementById('rep-end').value;
+  XLSX.writeFile(wb, 'Справка_Механизация_' + start + '_' + end + '.xlsx');
+}
+
+function exportReportPDF() {
+  if (reportRows.length === 0) { showToast('Няма данни за износ!', true); return; }
+  window.print();
+}
+// ===== КРАЙ СПРАВКА =====
+
 function calcBillingDays(startDateStr, endDateStr) {
   const start = new Date(startDateStr);
   const end = new Date(endDateStr);
