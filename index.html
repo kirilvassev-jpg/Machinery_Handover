@@ -288,6 +288,7 @@
           <button onclick="showZachislyavane(); closeAdminMenu()">+ Зачисляване</button>
           <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
           <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
+          <button onclick="showDebug(); closeAdminMenu()">🐞 Debug</button>
         </div>
       </div>
       <span id="role-indicator" style="display:none;"></span>
@@ -1349,7 +1350,16 @@ async function loadFromSharePoint() {
 
 function showDebug() {
   document.getElementById('debug-count').textContent = spData.length;
-  document.getElementById('debug-content').textContent = JSON.stringify(spData.slice(0, 3), null, 2);
+  const missingKods = Object.keys(spMap).filter(k => !MACHINES.find(m => m.kod === k));
+  const info = {
+    'MACHINES (каталог) брой': MACHINES.length,
+    'spData (записи от SharePoint) брой': spData.length,
+    'spMap (заети машини) брой': Object.keys(spMap).length,
+    'Заети кодове БЕЗ съвпадение в каталога': missingKods,
+    'Брой липсващи': missingKods.length,
+    'Примерни записи от SharePoint': spData.slice(0, 3)
+  };
+  document.getElementById('debug-content').textContent = JSON.stringify(info, null, 2);
   document.getElementById('modal-debug').classList.add('open');
 }
 
