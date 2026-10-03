@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Приемно-предаване на машини и оборудване | Механизация и транспорт</title>
+<title>Приемно-предаване на машини и оборудване | Ар Си Техник ООД</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -277,7 +277,7 @@
 <div class="header">
   <div class="header-top"></div>
   <div class="header-main">
-    <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>МЕХАНИЗАЦИЯ И ТРАНСПОРТ</span></div>
+    <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>АР СИ ТЕХНИК ООД</span></div>
     <div class="header-nav" id="header-nav">
       <button class="notif-btn" id="notif-bell" style="display:none;" title="Неопотвърдени зачисления">
         🔔<span class="notif-count" id="notif-count">0</span>
@@ -288,8 +288,8 @@
           <button onclick="showZachislyavane(); closeAdminMenu()">+ Зачисляване</button>
           <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
           <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
-          <button onclick="showDebug(); closeAdminMenu()">🐞 Debug</button>
           <button onclick="exportReconciliation(); closeAdminMenu()">📋 Съпоставка (Excel)</button>
+          <button onclick="showDebug(); closeAdminMenu()">🐞 Debug</button>
         </div>
       </div>
       <span id="role-indicator" style="display:none;"></span>
@@ -511,7 +511,7 @@
   <div class="confirm-box">
     <div class="confirm-box-header">
       <h2>ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ</h2>
-      <p>Механизация и транспорт</p>
+      <p>Ар Си Техник ООД</p>
     </div>
     <div class="confirm-box-body">
       <!-- Visual timeline -->
@@ -675,7 +675,7 @@
   <div class="login-box">
     <div class="login-header">
       <h2>ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ</h2>
-      <p>Механизация и транспорт</p>
+      <p>Ар Си Техник ООД</p>
     </div>
     <div class="login-body">
       <div class="login-choose-label">Влезте с вашия фирмен акаунт</div>
@@ -2309,11 +2309,6 @@ function exportReconciliation() {
 }
 // ===== КРАЙ СЪПОСТАВКА =====
 
-// ── Попълване на падащите менюта при зареждане ───────────────────────────────
-// Категориите се попълват динамично след loadMachinesCatalog() чрез refreshKategoriiFromMachines()
-// populateSelect('filter-cat', KATEGORII);
-// populateSelect('z-filter-kat', KATEGORII);
-// refreshKategoriiFromMachines() се вика след loadMachinesCatalog()
 function calcBillingDays(startDateStr, endDateStr) {
   const start = new Date(startDateStr);
   const end = new Date(endDateStr);
