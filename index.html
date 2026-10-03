@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Приемно-предаване на машини и оборудване | Ар Си Техник ООД</title>
+<title>Приемно-предаване на машини и оборудване | Механизация и транспорт</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -271,6 +271,97 @@
 <script src="msal-browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="supabase.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="theme-rc-tehnik">
+/* ===== ТЕМА: Ар Си Техник (Outfit + небесносин градиент) ===== */
+:root {
+  --rc-primary: #0284c7;
+  --rc-primary-dark: #0369a1;
+  --rc-border: #e0f2fe;
+  --rc-danger: #dc2626;
+  --rc-gradient: linear-gradient(135deg, #0d1f52 0%, #1a3a8f 50%, #2955c7 100%);
+  --rc-card: linear-gradient(160deg, #ffffff, #f0f9ff);
+}
+
+/* Шрифт */
+body, button, input, select, textarea { font-family: 'Outfit', Arial, sans-serif !important; }
+
+/* Фон */
+body {
+  background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 30%, #fafaf9 60%);
+  background-attachment: fixed;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+/* Хедър */
+.header { background: var(--rc-gradient); border-radius: 0 0 28px 28px; box-shadow: 0 4px 12px rgba(2,132,199,0.15); }
+.header-top { display: none; }
+.header-main { height: auto; min-height: 64px; padding: 14px 24px 20px; }
+.header-title { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; text-shadow: none; }
+.header-title span { font-size: 12px; font-weight: 500; letter-spacing: 1.5px; color: rgba(255,255,255,0.75); }
+.notif-count { border-color: #1a3a8f; }
+.admin-menu button:hover { background: #f0f9ff; color: var(--rc-primary); }
+
+/* Карти, филтри, таблица */
+.dash-card, .filters, .table-wrap { background: var(--rc-card); border: 1px solid var(--rc-border); border-radius: 14px; box-shadow: none; }
+.dash-icon.blue { background: #e0f2fe; }
+.dash-value.blue { color: var(--rc-primary); }
+.stat-dynamic { border-left-color: var(--rc-primary) !important; }
+.stat-dynamic .dash-value { color: var(--rc-primary) !important; }
+.table-header { background: var(--rc-gradient); }
+th { background: #f0f9ff; color: var(--rc-primary-dark); border-bottom: 1.5px solid var(--rc-border); }
+td { border-bottom: 1px solid var(--rc-border); }
+tr:nth-child(even) > td { background-color: rgba(240,249,255,0.6); }
+tr:hover > td { background-color: #e0f2fe !important; }
+.cat-badge { background: #e0f2fe; color: var(--rc-primary-dark); }
+
+/* Полета */
+.filters input, .filters select,
+.form-group input, .form-group select, .form-group textarea {
+  border: 1px solid var(--rc-border); border-radius: 10px; background: rgba(255,255,255,0.7);
+}
+.filters input:focus, .filters select:focus,
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--rc-primary); background: rgba(255,255,255,0.95);
+  box-shadow: 0 0 0 3px rgba(2,132,199,0.15);
+}
+.readonly { background: #f0f9ff !important; }
+
+/* Бутони */
+.btn-zachisli { background: var(--rc-primary); box-shadow: none; }
+.btn-otchisli { background: var(--rc-danger); box-shadow: none; }
+.btn-save { background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 2px 8px rgba(2,132,199,0.3); border-radius: 10px; }
+.btn-save:hover { background: linear-gradient(135deg, #0369a1, #075985); }
+.btn-cancel { border: 1px solid var(--rc-border); border-radius: 10px; color: #475569; }
+.action-btn { border-radius: 10px; }
+
+/* Модали */
+.modal { border-radius: 18px; }
+.modal-header { background: var(--rc-gradient); }
+.form-section-title { color: var(--rc-primary); border-bottom: 1px solid var(--rc-border); }
+.machine-info { background: #f0f9ff; border-left-color: var(--rc-primary); }
+.machine-info strong { color: var(--rc-primary-dark); }
+.import-summary { background: #f0f9ff; border-color: var(--rc-border); }
+.import-summary b { color: var(--rc-primary-dark); }
+.drop-zone { border-color: var(--rc-primary); color: var(--rc-primary); background: #f0f9ff; }
+.preview-table th, .report-table th { background: #1a3a8f; }
+.col-map-table th { background: #f0f9ff; color: var(--rc-primary-dark); }
+.report-table tr.report-group-total { background: #e0f2fe; border-bottom: 2px solid var(--rc-primary); }
+.report-table tr.report-grand-total { background: #1a3a8f; }
+
+/* Вход и потвърждение */
+.login-overlay { background: rgba(13,31,82,0.92); }
+.login-header { background: var(--rc-gradient); border-bottom: none; }
+.login-box, .confirm-box { border-radius: 20px; }
+.ms-login-btn { border: 1px solid var(--rc-border); border-radius: 10px; }
+.confirm-overlay { background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 30%, #fafaf9 60%); }
+.confirm-box-header { background: var(--rc-gradient); border-bottom: none; }
+.confirm-machine-card { background: #f0f9ff; border-left-color: var(--rc-primary); }
+.confirm-machine-card h3 { color: var(--rc-primary-dark); }
+.toast { border-radius: 10px; }
+</style>
 </head>
 <body>
 
@@ -511,7 +602,7 @@
   <div class="confirm-box">
     <div class="confirm-box-header">
       <h2>ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ</h2>
-      <p>Ар Си Техник ООД</p>
+      <p>Механизация и транспорт</p>
     </div>
     <div class="confirm-box-body">
       <!-- Visual timeline -->
