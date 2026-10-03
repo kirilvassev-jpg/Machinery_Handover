@@ -289,6 +289,7 @@
           <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
           <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
           <button onclick="showDebug(); closeAdminMenu()">🐞 Debug</button>
+          <button onclick="exportReconciliation(); closeAdminMenu()">📋 Съпоставка (Excel)</button>
         </div>
       </div>
       <span id="role-indicator" style="display:none;"></span>
@@ -2224,6 +2225,95 @@ function exportReportPDF() {
 }
 // ===== КРАЙ СПРАВКА =====
 
+// ===== СЪПОСТАВКА НА КАТАЛОГ И ЗАЧИСЛЕНИЯ (Excel за преглед от колегите) =====
+function exportReconciliation() {
+  if (currentRole !== 'admin') return;
+  if (!spData.length) { showToast('Данните от SharePoint още не са заредени.', true); return; }
+
+  // Кодове, които вероятно са въведени грешно (липсва водеща нула и др.)
+  const FIX = { '0833': '080233', '80233': '080233', '0880': '080180' };
+  const catKods = new Set(MACHINES.map(m => m.kod));
+  const rows = [];
+
+  // 1) Машини от актуалния каталог (свободни или зачислени)
+  MACHINES.forEach(m => {
+    const sp = spMap[m.kod];
+    rows.push({
+      order: sp ? 1 : 2,
+      kod: m.kod, dn: getMachineDN(m), ime: m.ime, kat: m.kat, cena: m.cena,
+      inList: 'Да', inSp: sp ? 'Да' : 'Не',
+      dir: sp ? f(sp, 'dir') : '', priel: sp ? f(sp, 'priel') : '',
+      mesto: sp ? f(sp, 'mesto') : '', dz: sp ? formatDate(f(sp, 'dz')) : '',
+      status: sp ? 'Зачислена и е в списъка' : 'Свободна (в списъка)',
+      action: sp ? 'Остава зачислена' : 'Остава свободна'
+    });
+  });
+
+  // 2) Зачислени машини, чийто код го няма в каталога
+  Object.keys(spMap).forEach(kod => {
+    if (catKods.has(kod)) return;
+    const sp = spMap[kod];
+    const fix = FIX[kod];
+    const ime = f(sp, 'ime');
+    const kat = f(sp, 'kat');
+    rows.push({
+      order: fix ? 3 : 4,
+      kod: kod, dn: getMachineDN({ kat: kat, ime: String(ime || '') }), ime: ime, kat: kat, cena: f(sp, 'cena'),
+      inList: 'Не', inSp: 'Да',
+      dir: f(sp, 'dir'), priel: f(sp, 'priel'), mesto: f(sp, 'mesto'), dz: formatDate(f(sp, 'dz')),
+      status: fix ? 'Зачислена, кодът вероятно е грешен' : 'Зачислена, НЕ е в новия списък',
+      action: fix ? 'Корекция на кода → ' + fix : 'Прехвърлена към направление → да се отчисли'
+    });
+  });
+
+  rows.sort((a, b) => a.order - b.order ||
+    String(a.kat).localeCompare(String(b.kat)) ||
+    String(a.kod).localeCompare(String(b.kod)));
+
+  const header = ['Код WS', 'Инв./ДН №', 'Наименование', 'Категория', 'Цена (€)',
+    'В новия списък', 'Зачислена в SharePoint', 'Направление', 'Приел', 'Местонахождение',
+    'Дата зачисляване', 'Статус на съпоставката', 'Предложено действие', 'РЕШЕНИЕ (попълва се от колегите)'];
+  const aoa = [header];
+  rows.forEach(r => aoa.push([r.kod, r.dn, r.ime, r.kat, r.cena, r.inList, r.inSp,
+    r.dir, r.priel, r.mesto, r.dz, r.status, r.action, '']));
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:12},{wch:11},{wch:46},{wch:20},{wch:9},{wch:14},{wch:20},{wch:30},{wch:22},{wch:20},{wch:15},{wch:34},{wch:44},{wch:32}];
+  ws['!autofilter'] = { ref: 'A1:N' + aoa.length };
+
+  const cnt = n => rows.filter(r => r.order === n).length;
+  const summary = [
+    ['Съпоставка на каталога и зачисленията — ' + new Date().toLocaleDateString('bg-BG')],
+    [],
+    ['Категория', 'Брой'],
+    ['Зачислена и е в списъка', cnt(1)],
+    ['Свободна (в списъка)', cnt(2)],
+    ['Зачислена, кодът вероятно е грешен', cnt(3)],
+    ['Зачислена, НЕ е в новия списък', cnt(4)],
+    ['Общо редове', rows.length],
+    [],
+    ['Указания към колегите'],
+    ['1. Оцветете редовете: зачислени машини в една боя, машини за премахване в друга.'],
+    ['2. В последната колона напишете решение: "Остава зачислена", "Свободна" или "Прехвърлена - да се премахне".'],
+    ['3. Колоната с решение е задължителна, защото цветовете не се виждат при пренасяне на данните като текст.'],
+    ['4. При грешен код напишете верния код в колоната за решение.']
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(summary);
+  ws2['!cols'] = [{wch:60},{wch:12}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Съпоставка');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Резюме и указания');
+  XLSX.writeFile(wb, 'Съпоставка_машини_' + new Date().toISOString().split('T')[0] + '.xlsx');
+  showToast('Файлът е изтеглен (' + rows.length + ' реда).');
+}
+// ===== КРАЙ СЪПОСТАВКА =====
+
+// ── Попълване на падащите менюта при зареждане ───────────────────────────────
+// Категориите се попълват динамично след loadMachinesCatalog() чрез refreshKategoriiFromMachines()
+// populateSelect('filter-cat', KATEGORII);
+// populateSelect('z-filter-kat', KATEGORII);
+// refreshKategoriiFromMachines() се вика след loadMachinesCatalog()
 function calcBillingDays(startDateStr, endDateStr) {
   const start = new Date(startDateStr);
   const end = new Date(endDateStr);
