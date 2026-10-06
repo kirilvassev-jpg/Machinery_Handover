@@ -415,6 +415,11 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
 .ms-login-btn { font-size: 15.5px; }
 .toast { font-size: 14.5px; }
 
+/* ===== ИКОНА В ХЕДЪРА (компютър) ===== */
+.header-title { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.header-title-text { text-align: left; }
+.header-logo { width: 46px; height: 46px; border-radius: 11px; object-fit: cover; flex: 0 0 auto; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.35); }
+
 /* ===== ТЕЛЕФОН (само под 768px; на компютър нищо не се променя) ===== */
 .filters-toggle { display: none; }
 .mobile-chips { display: none; }
@@ -426,8 +431,10 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   /* Хедър */
   .header { padding-top: env(safe-area-inset-top); }
   .header-main { padding: 12px 14px 16px; gap: 8px; }
-  .header-title { font-size: 0 !important; text-align: left; padding: 0; }
-  .header-title::before { content: "Машини"; display: block; font-size: 19px; font-weight: 500; line-height: 1.2; letter-spacing: 0.3px; color: #fff; }
+  .header-logo { display: none; }
+  .header-title { font-size: 0 !important; justify-content: flex-start; padding: 0; }
+  .header-title-text { font-size: 0; letter-spacing: 0; }
+  .header-title-text::before { content: "Машини"; display: block; font-size: 19px; font-weight: 500; line-height: 1.2; letter-spacing: 0.3px; color: #fff; }
   .header-title span { display: block; font-size: 11px; letter-spacing: 1px; margin-top: 0; }
   .header-nav { gap: 6px; }
   .admin-dropdown-btn { padding: 7px 10px; font-size: 13px; }
@@ -510,7 +517,10 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
 <div class="header">
   <div class="header-top"></div>
   <div class="header-main">
-    <div class="header-title">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>АР СИ ТЕХНИК ООД</span></div>
+    <div class="header-title">
+      <img class="header-logo" src="icon-192.png" alt="" width="46" height="46">
+      <div class="header-title-text">ПРИЕМНО-ПРЕДАВАНЕ НА МАШИНИ И ОБОРУДВАНЕ<span>АР СИ ТЕХНИК ООД</span></div>
+    </div>
     <div class="header-nav" id="header-nav">
       <button class="notif-btn" id="notif-bell" style="display:none;" title="Неопотвърдени зачисления">
         🔔<span class="notif-count" id="notif-count">0</span>
