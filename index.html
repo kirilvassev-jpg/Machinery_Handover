@@ -532,6 +532,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
           <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
           <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
           <button onclick="exportReconciliation(); closeAdminMenu()">📋 Съпоставка (Excel)</button>
+          <button onclick="openBulkModal(); closeAdminMenu()">🧹 Масово отчисляване</button>
           <button onclick="showDebug(); closeAdminMenu()">🐞 Debug</button>
         </div>
       </div>
@@ -825,6 +826,26 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('modal-report')">Затвори</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: МАСОВО ОТЧИСЛЯВАНЕ (временна функция) -->
+<div class="modal-overlay" id="modal-bulk">
+  <div class="modal" style="width:1100px;max-width:98vw;">
+    <div class="modal-header red">
+      <h3>🧹 Масово отчисляване към 30.09.2026</h3>
+      <button class="modal-close" onclick="closeBulkModal()">×</button>
+    </div>
+    <div class="modal-body" style="max-height:72vh;overflow-y:auto;">
+      <div id="bulk-summary" style="margin-bottom:12px;"></div>
+      <div id="bulk-progress" style="margin-bottom:10px;font-size:13px;color:#475569;"></div>
+      <div id="bulk-table-wrap" style="overflow-x:auto;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeBulkModal()">Затвори</button>
+      <button class="btn-cancel" id="bulk-btn-test" onclick="runBulk(1)">Тест с 1 запис</button>
+      <button class="btn-save red" id="bulk-btn-run" onclick="runBulk()">Отчисли всички</button>
     </div>
   </div>
 </div>
@@ -1516,7 +1537,7 @@ function buildSpMap() {
 }
 
 function updateStats() {
-  const busyKods = Object.keys(spMap);
+  const busyKods = Object.keys(spMap).filter(k => MACHINES.some(m => m.kod === k));
   const total = MACHINES.length;
   const busy = busyKods.length;
   const free = total - busy;
@@ -2345,7 +2366,7 @@ function openReportModal() {
   dirSel.innerHTML = '<option value="">-- Всички --</option>';
   katSel.innerHTML = '<option value="">-- Всички --</option>';
   NAPRAVLENIYA.forEach(d => { const o = document.createElement('option'); o.textContent = d; dirSel.appendChild(o); });
-  Array.from(new Set(MACHINES.map(m => m.kat))).sort().forEach(k => { const o = document.createElement('option'); o.textContent = k; katSel.appendChild(o); });
+  Array.from(new Set(MACHINES.map(m => m.kat).concat(spData.map(i => String(f(i, 'kat') || '')).filter(Boolean)))).sort().forEach(k => { const o = document.createElement('option'); o.textContent = k; katSel.appendChild(o); });
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
   document.getElementById('rep-start').value = firstDay.toISOString().split('T')[0];
@@ -2381,8 +2402,8 @@ function generateReport() {
   reportRows = [];
   spData.forEach(item => {
     const kod = f(item, 'kod');
-    const m = MACHINES.find(x => x.kod === kod);
-    if (!m) return;
+    if (!kod) return;
+    const m = MACHINES.find(x => x.kod === kod) || { kod: kod, ime: String(f(item, 'ime') || kod), kat: String(f(item, 'kat') || '—'), cena: parseFloat(f(item, 'cena')) || 0 };
     if (dirFilter && f(item, 'dir') !== dirFilter) return;
     if (katFilter && m.kat !== katFilter) return;
     const dz = f(item, 'dz');
@@ -2583,6 +2604,176 @@ function exportReconciliation() {
   showToast('Файлът е изтеглен (' + rows.length + ' реда).');
 }
 // ===== КРАЙ СЪПОСТАВКА =====
+
+// ===== МАСОВО ОТЧИСЛЯВАНЕ (временна функция за еднократно изравняване) =====
+const BULK_DATE = '2026-09-30';
+// Машините, които ОСТАВАТ зачислени (всички останали активни записи се отчисляват)
+const BULK_KEEP = ['6519','6520','6526','6529','080225','080127','080134','080136','1114','1121','1135','1143','2026','2029','060101','060113','060114','060119','060124','2110','2112','2113','2117','080211','080212'];
+// Кой е „предал“, когато в записа няма име
+const BULK_PREDAL_BY_KOD = {
+  '22012855/1': 'Стефан Христов',
+  '080261': 'Илия Илиев',
+  '080281': 'Денис Зафиров',
+  '080283': 'Калин Кукуригов',
+  '3404': 'Евтим Евтимов', '3412': 'Евтим Евтимов', '3418': 'Евтим Евтимов',
+  '3419': 'Евтим Евтимов', '3423': 'Евтим Евтимов', '3428': 'Евтим Евтимов',
+  '040143': 'Евтим Евтимов', '040533': 'Евтим Евтимов', '040606': 'Стефан Христов'
+};
+// Поправки на правопис
+const BULK_NAME_FIX = {
+  'Ефтим Ефтимов': 'Евтим Евтимов',
+  'Богомил': 'Богомил Николов',
+  'Темело Златков': 'Темелко Златков',
+  'Димчо Топаллов': 'Димчо Топалов'
+};
+let bulkRows = [];
+let bulkKept = 0;
+let bulkRunning = false;
+
+function isItemClosed(item) {
+  return Object.keys(item).some(k => k.startsWith(SP_DAT_OTCHISLYAVANE_PREFIX) && k !== SP_DAT_OTCHISLYAVANE_PREFIX && item[k]);
+}
+
+function resolveBulkPredal(kod, priel) {
+  if (BULK_PREDAL_BY_KOD[kod]) return BULK_PREDAL_BY_KOD[kod];
+  const n = String(priel || '').trim();
+  if (!n || /^[?\/]+$/.test(n)) return '';
+  return BULK_NAME_FIX[n] || n;
+}
+
+function computeBulk() {
+  bulkRows = [];
+  bulkKept = 0;
+  const keep = new Set(BULK_KEEP);
+  spData.forEach(item => {
+    if (isItemClosed(item)) return;
+    const kod = String(f(item, 'kod'));
+    if (keep.has(kod)) { bulkKept++; return; }
+    const id = item.ID != null ? item.ID : item.id;
+    const dz = String(f(item, 'dz') || '').substring(0, 10);
+    const price = parseFloat(f(item, 'cena')) || 0;
+    const predal = resolveBulkPredal(kod, f(item, 'priel'));
+    let days = 0, suma = 0, problem = '';
+    if (!dz) problem = 'няма дата на зачисляване';
+    else if (dz > BULK_DATE) problem = 'зачислена след 30.09.2026';
+    else { days = calcBillingDays(dz, BULK_DATE); suma = Math.round(days * price * 100) / 100; }
+    if (!problem && !predal) problem = 'липсва име на „предал“';
+    if (!problem && !price) problem = 'липсва цена';
+    bulkRows.push({
+      id: id, kod: kod, ime: String(f(item, 'ime') || ''), dir: String(f(item, 'dir') || ''),
+      priel: String(f(item, 'priel') || ''), dz: dz, days: days, price: price, suma: suma,
+      predal: predal, problem: problem, status: problem ? 'skip' : 'ready'
+    });
+  });
+  bulkRows.sort((a, b) => a.dir.localeCompare(b.dir) || a.kod.localeCompare(b.kod));
+  bulkRows.forEach((r, i) => { r.idx = i; });
+}
+
+function bulkStatusHtml(r) {
+  if (r.status === 'skip') return '<span style="color:#B71C1C;">Пропуснат: ' + escapeHtml(r.problem) + '</span>';
+  if (r.status === 'run') return '<span style="color:#0369a1;">Изпраща се…</span>';
+  if (r.status === 'done') return '<span style="color:#16A34A;">✓ Изпратен</span>';
+  if (r.status === 'error') return '<span style="color:#B71C1C;">✗ Грешка</span>';
+  return '<span style="color:#475569;">Готов</span>';
+}
+
+function setBulkStatus(r) {
+  const el = document.getElementById('bulk-st-' + r.idx);
+  if (el) el.innerHTML = bulkStatusHtml(r);
+}
+
+function refreshBulkButtons() {
+  const pending = bulkRows.filter(r => r.status === 'ready' || r.status === 'error').length;
+  const run = document.getElementById('bulk-btn-run');
+  const test = document.getElementById('bulk-btn-test');
+  if (run) { run.textContent = 'Отчисли всички (' + pending + ')'; run.disabled = bulkRunning || pending === 0; }
+  if (test) { test.disabled = bulkRunning || pending === 0; }
+}
+
+function renderBulk() {
+  const ready = bulkRows.filter(r => r.status === 'ready' || r.status === 'error').length;
+  const skipped = bulkRows.filter(r => r.status === 'skip').length;
+  const total = bulkRows.reduce((s, r) => s + (r.status === 'skip' ? 0 : r.suma), 0);
+  const active = {};
+  spData.forEach(i => { if (!isItemClosed(i)) active[String(f(i, 'kod'))] = true; });
+  const missingKeep = BULK_KEEP.filter(c => !active[c]);
+
+  let s = '<div class="import-summary" style="background:#f0f9ff;border-radius:8px;padding:10px 14px;font-size:14px;">' +
+    'За отчисляване: <b>' + bulkRows.length + '</b> (готови <b>' + ready + '</b>, с проблем <b>' + skipped + '</b>) &nbsp;|&nbsp; ' +
+    'Остават зачислени: <b>' + bulkKept + '</b> (очаквани ' + BULK_KEEP.length + ') &nbsp;|&nbsp; ' +
+    'Дата на отчисляване: <b>30.09.2026</b> &nbsp;|&nbsp; Обща сума: <b>' + total.toFixed(2) + ' €</b></div>';
+  if (missingKeep.length) {
+    s += '<div style="color:#B71C1C;font-size:13px;margin-top:6px;">Не са намерени като активни: ' + escapeHtml(missingKeep.join(', ')) + '. Проверете дали кодът е верен.</div>';
+  }
+  if (skipped) {
+    s += '<div style="color:#B71C1C;font-size:13px;margin-top:6px;">' + skipped + ' записа имат проблем и няма да бъдат отчислени (червените редове).</div>';
+  }
+  document.getElementById('bulk-summary').innerHTML = s;
+
+  let html = '<table class="report-table"><thead><tr><th>№</th><th>Код WS</th><th>Наименование</th><th>Получател (Приел)</th><th>Зачислена</th><th>Дни</th><th>Сума (€)</th><th>Предал</th><th>Статус</th></tr></thead><tbody>';
+  bulkRows.forEach(function (r, i) {
+    html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(r.kod) + '</td><td>' + escapeHtml(r.ime) + '</td><td>' + escapeHtml(r.priel) + '</td>' +
+      '<td>' + escapeHtml(formatDate(r.dz)) + '</td><td style="text-align:right;">' + r.days + '</td>' +
+      '<td style="text-align:right;">' + r.suma.toFixed(2) + '</td><td>' + escapeHtml(r.predal || '—') + '</td>' +
+      '<td id="bulk-st-' + i + '">' + bulkStatusHtml(r) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('bulk-table-wrap').innerHTML = bulkRows.length ? html : '<div class="empty">Няма записи за отчисляване.</div>';
+  refreshBulkButtons();
+}
+
+async function openBulkModal() {
+  if (currentRole !== 'admin') return;
+  document.getElementById('bulk-summary').innerHTML = '<span class="spinner"></span> Зареждане на актуалните данни...';
+  document.getElementById('bulk-table-wrap').innerHTML = '';
+  document.getElementById('bulk-progress').textContent = '';
+  document.getElementById('modal-bulk').classList.add('open');
+  await loadFromSharePoint();
+  computeBulk();
+  renderBulk();
+}
+
+function closeBulkModal() {
+  if (bulkRunning) { showToast('Изчакайте да приключи отчисляването.', true); return; }
+  closeModal('modal-bulk');
+}
+
+async function runBulk(limit) {
+  if (bulkRunning) return;
+  let todo = bulkRows.filter(r => r.status === 'ready' || r.status === 'error');
+  if (limit) todo = todo.slice(0, limit);
+  if (!todo.length) { showToast('Няма готови записи за отчисляване.', true); return; }
+  const msg = limit
+    ? 'Ще бъде отчислен само първият запис (тест). Продължавате ли?'
+    : 'Ще бъдат отчислени ' + todo.length + ' записа към 30.09.2026. Продължавате ли?';
+  if (!confirm(msg)) return;
+  bulkRunning = true;
+  refreshBulkButtons();
+  let ok = 0, fail = 0;
+  for (let i = 0; i < todo.length; i++) {
+    const r = todo[i];
+    r.status = 'run';
+    setBulkStatus(r);
+    document.getElementById('bulk-progress').textContent = 'Изпращане ' + (i + 1) + ' от ' + todo.length + '...';
+    try {
+      const payload = { ID: r.id, "ДатаОтчисляване": BULK_DATE, "Предал": r.predal, "СлужителМиТ": '', "БройДни": r.days, "Сума": r.suma };
+      const result = await callProxy('otchisli', payload);
+      if (result.ok) { r.status = 'done'; ok++; } else { r.status = 'error'; fail++; }
+    } catch (e) {
+      console.error('[BULK] грешка за', r.kod, e);
+      r.status = 'error';
+      fail++;
+    }
+    setBulkStatus(r);
+    await new Promise(function (resolve) { setTimeout(resolve, 600); });
+  }
+  bulkRunning = false;
+  refreshBulkButtons();
+  document.getElementById('bulk-progress').textContent = 'Готово: изпратени ' + ok + ', грешки ' + fail + '. Power Automate обработва записите - изчакайте 1-2 минути, после затворете прозореца и го отворете отново, за да проверите дали са останали.';
+  showToast('Изпратени: ' + ok + (fail ? ', грешки: ' + fail : ''), fail > 0);
+  setTimeout(() => loadFromSharePoint(), 10000);
+}
+// ===== КРАЙ МАСОВО ОТЧИСЛЯВАНЕ =====
 
 function calcBillingDays(startDateStr, endDateStr) {
   const start = new Date(startDateStr);
