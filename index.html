@@ -844,6 +844,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeBulkModal()">Затвори</button>
+      <button class="btn-cancel" onclick="copyBulkTable(this)">Копирай таблицата</button>
       <button class="btn-cancel" id="bulk-btn-test" onclick="runBulk(1)">Тест с 1 запис</button>
       <button class="btn-save red" id="bulk-btn-run" onclick="runBulk()">Отчисли всички</button>
     </div>
@@ -2661,11 +2662,12 @@ function computeBulk() {
     if (!problem && !price) problem = 'липсва цена';
     bulkRows.push({
       id: id, kod: kod, ime: String(f(item, 'ime') || ''), dir: String(f(item, 'dir') || ''),
-      priel: String(f(item, 'priel') || ''), dz: dz, days: days, price: price, suma: suma,
+      priel: String(f(item, 'priel') || ''), dz: dz, created: String(item.Created || '').substring(0, 10),
+      days: days, price: price, suma: suma,
       predal: predal, problem: problem, status: problem ? 'skip' : 'ready'
     });
   });
-  bulkRows.sort((a, b) => a.dir.localeCompare(b.dir) || a.kod.localeCompare(b.kod));
+  bulkRows.sort((a, b) => (a.status === 'skip' ? 0 : 1) - (b.status === 'skip' ? 0 : 1) || a.dir.localeCompare(b.dir) || a.kod.localeCompare(b.kod));
   bulkRows.forEach((r, i) => { r.idx = i; });
 }
 
@@ -2710,10 +2712,10 @@ function renderBulk() {
   }
   document.getElementById('bulk-summary').innerHTML = s;
 
-  let html = '<table class="report-table"><thead><tr><th>№</th><th>Код WS</th><th>Наименование</th><th>Получател (Приел)</th><th>Зачислена</th><th>Дни</th><th>Сума (€)</th><th>Предал</th><th>Статус</th></tr></thead><tbody>';
+  let html = '<table class="report-table"><thead><tr><th>№</th><th>Код WS</th><th>Наименование</th><th>Получател (Приел)</th><th>Зачислена</th><th>Създаден в системата</th><th>Дни</th><th>Сума (€)</th><th>Предал</th><th>Статус</th></tr></thead><tbody>';
   bulkRows.forEach(function (r, i) {
     html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(r.kod) + '</td><td>' + escapeHtml(r.ime) + '</td><td>' + escapeHtml(r.priel) + '</td>' +
-      '<td>' + escapeHtml(formatDate(r.dz)) + '</td><td style="text-align:right;">' + r.days + '</td>' +
+      '<td>' + escapeHtml(formatDate(r.dz)) + '</td><td>' + escapeHtml(formatDate(r.created)) + '</td><td style="text-align:right;">' + r.days + '</td>' +
       '<td style="text-align:right;">' + r.suma.toFixed(2) + '</td><td>' + escapeHtml(r.predal || '—') + '</td>' +
       '<td id="bulk-st-' + i + '">' + bulkStatusHtml(r) + '</td></tr>';
   });
@@ -2772,6 +2774,29 @@ async function runBulk(limit) {
   document.getElementById('bulk-progress').textContent = 'Готово: изпратени ' + ok + ', грешки ' + fail + '. Power Automate обработва записите - изчакайте 1-2 минути, после затворете прозореца и го отворете отново, за да проверите дали са останали.';
   showToast('Изпратени: ' + ok + (fail ? ', грешки: ' + fail : ''), fail > 0);
   setTimeout(() => loadFromSharePoint(), 10000);
+}
+function copyBulkTable(btn) {
+  const lines = ['№\tКод WS\tНаименование\tПриел\tЗачислена\tСъздаден\tДни\tСума\tПредал\tСтатус'];
+  bulkRows.forEach(function (r, i) {
+    const st = r.status === 'skip' ? 'Пропуснат: ' + r.problem : 'Готов';
+    lines.push([i + 1, r.kod, r.ime, r.priel, r.dz, r.created, r.days, r.suma.toFixed(2), r.predal, st]
+      .map(function (c) { return String(c).replace(/[\t\r\n]+/g, ' '); }).join('\t'));
+  });
+  const text = lines.join('\n');
+  const done = function () { showToast('Таблицата е копирана (' + bulkRows.length + ' реда).'); };
+  const fallback = function () {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { showToast('Копирането не успя.', true); }
+    ta.remove();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(fallback);
+  } else {
+    fallback();
+  }
 }
 // ===== КРАЙ МАСОВО ОТЧИСЛЯВАНЕ =====
 
