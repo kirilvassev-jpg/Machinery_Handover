@@ -2609,7 +2609,7 @@ function exportReconciliation() {
 // ===== МАСОВО ОТЧИСЛЯВАНЕ (временна функция за еднократно изравняване) =====
 const BULK_DATE = '2026-09-30';
 // Машините, които ОСТАВАТ зачислени (всички останали активни записи се отчисляват)
-const BULK_KEEP = ['6519','6520','6526','6529','080225','080127','080134','080136','1114','1121','1135','1143','2026','2029','060101','060113','060114','060119','060124','2110','2112','2113','2117','080211','080212'];
+const BULK_KEEP = ['6519','6520','6526','6529','080225','080127','080134','080136','1114','1121','1135','1143','2026','2029','060101','060113','060114','060119','060124','2110','2112','2113','2117','080211','080212','2012','080177'];
 // Кой е „предал“, когато в записа няма име
 const BULK_PREDAL_BY_KOD = {
   '22012855/1': 'Стефан Христов',
@@ -2618,7 +2618,11 @@ const BULK_PREDAL_BY_KOD = {
   '080283': 'Калин Кукуригов',
   '3404': 'Евтим Евтимов', '3412': 'Евтим Евтимов', '3418': 'Евтим Евтимов',
   '3419': 'Евтим Евтимов', '3423': 'Евтим Евтимов', '3428': 'Евтим Евтимов',
-  '040143': 'Евтим Евтимов', '040533': 'Евтим Евтимов', '040606': 'Стефан Христов'
+  '040143': 'Евтим Евтимов', '040533': 'Евтим Евтимов', '040606': 'Стефан Христов',
+  '08030210': 'Стефан Христов', '08030211': 'Стефан Христов', '08030213': 'Стефан Христов',
+  '08030215': 'Стефан Христов', '08030216': 'Стефан Христов', '08030217': 'Стефан Христов',
+  '08030218': 'Стефан Христов', '08030219': 'Стефан Христов', '08030220': 'Стефан Христов',
+  '08032014': 'Стефан Христов', '08040208': 'Стефан Христов'
 };
 // Поправки на правопис
 const BULK_NAME_FIX = {
@@ -2629,6 +2633,7 @@ const BULK_NAME_FIX = {
 };
 let bulkRows = [];
 let bulkKept = 0;
+let bulkLater = 0;
 let bulkRunning = false;
 
 function isItemClosed(item) {
@@ -2646,10 +2651,18 @@ function computeBulk() {
   bulkRows = [];
   bulkKept = 0;
   const keep = new Set(BULK_KEEP);
+  bulkLater = 0;
+  const codeCount = {};
+  spData.forEach(it => {
+    if (!isItemClosed(it)) { const c = String(f(it, 'kod')); codeCount[c] = (codeCount[c] || 0) + 1; }
+  });
   spData.forEach(item => {
     if (isItemClosed(item)) return;
     const kod = String(f(item, 'kod'));
     if (keep.has(kod)) { bulkKept++; return; }
+    // Зачисления след 30.09.2026 са нови и остават зачислени
+    const dzProbe = String(f(item, 'dz') || '').substring(0, 10);
+    if (dzProbe && dzProbe > BULK_DATE) { bulkKept++; bulkLater++; return; }
     const id = item.ID != null ? item.ID : item.id;
     const dz = String(f(item, 'dz') || '').substring(0, 10);
     const price = parseFloat(f(item, 'cena')) || 0;
@@ -2658,6 +2671,7 @@ function computeBulk() {
     if (!dz) problem = 'няма дата на зачисляване';
     else if (dz > BULK_DATE) problem = 'зачислена след 30.09.2026';
     else { days = calcBillingDays(dz, BULK_DATE); suma = Math.round(days * price * 100) / 100; }
+    if (!problem && codeCount[kod] > 1) problem = 'дублиран запис за същия код (изтрийте излишния в SharePoint)';
     if (!problem && !predal) problem = 'липсва име на „предал“';
     if (!problem && !price) problem = 'липсва цена';
     bulkRows.push({
@@ -2702,7 +2716,7 @@ function renderBulk() {
 
   let s = '<div class="import-summary" style="background:#f0f9ff;border-radius:8px;padding:10px 14px;font-size:14px;">' +
     'За отчисляване: <b>' + bulkRows.length + '</b> (готови <b>' + ready + '</b>, с проблем <b>' + skipped + '</b>) &nbsp;|&nbsp; ' +
-    'Остават зачислени: <b>' + bulkKept + '</b> (очаквани ' + BULK_KEEP.length + ') &nbsp;|&nbsp; ' +
+    'Остават зачислени: <b>' + bulkKept + '</b> (от списъка ' + (bulkKept - bulkLater) + ' от ' + BULK_KEEP.length + ', зачислени след 30.09: ' + bulkLater + ') &nbsp;|&nbsp; ' +
     'Дата на отчисляване: <b>30.09.2026</b> &nbsp;|&nbsp; Обща сума: <b>' + total.toFixed(2) + ' €</b></div>';
   if (missingKeep.length) {
     s += '<div style="color:#B71C1C;font-size:13px;margin-top:6px;">Не са намерени като активни: ' + escapeHtml(missingKeep.join(', ')) + '. Проверете дали кодът е верен.</div>';
@@ -2743,10 +2757,10 @@ function closeBulkModal() {
 async function runBulk(limit) {
   if (bulkRunning) return;
   let todo = bulkRows.filter(r => r.status === 'ready' || r.status === 'error');
-  if (limit) todo = todo.slice(0, limit);
+  if (limit) todo = todo.slice().sort((a, b) => a.suma - b.suma).slice(0, limit);
   if (!todo.length) { showToast('Няма готови записи за отчисляване.', true); return; }
   const msg = limit
-    ? 'Ще бъде отчислен само първият запис (тест). Продължавате ли?'
+    ? 'Ще бъде отчислен само най-евтиният запис (тест). Продължавате ли?'
     : 'Ще бъдат отчислени ' + todo.length + ' записа към 30.09.2026. Продължавате ли?';
   if (!confirm(msg)) return;
   bulkRunning = true;
