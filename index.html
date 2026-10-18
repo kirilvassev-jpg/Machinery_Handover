@@ -532,8 +532,6 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
           <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
           <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
           <button onclick="exportReconciliation(); closeAdminMenu()">📋 Съпоставка (Excel)</button>
-          <button onclick="openBulkModal(); closeAdminMenu()">🧹 Масово отчисляване</button>
-          <button onclick="showDebug(); closeAdminMenu()">🐞 Debug</button>
         </div>
       </div>
       <span id="role-indicator" style="display:none;"></span>
@@ -573,13 +571,6 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
         <div class="dash-info">
           <div class="dash-label">Заети машини</div>
           <div class="dash-value orange" id="dash-busy">—</div>
-        </div>
-      </div>
-      <div class="dash-card">
-        <div class="dash-icon grey">📦</div>
-        <div class="dash-info">
-          <div class="dash-label">Отчислени</div>
-          <div class="dash-value grey" id="dash-otchisleni">—</div>
         </div>
       </div>
     </div>
@@ -826,27 +817,6 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('modal-report')">Затвори</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: МАСОВО ОТЧИСЛЯВАНЕ (временна функция) -->
-<div class="modal-overlay" id="modal-bulk">
-  <div class="modal" style="width:1100px;max-width:98vw;">
-    <div class="modal-header red">
-      <h3>🧹 Масово отчисляване към 30.09.2026</h3>
-      <button class="modal-close" onclick="closeBulkModal()">×</button>
-    </div>
-    <div class="modal-body" style="max-height:72vh;overflow-y:auto;">
-      <div id="bulk-summary" style="margin-bottom:12px;"></div>
-      <div id="bulk-progress" style="margin-bottom:10px;font-size:13px;color:#475569;"></div>
-      <div id="bulk-table-wrap" style="overflow-x:auto;"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeBulkModal()">Затвори</button>
-      <button class="btn-cancel" onclick="copyBulkTable(this)">Копирай таблицата</button>
-      <button class="btn-cancel" id="bulk-btn-test" onclick="runBulk(1)">Тест с 1 запис</button>
-      <button class="btn-save red" id="bulk-btn-run" onclick="runBulk()">Отчисли всички</button>
     </div>
   </div>
 </div>
@@ -2367,7 +2337,7 @@ function openReportModal() {
   dirSel.innerHTML = '<option value="">-- Всички --</option>';
   katSel.innerHTML = '<option value="">-- Всички --</option>';
   NAPRAVLENIYA.forEach(d => { const o = document.createElement('option'); o.textContent = d; dirSel.appendChild(o); });
-  Array.from(new Set(MACHINES.map(m => m.kat).concat(spData.map(i => String(f(i, 'kat') || '')).filter(Boolean)))).sort().forEach(k => { const o = document.createElement('option'); o.textContent = k; katSel.appendChild(o); });
+  Array.from(new Set(MACHINES.map(m => m.kat).concat(spData.map(i => normalizeReportKat(f(i, 'kat'), f(i, 'ime'))).filter(k => k && k !== '—')))).sort().forEach(k => { const o = document.createElement('option'); o.textContent = k; katSel.appendChild(o); });
   const today = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
   document.getElementById('rep-start').value = firstDay.toISOString().split('T')[0];
@@ -2392,6 +2362,15 @@ function calcOverlapBillingDays(assignStartStr, assignEndStr, rangeStartStr, ran
   return { days: calcBillingDays(start.toISOString().split('T')[0], end.toISOString().split('T')[0]), start, end };
 }
 
+// Обединява старите и новите имена на категории (напр. „Виброплочи и трамбовки“) за справката
+function normalizeReportKat(kat, ime) {
+  const k = String(kat || '').trim();
+  const n = String(ime || '').toLowerCase();
+  if (k === 'Виброплочи и трамбовки') return n.indexOf('трамбовка') >= 0 ? 'Трамбовки' : 'Виброплочи';
+  if (k === 'Машини за ел. муфи') return 'Машина за ел. муфи';
+  return k || '—';
+}
+
 function generateReport() {
   const startStr = document.getElementById('rep-start').value;
   const endStr = document.getElementById('rep-end').value;
@@ -2404,7 +2383,7 @@ function generateReport() {
   spData.forEach(item => {
     const kod = f(item, 'kod');
     if (!kod) return;
-    const m = MACHINES.find(x => x.kod === kod) || { kod: kod, ime: String(f(item, 'ime') || kod), kat: String(f(item, 'kat') || '—'), cena: parseFloat(f(item, 'cena')) || 0 };
+    const m = MACHINES.find(x => x.kod === kod) || { kod: kod, ime: String(f(item, 'ime') || kod), kat: normalizeReportKat(f(item, 'kat'), f(item, 'ime')), cena: parseFloat(f(item, 'cena')) || 0 };
     if (dirFilter && f(item, 'dir') !== dirFilter) return;
     if (katFilter && m.kat !== katFilter) return;
     const dz = f(item, 'dz');
