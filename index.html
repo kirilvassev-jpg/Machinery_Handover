@@ -529,7 +529,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
         <button class="admin-dropdown-btn" onclick="toggleAdminMenu()">⚙ Админ ▾</button>
         <div class="admin-menu" id="admin-menu">
           <button onclick="showZachislyavane(); closeAdminMenu()">+ Зачисляване</button>
-          <button onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
+          <button id="btn-import-menu" style="display:none;" onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
           <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
           <button onclick="exportReconciliation(); closeAdminMenu()">📋 Съпоставка (Excel)</button>
         </div>
@@ -989,14 +989,26 @@ async function callProxy(action, body = {}) {
   return { ok: res.ok || res.status === 202, status: res.status, text };
 }
 
+let canImport = false; // право за „Импорт машини“ (колона can_import в таблицата machinery_admins)
+
 async function checkAdminRole(email) {
-  const { data, error } = await supabaseClient
+  canImport = false;
+  let res = await supabaseClient
     .from('machinery_admins')
-    .select('email')
+    .select('email, can_import')
     .eq('email', email.toLowerCase())
     .maybeSingle();
-  if (error) console.warn('Supabase role check error:', error.message);
-  return !!data;
+  if (res.error) {
+    // Ако колоната can_import още не съществува, администраторите продължават да работят без право за импорт
+    console.warn('Supabase role check error:', res.error.message);
+    res = await supabaseClient
+      .from('machinery_admins')
+      .select('email')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+  }
+  if (res.data && res.data.can_import === true) canImport = true;
+  return !!res.data;
 }
 
 async function loginWithMicrosoft() {
@@ -1031,6 +1043,9 @@ function applyRoleUI() {
   // Admin dropdown
   const adminDd = document.getElementById('admin-dropdown');
   if (adminDd) adminDd.style.display = isAdmin ? 'inline-block' : 'none';
+  // „Импорт машини“ се вижда само на потребители с право за импорт
+  const importBtn = document.getElementById('btn-import-menu');
+  if (importBtn) importBtn.style.display = (isAdmin && canImport) ? 'block' : 'none';
   // Notification bell (for admins)
   const bell = document.getElementById('notif-bell');
   if (bell) bell.style.display = isAdmin ? 'inline-flex' : 'none';
@@ -1069,6 +1084,7 @@ async function doLogout() {
     if (accounts.length > 0) msalInstance.logoutPopup({ account: accounts[0] }).catch(() => {});
   }
   currentRole = null;
+  canImport = false;
   currentUserName = '';
   document.getElementById('role-indicator').style.display = 'none';
   const adminDd = document.getElementById('admin-dropdown');
@@ -2067,7 +2083,7 @@ let importPreviewRows = [];
 let dropZoneInitialized = false;
 
 function openImportModal() {
-  if (currentRole !== 'admin') return;
+  if (currentRole !== 'admin' || !canImport) return;
   importParsedData = [];
   importExcelHeaders = [];
   importColumnMap = { kod: null, ime: null, kat: null, cena: null };
@@ -2264,6 +2280,7 @@ function importPrevStep() {
 }
 
 async function confirmImport() {
+  if (currentRole !== 'admin' || !canImport) { showToast('Нямате право за импорт на машини.', true); return; }
   const allRows = importPreviewRows.filter(r => r.kod);
   if (!allRows.length) { showToast('Няма редове за импорт!', true); return; }
   const replaceAll = document.getElementById('import-replace-all').checked;
