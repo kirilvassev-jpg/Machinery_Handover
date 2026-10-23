@@ -513,6 +513,9 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   .import-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .toast { left: 12px; right: 12px; bottom: 16px; text-align: center; }
 }
+/* ===== ДОСТЪПНОСТ: видим фокус при клавиатура ===== */
+button:focus-visible, a:focus-visible, .chip:focus-visible { outline: 2px solid var(--rc-primary); outline-offset: 2px; }
+.header button:focus-visible { outline-color: #fff; }
 </style>
 </head>
 <body>
@@ -617,10 +620,10 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   <div class="modal" style="width:780px;max-width:98vw;">
     <div class="modal-header" style="background:#1e1e1e;">
       <h3>Debug — Сурови данни от SharePoint</h3>
-      <button class="modal-close" onclick="closeModal('modal-debug')">×</button>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-debug')">×</button>
     </div>
     <div class="modal-body" style="padding:12px;">
-      <p style="font-size:12px;color:#666;margin-bottom:8px;">Брой записи: <strong id="debug-count">—</strong>. Ако е 0 или данните са грешни, провери прокси функцията. Полетата с <code>OData__</code> са кирилски колони в SharePoint.</p>
+      <p style="font-size:12px;color:#64748b;margin-bottom:8px;">Брой записи: <strong id="debug-count">—</strong>. Ако е 0 или данните са грешни, провери прокси функцията. Полетата с <code>OData__</code> са кирилски колони в SharePoint.</p>
       <div class="debug-panel" id="debug-content">Зарежда...</div>
     </div>
     <div class="modal-footer">
@@ -635,7 +638,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   <div class="modal">
     <div class="modal-header">
       <h3>Зачисляване на машина</h3>
-      <button class="modal-close" onclick="closeModal('modal-zachisli')">×</button>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-zachisli')">×</button>
     </div>
     <div class="modal-body">
       <div class="machine-info" id="zachisli-info"><span style="color:#64748B;font-size:13px;">Изберете машина от списъка</span></div>
@@ -706,7 +709,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   <div class="modal">
     <div class="modal-header red">
       <h3>Отчисляване на машина</h3>
-      <button class="modal-close" onclick="closeModal('modal-otchisli')">×</button>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-otchisli')">×</button>
     </div>
     <div class="modal-body">
       <div class="machine-info" id="otchisli-info"></div>
@@ -728,11 +731,11 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   <div class="modal" style="width:480px;">
     <div class="modal-header green">
       <h3>🔗 Изпратете линк за потвърждение</h3>
-      <button class="modal-close" onclick="closeModal('modal-confirmation-share')">×</button>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-confirmation-share')">×</button>
     </div>
     <div class="modal-body" style="text-align:center;">
-      <div id="confirm-share-machine-info" style="background:#f0faf4;border-radius:6px;padding:10px;margin-bottom:14px;border-left:4px solid #27ae60;text-align:left;font-size:13px;"></div>
-      <p style="font-size:13px;color:#555;margin-bottom:8px;">Покажете QR кода на получателя или му изпратете линка:</p>
+      <div id="confirm-share-machine-info" style="background:#f0fdf4;border-radius:6px;padding:10px;margin-bottom:14px;border-left:4px solid #16A34A;text-align:left;font-size:13px;"></div>
+      <p style="font-size:13px;color:#475569;margin-bottom:8px;">Покажете QR кода на получателя или му изпратете линка:</p>
       <div class="qr-wrapper">
         <img id="qr-code-img" src="" alt="QR код" style="width:200px;height:200px;display:block;margin:0 auto;">
       </div>
@@ -740,7 +743,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
         <input type="text" id="confirmation-link" readonly>
         <button class="btn-save green" onclick="copyConfirmLink()" style="padding:8px 14px;white-space:nowrap;">📋 Копирай</button>
       </div>
-      <p style="font-size:11px;color:#999;margin-top:10px;">Получателят отваря линка и потвърждава получаването.</p>
+      <p style="font-size:11px;color:#64748b;margin-top:10px;">Получателят отваря линка и потвърждава получаването.</p>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('modal-confirmation-share')">Затвори</button>
@@ -773,11 +776,11 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
           <div class="timeline-label" id="tl-label-3">Отчислена</div>
         </div>
       </div>
-      <div id="confirm-loading" style="text-align:center;padding:30px;color:#666;"><span class="spinner"></span> Зареждане...</div>
+      <div id="confirm-loading" style="text-align:center;padding:30px;color:#64748b;"><span class="spinner"></span> Зареждане...</div>
       <div id="confirm-machine-details"></div>
       <div id="confirm-already-done" style="display:none;"></div>
       <div id="confirm-content" style="display:none;">
-        <p style="font-size:13px;color:#444;margin-bottom:16px;line-height:1.6;">Моля, потвърдете, че сте получили горепосоченото оборудване в добро и работно състояние.</p>
+        <p style="font-size:13px;color:#334155;margin-bottom:16px;line-height:1.6;">Моля, потвърдете, че сте получили горепосоченото оборудване в добро и работно състояние.</p>
         <button class="btn-do-confirm" id="btn-do-confirm" onclick="submitConfirmation()">✓ Потвърждавам получаването</button>
         <p class="confirm-disclaimer">С натискане на бутона потвърждавате, че сте получили оборудването и го приемате под отговорност.</p>
       </div>
@@ -790,7 +793,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   <div class="modal" style="width:1000px;max-width:98vw;">
     <div class="modal-header">
       <h3>📊 Справка за потребление на механизация</h3>
-      <button class="modal-close" onclick="closeModal('modal-report')">×</button>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-report')">×</button>
     </div>
     <div class="modal-body" style="max-height:75vh;overflow-y:auto;">
       <div class="form-grid" style="margin-bottom:16px;">
@@ -830,12 +833,12 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
   <div class="modal" style="width:700px;max-width:96vw;">
     <div class="modal-header">
       <h3>⬆ Импорт на машини от Excel</h3>
-      <button class="modal-close" onclick="closeModal('modal-import')">×</button>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-import')">×</button>
     </div>
     <div class="modal-body" style="min-height:240px;">
       <!-- Стъпка 1: Качване на файл -->
       <div class="import-step active" id="import-step-1">
-        <p style="font-size:13px;color:#555;margin-bottom:14px;">
+        <p style="font-size:13px;color:#475569;margin-bottom:14px;">
           Качете <strong>.xlsx</strong> файл с машини.<br>
           Очаквани колони: <strong>Код WS, Наименование, Категория, Цена</strong>
         </p>
@@ -844,13 +847,13 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
           Плъзнете .xlsx файл тук или натиснете за избор
           <input type="file" id="import-file-input" accept=".xlsx,.xls">
         </div>
-        <p style="font-size:11px;color:#aaa;margin-top:10px;text-align:center;">
+        <p style="font-size:11px;color:#64748b;margin-top:10px;text-align:center;">
           Само първият лист от файла се обработва. Заглавният ред се пропуска автоматично.
         </p>
       </div>
       <!-- Стъпка 2: Ръчно映射 на колони -->
       <div class="import-step" id="import-step-2">
-        <p style="font-size:13px;color:#555;margin-bottom:10px;">
+        <p style="font-size:13px;color:#475569;margin-bottom:10px;">
           Не успяхме да разпознаем автоматично всички колони.
           Моля, посочете кои колони от Excel съответстват на полетата:
         </p>
@@ -864,7 +867,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
         <div class="import-stats" id="import-stats-cards" style="display:none;">
           <div class="import-stat-card">
             <span class="isc-icon">📊</span>
-            <span class="isc-value" id="isc-total" style="color:#0033CC;">—</span>
+            <span class="isc-value" id="isc-total" style="color:#0284c7;">—</span>
             <span class="isc-label">Общо</span>
           </div>
           <div class="import-stat-card">
@@ -874,7 +877,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
           </div>
           <div class="import-stat-card">
             <span class="isc-icon">🔄</span>
-            <span class="isc-value" id="isc-update" style="color:#0033CC;">—</span>
+            <span class="isc-value" id="isc-update" style="color:#0284c7;">—</span>
             <span class="isc-label">Обновени</span>
           </div>
           <div class="import-stat-card">
@@ -885,15 +888,15 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
         </div>
         <div class="import-summary" id="import-preview-summary"></div>
         <div class="import-legend">
-          <span><span style="color:#27ae60;font-size:14px;">●</span> Нов запис</span>
-          <span><span style="color:#0033CC;font-size:14px;">●</span> Обновяване</span>
+          <span><span style="color:#16A34A;font-size:14px;">●</span> Нов запис</span>
+          <span><span style="color:#0284c7;font-size:14px;">●</span> Обновяване</span>
           <span>Категорията се взема директно от файла</span>
         </div>
         <div class="preview-table-wrap" id="import-preview-table-wrap" style="margin-top:10px;"></div>
-        <div id="import-replace-section" style="margin-top:14px;padding:12px 14px;background:#fff3cd;border-radius:8px;border:1.5px solid #ffc107;">
+        <div id="import-replace-section" style="margin-top:14px;padding:12px 14px;background:#FEF3C7;border-radius:8px;border:1.5px solid #F59E0B;">
           <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;">
-            <input type="checkbox" id="import-replace-all" style="margin-top:3px;flex-shrink:0;width:16px;height:16px;accent-color:#C0392B;">
-            <span style="font-size:13px;color:#856404;">
+            <input type="checkbox" id="import-replace-all" style="margin-top:3px;flex-shrink:0;width:16px;height:16px;accent-color:#dc2626;">
+            <span style="font-size:13px;color:#92400E;">
               <strong>⚠ Замени целия списък</strong> — изтрий всички стари машини от каталога и запиши само тези от файла
               <span style="display:block;font-size:11.5px;font-weight:400;margin-top:4px;color:#92400E;">Машините, присъстващи само в старото, ще бъдат <strong>окончателно изтрити</strong>. Историческите записи за предаване не се засягат.</span>
             </span>
@@ -928,7 +931,7 @@ td[style*="font-size:12px"] { font-size: 13.5px !important; }
         Вход с Microsoft акаунт
       </button>
       <div class="login-error" id="login-error" style="display:none;"></div>
-      <div style="margin-top:14px;font-size:11px;color:#aaa;text-align:center;">Достъпът изисква акаунт в Raicommerce</div>
+      <div style="margin-top:14px;font-size:11px;color:#64748b;text-align:center;">Достъпът изисква акаунт в Raicommerce</div>
       <div class="app-footer" style="padding:10px 0 0;">Разработено с AI</div>
     </div>
   </div>
@@ -1046,7 +1049,7 @@ function applyRoleUI() {
   const ri = document.getElementById('role-indicator');
   ri.style.display = 'inline-flex';
   const initials = getInitials(currentUserName);
-  ri.innerHTML = `<span class="user-avatar" title="${currentUserName}">${initials}</span>`;
+  ri.innerHTML = `<span class="user-avatar" title="${escapeHtml(currentUserName)}">${escapeHtml(initials)}</span>`;
   // Admin dropdown
   const adminDd = document.getElementById('admin-dropdown');
   if (adminDd) adminDd.style.display = isAdmin ? 'inline-block' : 'none';
@@ -1575,9 +1578,9 @@ function updateStats() {
     const div = document.createElement('div');
     div.className = 'stat stat-dynamic dash-card';
     div.style.cssText = 'display:flex;align-items:center;gap:12px;';
-    div.style.borderLeft = '4px solid #0033CC';
-    div.innerHTML = '<div class="dash-info"><div class="dash-label">' + kat + '</div>' +
-      '<div class="dash-value" style="font-size:24px;color:#C0392B;">' + count + '</div></div>';
+    div.style.borderLeft = '4px solid #0284c7';
+    div.innerHTML = '<div class="dash-info"><div class="dash-label">' + escapeHtml(kat) + '</div>' +
+      '<div class="dash-value" style="font-size:24px;color:#dc2626;">' + count + '</div></div>';
     container.appendChild(div);
   });
 }
@@ -1601,7 +1604,7 @@ async function loadFromSharePoint() {
     console.log('[READ] заети машини (записи в SP):', spData.length);
   } catch(e) {
     console.error('[READ] error:', e);
-    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + e.message + '</div>';
+    document.getElementById('table-container').innerHTML = '<div class="empty">Грешка при зареждане: ' + escapeHtml(e.message) + '</div>';
     return;
   }
   buildSpMap();
@@ -1643,7 +1646,7 @@ function filterMachineSelect() {
   });
   document.getElementById('z-cena').value = '';
   document.getElementById('z-kategoria').value = '';
-  document.getElementById('zachisli-info').innerHTML = '<span style="color:#666;font-size:13px;">Изберете машина от списъка</span>';
+  document.getElementById('zachisli-info').innerHTML = '<span style="color:#64748b;font-size:13px;">Изберете машина от списъка</span>';
 }
 
 function onMachinaSelect() {
@@ -1652,7 +1655,7 @@ function onMachinaSelect() {
   if (m) {
     document.getElementById('z-cena').value = m.cena.toFixed(2) + ' EUR/ден';
     document.getElementById('z-kategoria').value = m.kat;
-    document.getElementById('zachisli-info').innerHTML = '<strong>' + m.ime + '</strong><span>Код WS: ' + m.kod + ' | ' + m.kat + ' | ' + m.cena.toFixed(2) + ' EUR/ден</span>';
+    document.getElementById('zachisli-info').innerHTML = '<strong>' + escapeHtml(m.ime) + '</strong><span>Код WS: ' + escapeHtml(m.kod) + ' | ' + escapeHtml(m.kat) + ' | ' + m.cena.toFixed(2) + ' EUR/ден</span>';
   }
 }
 
@@ -1725,8 +1728,9 @@ function renderTable() {
     const priel = spItem ? (f(spItem,'priel') || '—') : '—';
     const mesto = spItem ? (f(spItem,'mesto') || '—') : '—';
     const dz = spItem ? formatDate(f(spItem,'dz')) : '—';
-    const safeIme = m.ime.replace(/'/g,"\\'");
-    const safeKod = m.kod.replace(/'/g,"\\'");
+    const jsAttr = s => escapeHtml(String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+    const safeIme = jsAttr(m.ime);
+    const safeKod = jsAttr(m.kod);
 
     let rowClass = isBusy ? '' : 'row-free';
     if (isBusy) {
@@ -1742,7 +1746,7 @@ function renderTable() {
         if (hasConfirmation) {
           btn = '<td class="col-action"><div class="col-action-btns">' +
             '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-            '<button class="action-btn btn-qr" style="background:#fff;color:#0033CC;border:1.5px solid #0033CC;min-width:110px;" onclick="reshareConfirmation(\'' + safeKod + '\')">🔗 QR/Линк</button>' +
+            '<button class="action-btn btn-qr" style="background:#fff;color:#0284c7;border:1.5px solid #0284c7;min-width:110px;" onclick="reshareConfirmation(\'' + safeKod + '\')">🔗 QR/Линк</button>' +
             '</div></td>';
         } else {
           btn = '<td class="col-action">' +
@@ -1766,11 +1770,11 @@ function renderTable() {
         confBadge = '<span class="conf-badge pending">⏳ Очаква</span>';
       }
     }
-    html += '<tr class="' + rowClass + '"><td><strong>' + getMachineDN(m) + '</strong></td><td>' + m.kod + '</td><td>' + m.ime + '</td>' +
-      '<td><span class="cat-badge">' + m.kat + '</span></td><td>' + badge + '</td>' +
+    html += '<tr class="' + rowClass + '"><td><strong>' + escapeHtml(getMachineDN(m)) + '</strong></td><td>' + escapeHtml(m.kod) + '</td><td>' + escapeHtml(m.ime) + '</td>' +
+      '<td><span class="cat-badge">' + escapeHtml(m.kat) + '</span></td><td>' + badge + '</td>' +
       '<td>' + confBadge + '</td>' +
-      '<td style="font-size:12px;">' + dir2 + '</td><td style="font-size:12px;">' + priel + '</td>' +
-      '<td style="font-size:12px;">' + mesto + '</td><td style="font-size:12px;">' + dz + '</td>' +
+      '<td style="font-size:12px;">' + escapeHtml(dir2) + '</td><td style="font-size:12px;">' + escapeHtml(priel) + '</td>' +
+      '<td style="font-size:12px;">' + escapeHtml(mesto) + '</td><td style="font-size:12px;">' + escapeHtml(dz) + '</td>' +
       btn + '</tr>';
   });
 
@@ -1881,7 +1885,7 @@ async function submitZachislyavane() {
 function openOtchisli(id, ime, kod) {
   currentOtchisliId = id;
   currentOtchisliKod = kod;
-  document.getElementById('otchisli-info').innerHTML = '<strong>' + ime + '</strong><span>Код WS: ' + kod + '</span>';
+  document.getElementById('otchisli-info').innerHTML = '<strong>' + escapeHtml(ime) + '</strong><span>Код WS: ' + escapeHtml(kod) + '</span>';
   document.getElementById('o-data').value = new Date().toISOString().split('T')[0];
   const curItem = spData.find(function (item) { return (item.ID != null ? item.ID : item.id) == id; });
   document.getElementById('o-predal').value = curItem ? normalizeName(f(curItem, 'priel')) : '';
@@ -1982,7 +1986,7 @@ function showConfirmationShare(token, machineInfo) {
   document.getElementById('confirmation-link').value = url;
   document.getElementById('confirm-share-machine-info').innerHTML =
     '<strong>' + escapeHtml(machineInfo.ime) + '</strong><br>' +
-    '<span style="color:#555;">Получател: ' + escapeHtml(machineInfo.priel) + ' — ' + escapeHtml(machineInfo.dir) + '</span>';
+    '<span style="color:#475569;">Получател: ' + escapeHtml(machineInfo.priel) + ' — ' + escapeHtml(machineInfo.dir) + '</span>';
   document.getElementById('modal-confirmation-share').classList.add('open');
 }
 
@@ -2015,7 +2019,7 @@ async function checkForConfirmation() {
       .select('*').eq('id', token).maybeSingle();
     if (error) throw error;
     if (!data) {
-      document.getElementById('confirm-loading').innerHTML = '<p style="color:#C0392B;text-align:center;">Невалиден или изтекъл линк за потвърждение.</p>';
+      document.getElementById('confirm-loading').innerHTML = '<p style="color:#dc2626;text-align:center;">Невалиден или изтекъл линк за потвърждение.</p>';
       return;
     }
     populateConfirmDetails(data);
@@ -2034,7 +2038,7 @@ async function checkForConfirmation() {
       document.getElementById('btn-do-confirm').setAttribute('data-token', token);
     }
   } catch(e) {
-    document.getElementById('confirm-loading').innerHTML = '<p style="color:#C0392B;text-align:center;">Грешка: ' + escapeHtml(e.message) + '</p>';
+    document.getElementById('confirm-loading').innerHTML = '<p style="color:#dc2626;text-align:center;">Грешка: ' + escapeHtml(e.message) + '</p>';
   }
 }
 
@@ -2048,7 +2052,7 @@ function populateConfirmDetails(data) {
     (data.direction ? '<div class="confirm-detail"><span>Направление:</span><strong>' + escapeHtml(data.direction) + '</strong></div>' : '') +
     (data.recipient_name ? '<div class="confirm-detail"><span>Получател:</span><strong>' + escapeHtml(data.recipient_name) + '</strong></div>' : '') +
     (data.location ? '<div class="confirm-detail"><span>Местонахождение:</span><strong>' + escapeHtml(data.location) + '</strong></div>' : '') +
-    (data.condition ? '<div class="confirm-detail"><span>Състояние:</span><strong style="color:' + (data.condition === 'В изправност' ? '#155724' : '#721c24') + ';">' + escapeHtml(data.condition) + '</strong></div>' : '') +
+    (data.condition ? '<div class="confirm-detail"><span>Състояние:</span><strong style="color:' + (data.condition === 'В изправност' ? '#166534' : '#991b1b') + ';">' + escapeHtml(data.condition) + '</strong></div>' : '') +
     (data.assignment_date ? '<div class="confirm-detail"><span>Дата зачисляване:</span><strong>' + escapeHtml(fmtDate(data.assignment_date)) + '</strong></div>' : '') +
     (data.employee_mit ? '<div class="confirm-detail"><span>Служител МиТ:</span><strong>' + escapeHtml(data.employee_mit) + '</strong></div>' : '') +
     '</div>';
@@ -2251,11 +2255,11 @@ function buildImportPreview() {
 
   let summary =
     'Общо: <b>' + importPreviewRows.length + '</b> реда &nbsp;|&nbsp; ' +
-    '<span style="color:#27ae60">● Нови: <b>' + newCnt + '</b></span> &nbsp; ' +
-    '<span style="color:#0033CC">● Обновени: <b>' + updCnt + '</b></span>';
-  if (noKodCnt > 0) summary += ' &nbsp; <span style="color:#B71C1C;font-size:13px;">⚠ Без код: <b>' + noKodCnt + '</b></span>';
+    '<span style="color:#16A34A">● Нови: <b>' + newCnt + '</b></span> &nbsp; ' +
+    '<span style="color:#0284c7">● Обновени: <b>' + updCnt + '</b></span>';
+  if (noKodCnt > 0) summary += ' &nbsp; <span style="color:#b91c1c;font-size:13px;">⚠ Без код: <b>' + noKodCnt + '</b></span>';
   if (duplicateKods.length > 0) {
-    summary += '<br><span style="color:#C0392B;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '):<br>' + duplicateKods.map(escapeHtml).join(', ') + '</span>';
+    summary += '<br><span style="color:#dc2626;font-size:13px;">Дублирани кодове (' + duplicateKods.length + '):<br>' + duplicateKods.map(escapeHtml).join(', ') + '</span>';
   }
   document.getElementById('import-preview-summary').innerHTML = summary;
 
@@ -2265,10 +2269,10 @@ function buildImportPreview() {
     importPreviewRows.map(r => {
       const cls = 'row-' + r.rowType + (r.isDup ? ' row-dup' : '');
       let lbl = '';
-      if (r.rowType === 'new') lbl = '<span style="color:#27ae60;font-weight:600;">Нов</span>';
-      else if (r.rowType === 'update') lbl = '<span style="color:#0033CC;font-weight:600;">Обновяване</span>';
-      else if (r.rowType === 'no-kod') lbl = '<span style="color:#B71C1C;font-weight:600;">Без код</span>';
-      const dupLbl = r.isDup ? ' <span style="color:#C0392B;font-size:12px;">(дубликат)</span>' : '';
+      if (r.rowType === 'new') lbl = '<span style="color:#16A34A;font-weight:600;">Нов</span>';
+      else if (r.rowType === 'update') lbl = '<span style="color:#0284c7;font-weight:600;">Обновяване</span>';
+      else if (r.rowType === 'no-kod') lbl = '<span style="color:#b91c1c;font-weight:600;">Без код</span>';
+      const dupLbl = r.isDup ? ' <span style="color:#dc2626;font-size:12px;">(дубликат)</span>' : '';
       return '<tr class="' + cls + '">' +
         '<td>' + escapeHtml(r.kod) + '</td>' +
         '<td>' + escapeHtml(r.ime) + '</td>' +
@@ -2498,10 +2502,10 @@ function renderReportTable() {
   html += '</tbody></table>';
 
   wrap.innerHTML = html;
-  summary.innerHTML = '<div class="import-summary" style="background:#EEF2FF;border-radius:8px;padding:10px 14px;font-size:13px;">' +
+  summary.innerHTML = '<div class="import-summary" style="background:#f0f9ff;border-radius:8px;padding:10px 14px;font-size:13px;">' +
     'Период: <b>' + document.getElementById('rep-start').value + ' – ' + document.getElementById('rep-end').value + '</b> &nbsp;|&nbsp; ' +
     'Машини: <b>' + grandMachines + '</b> &nbsp;|&nbsp; Общо дни: <b>' + grandDays + '</b> &nbsp;|&nbsp; ' +
-    'Обща стойност: <b style="color:#0033CC;">' + grandSuma.toFixed(2) + ' €</b></div>';
+    'Обща стойност: <b style="color:#0284c7;">' + grandSuma.toFixed(2) + ' €</b></div>';
 
   document.getElementById('rep-btn-excel').style.display = 'inline-block';
   document.getElementById('rep-btn-pdf').style.display = 'inline-block';
@@ -2706,10 +2710,10 @@ function computeBulk() {
 }
 
 function bulkStatusHtml(r) {
-  if (r.status === 'skip') return '<span style="color:#B71C1C;">Пропуснат: ' + escapeHtml(r.problem) + '</span>';
+  if (r.status === 'skip') return '<span style="color:#b91c1c;">Пропуснат: ' + escapeHtml(r.problem) + '</span>';
   if (r.status === 'run') return '<span style="color:#0369a1;">Изпраща се…</span>';
   if (r.status === 'done') return '<span style="color:#16A34A;">✓ Изпратен</span>';
-  if (r.status === 'error') return '<span style="color:#B71C1C;">✗ Грешка</span>';
+  if (r.status === 'error') return '<span style="color:#b91c1c;">✗ Грешка</span>';
   return '<span style="color:#475569;">Готов</span>';
 }
 
@@ -2739,10 +2743,10 @@ function renderBulk() {
     'Остават зачислени: <b>' + bulkKept + '</b> (от списъка ' + (bulkKept - bulkLater) + ' от ' + BULK_KEEP.length + ', зачислени след 30.09: ' + bulkLater + ') &nbsp;|&nbsp; ' +
     'Дата на отчисляване: <b>30.09.2026</b> &nbsp;|&nbsp; Обща сума: <b>' + total.toFixed(2) + ' €</b></div>';
   if (missingKeep.length) {
-    s += '<div style="color:#B71C1C;font-size:13px;margin-top:6px;">Не са намерени като активни: ' + escapeHtml(missingKeep.join(', ')) + '. Проверете дали кодът е верен.</div>';
+    s += '<div style="color:#b91c1c;font-size:13px;margin-top:6px;">Не са намерени като активни: ' + escapeHtml(missingKeep.join(', ')) + '. Проверете дали кодът е верен.</div>';
   }
   if (skipped) {
-    s += '<div style="color:#B71C1C;font-size:13px;margin-top:6px;">' + skipped + ' записа имат проблем и няма да бъдат отчислени (червените редове).</div>';
+    s += '<div style="color:#b91c1c;font-size:13px;margin-top:6px;">' + skipped + ' записа имат проблем и няма да бъдат отчислени (червените редове).</div>';
   }
   document.getElementById('bulk-summary').innerHTML = s;
 
