@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a3a8f">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Машини">
 <title>Приемно-предаване на машини и оборудване | Механизация и транспорт</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
@@ -2788,6 +2794,15 @@ populateSelect('filter-dir', NAPRAVLENIYA);
 populateSelect('z-napravlenie', NAPRAVLENIYA);
 populateSelect('z-sluzhitel', SLUZHITELI);
 populateSelect('o-sluzhitel', SLUZHITELI);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (err) {
+      console.warn('Service worker не се регистрира:', err);
+    });
+  });
+}
 </script>
 </body>
 </html>
