@@ -258,6 +258,67 @@
   button:focus-visible, a:focus-visible, .chip:focus-visible { outline: 2px solid var(--rc-primary); outline-offset: 2px; }
   .header button:focus-visible { outline-color: #fff; }
 
+  /* ===== НОВ UI: ТАБЛИЦА И ТАБЛО (етап 1) ===== */
+  .admin-only { display: none !important; }
+  body.is-admin .admin-only { display: inline-flex !important; }
+  .hdr-btn { align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.28); white-space: nowrap; }
+  .hdr-btn:hover { background: rgba(255,255,255,0.22); }
+  .hdr-btn.hdr-primary { background: #fff; color: #0d1f52; border-color: #fff; font-weight: 600; }
+  .hdr-btn.hdr-primary:hover { background: #e0f2fe; }
+  .dash-card { padding: 16px 18px; }
+  .dash-value { font-size: 30px; color: #0f172a; }
+  .dash-value.busy { color: #c2410c; }
+  .dash-value.free { color: #0369a1; }
+  .util-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .util-fill { height: 6px; width: 0; background: #0284c7; border-radius: 3px; transition: width 0.3s; }
+  .mobile-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .mobile-chips .chip { border: 1.5px solid #bae6fd; background: #fff; color: #0f172a; font-size: 13.5px; font-weight: 600; height: 36px; padding: 0 14px; border-radius: 18px; white-space: nowrap; cursor: pointer; }
+  .mobile-chips .chip:hover { border-color: #0284c7; }
+  .mobile-chips .chip.active { background: #0284c7; border-color: #0284c7; color: #fff; }
+  #filter-cat, #filter-status { display: none !important; }
+  .seg { display: inline-flex; background: #f1f5f9; border-radius: 10px; padding: 3px; flex: 0 0 auto; }
+  .seg-btn { border: none; background: transparent; color: #475569; font-size: 14px; font-weight: 600; height: 36px; padding: 0 16px; border-radius: 8px; cursor: pointer; }
+  .seg-btn.active { background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(15,23,42,0.12); }
+  .table-scroll { overflow: auto; max-height: max(420px, calc(100vh - 230px)); }
+  .main-table th { position: sticky; top: 0; z-index: 2; box-shadow: inset 0 -1.5px 0 var(--rc-border); }
+  .th-sort { background: none; border: none; padding: 0; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .th-sort .sort-ind { opacity: 0.45; font-size: 11px; }
+  .th-sort.sorted { color: #0f172a; }
+  .th-sort.sorted .sort-ind { opacity: 1; }
+  .ime-name { font-weight: 600; }
+  .ime-cat { font-size: 12.5px; color: #475569; margin-top: 1px; }
+  .m-only { display: none; }
+  .ws-diff { background: #fff7ed; color: #9a3412; border-radius: 6px; padding: 1px 6px; font-weight: 600; }
+  .st { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; white-space: nowrap; }
+  .st-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .st-dot.busy { background: #ea580c; }
+  .st-dot.free { background: #0284c7; }
+  .conf-line { font-size: 12px; margin-top: 2px; white-space: nowrap; }
+  .conf-line.wait { color: #9a3412; }
+  .conf-line.ok { color: #15803d; }
+  td.col-action, th.col-action { min-width: 0; text-align: right; }
+  .col-action-btns { min-width: 0; justify-content: flex-end; }
+  .action-btn { min-width: 0; height: 36px; padding: 0 14px; font-weight: 600; }
+  .btn-otchisli { color: #dc2626; background: #fff; border: 1.5px solid #fca5a5; }
+  .btn-otchisli:hover { background: #fef2f2; opacity: 1; }
+  .btn-zachisli { color: #0369a1; background: #fff; border: 1.5px solid #7dd3fc; }
+  .btn-zachisli:hover { background: #f0f9ff; opacity: 1; }
+  .btn-more { width: 38px; padding: 0; color: #334155; background: #fff; border: 1.5px solid #e2e8f0; font-size: 18px; line-height: 1; }
+  .btn-more:hover { background: #f8fafc; opacity: 1; }
+  .row-menu { display: none; position: fixed; z-index: 1200; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.16); padding: 6px; min-width: 230px; }
+  .row-menu.open { display: block; }
+  .row-menu button { display: block; width: 100%; text-align: left; background: none; border: none; border-radius: 8px; padding: 11px 12px; font-size: 14.5px; color: #0f172a; cursor: pointer; }
+  .row-menu button:hover { background: #f0f9ff; color: var(--rc-primary-dark); }
+  .fab { display: none; }
+  .hist-head { margin-bottom: 14px; }
+  .hist-name { font-size: 17px; font-weight: 700; }
+  .hist-meta { font-size: 13.5px; color: #475569; margin-top: 3px; }
+  .hist-scroll { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; }
+  .hist-table { min-width: 680px; }
+  .hist-table td { font-size: 13.5px; padding: 9px 12px; }
+  .hist-table th { padding: 10px 12px; }
+  .hist-note { font-size: 12.5px; color: #475569; margin-top: 8px; }
+
   /* ===== ТЕЛЕФОН (под 768px) ===== */
 @media (max-width: 768px) {
   body { font-size: 15px; }
@@ -291,43 +352,45 @@
   .search-wrap { min-width: 0; flex: 1 1 0; }
   .filters input, .filters select { height: 44px; font-size: 16px !important; }
   .filters-toggle { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; border: 1px solid #0284c7; background: #fff; color: #0369a1; border-radius: 10px; font-size: 15px; cursor: pointer; }
-  #filter-cat { display: none; }
-  #filter-status, #filter-dir { display: none; flex: 1 1 100%; }
-  .filters.open #filter-status, .filters.open #filter-dir { display: block; }
-  .mobile-chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 10px; -webkit-overflow-scrolling: touch; }
-  .mobile-chips .chip { flex: 0 0 auto; border: none; background: #e0f2fe; color: #0369a1; font-size: 14px; padding: 8px 14px; border-radius: 18px; white-space: nowrap; cursor: pointer; }
-  .mobile-chips .chip.active { background: #0284c7; color: #fff; }
+  #filter-dir { display: none; flex: 1 1 100%; }
+  .filters.open #filter-dir { display: block; }
+  .seg { order: 3; flex: 1 1 100%; }
+  .seg-btn { flex: 1; height: 38px; font-size: 15px; }
+  .mobile-chips { flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px 10px; margin-bottom: 0; -webkit-overflow-scrolling: touch; }
+  .mobile-chips .chip { flex: 0 0 auto; font-size: 14px; }
+  #hdr-zach { display: none !important; }
+  .hdr-btn { height: 36px; padding: 0 10px; font-size: 13px; }
+  body.is-admin .fab { display: inline-flex; align-items: center; gap: 8px; position: fixed; right: 16px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 900; height: 52px; padding: 0 20px; border-radius: 26px; border: none; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 6px 18px rgba(2,132,199,0.35); cursor: pointer; }
+  body.is-admin .main { padding-bottom: 88px; }
 
   
   .table-wrap { background: transparent; border: 0; border-radius: 0; overflow: visible; }
   .table-header { background: none; color: #334155; padding: 2px 2px 8px; }
   .table-header h3 { font-size: 15px; }
   .table-count { background: #e0f2fe; color: #0369a1; }
-  #table-container > div { overflow: visible !important; }
+  #table-container > div { overflow: visible !important; max-height: none !important; }
   #table-container table, #table-container tbody { display: block; width: 100%; min-width: 0; }
   #table-container thead { display: none; }
-  #table-container tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 0; background: #fff; border: 1px solid #e0f2fe; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
-  #table-container tr.row-pending { border-left: 4px solid #F59E0B; }
-  #table-container tr.row-confirmed { border-left: 4px solid #16A34A; }
+  #table-container tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 12px; background: #fff; border: 1px solid #e0f2fe; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
   #table-container tr:hover > td, #table-container tr:nth-child(even) > td { background: transparent !important; }
-  #table-container td { display: block; padding: 0; border: 0; background: transparent; }
-  
-  #table-container td[data-label]::before { content: attr(data-label) " "; color: #64748b; }
-  #table-container td.c-dn, #table-container td.c-kat { display: none; }
-  #table-container td.c-ime { grid-column: 1; grid-row: 1; font-size: 15.5px; font-weight: 500; color: #0f172a; }
-  #table-container td.c-status { grid-column: 2; grid-row: 1; justify-self: end; }
-  #table-container td.c-kod { grid-column: 1; grid-row: 2; margin-top: 2px; font-size: 12.5px; color: #64748b; }
-  #table-container td.c-conf { grid-column: 2; grid-row: 2; justify-self: end; margin-top: 2px; }
-  #table-container td.c-dir, #table-container td.c-priel, #table-container td.c-mesto, #table-container td.c-dz { grid-column: 1 / -1; margin-top: 3px; font-size: 14px !important; color: #334155; }
-  #table-container td.c-dir { grid-row: 3; margin-top: 8px; }
-  #table-container td.c-priel { grid-row: 4; }
-  #table-container td.c-mesto { grid-row: 5; }
-  #table-container td.c-dz { grid-row: 6; }
-  #table-container tr.row-free td.c-conf, #table-container tr.row-free td.c-dir, #table-container tr.row-free td.c-priel, #table-container tr.row-free td.c-mesto, #table-container tr.row-free td.c-dz { display: none; }
-  #table-container td.col-action { grid-column: 1 / -1; grid-row: 7; min-width: 0; white-space: normal; margin-top: 10px; }
+  #table-container td { display: block; padding: 0; border: 0; background: transparent; font-size: 14px !important; color: #0f172a; }
+  #table-container td[data-label]::before { content: attr(data-label); display: block; color: #475569; font-size: 12.5px; }
+  #table-container td.c-dn, #table-container td.c-kod { display: none; }
+  #table-container td.c-ime { grid-column: 1; grid-row: 1; }
+  #table-container td.c-ime .ime-name { font-size: 16px; font-weight: 700; }
+  #table-container td.c-ime .ime-cat { display: none; }
+  #table-container td.c-ime .m-only { display: block; font-size: 13px; color: #475569; margin-top: 2px; }
+  #table-container td.c-status { grid-column: 2; grid-row: 1; justify-self: end; text-align: right; }
+  #table-container td.c-priel { grid-column: 1; grid-row: 2; }
+  #table-container td.c-mesto { grid-column: 2; grid-row: 2; }
+  #table-container td.c-dir { grid-column: 1; grid-row: 3; }
+  #table-container td.c-dz { grid-column: 2; grid-row: 3; }
+  #table-container tr.row-free td.c-dir, #table-container tr.row-free td.c-priel, #table-container tr.row-free td.c-mesto, #table-container tr.row-free td.c-dz { display: none; }
+  #table-container td.col-action { grid-column: 1 / -1; grid-row: 4; min-width: 0; white-space: normal; margin-top: 4px; }
+  #table-container tr.row-free td.col-action { grid-row: 2; }
   .col-action-btns { min-width: 0; width: 100%; gap: 8px; }
   .col-action-btns .action-btn { flex: 1; }
-  #table-container td.col-action > .action-btn { width: 100%; }
+  .col-action-btns .btn-more { flex: 0 0 44px; width: 44px; }
   .action-btn { min-height: 44px; font-size: 14.5px; }
 
   
@@ -364,12 +427,12 @@
       <button class="notif-btn" id="notif-bell" style="display:none;" title="Неопотвърдени зачисления">
         🔔<span class="notif-count" id="notif-count">0</span>
       </button>
+      <button type="button" class="hdr-btn hdr-primary admin-only" id="hdr-zach" onclick="showZachislyavane()">+ Зачисляване</button>
+      <button type="button" class="hdr-btn admin-only" id="hdr-report" onclick="openReportModal()">Справка</button>
       <div class="admin-dropdown" id="admin-dropdown" style="display:none;">
         <button class="admin-dropdown-btn" onclick="toggleAdminMenu()">⚙ Админ ▾</button>
         <div class="admin-menu" id="admin-menu">
-          <button onclick="showZachislyavane(); closeAdminMenu()">+ Зачисляване</button>
           <button id="btn-import-menu" style="display:none;" onclick="openImportModal(); closeAdminMenu()">⬆ Импорт машини</button>
-          <button onclick="openReportModal(); closeAdminMenu()">📊 Справка</button>
         </div>
       </div>
       <span id="role-indicator" style="display:none;"></span>
@@ -390,38 +453,25 @@
   <!-- Dashboard summary cards -->
   <div id="dashboard-section" style="display:none;">
     <div class="dashboard-cards">
-      <div class="dash-card">
-        <div class="dash-icon blue">🔧</div>
-        <div class="dash-info">
-          <div class="dash-label">Брой машини</div>
-          <div class="dash-value blue" id="dash-total">—</div>
-        </div>
-      </div>
-      <div class="dash-card">
-        <div class="dash-icon green">✅</div>
-        <div class="dash-info">
-          <div class="dash-label">Свободни машини</div>
-          <div class="dash-value green" id="dash-free">—</div>
-        </div>
-      </div>
-      <div class="dash-card">
-        <div class="dash-icon orange">⏳</div>
-        <div class="dash-info">
-          <div class="dash-label">Заети машини</div>
-          <div class="dash-value orange" id="dash-busy">—</div>
-        </div>
-      </div>
+      <div class="dash-card"><div class="dash-info"><div class="dash-label">Общо машини</div><div class="dash-value" id="dash-total">—</div></div></div>
+      <div class="dash-card"><div class="dash-info"><div class="dash-label">Заети</div><div class="dash-value busy" id="dash-busy">—</div></div></div>
+      <div class="dash-card"><div class="dash-info"><div class="dash-label">Свободни</div><div class="dash-value free" id="dash-free">—</div></div></div>
+      <div class="dash-card"><div class="dash-info"><div class="dash-label">Натоварване</div><div class="dash-value" id="dash-util">—</div><div class="util-bar"><div class="util-fill" id="dash-util-bar"></div></div></div></div>
     </div>
-    <!-- Динамични карти по категория -->
-    <div class="dashboard-cards" id="kat-cards-container" style="margin-top:12px;"></div>
   </div>
 
+  <div id="mobile-chips" class="mobile-chips" aria-label="Категории"></div>
+
   <div class="filters">
-    <span class="filter-label">Филтри:</span>
-    <div class="search-wrap">
-      <input type="text" id="search" placeholder="Търсене по код WS или наименование..." oninput="renderTable()">
+    <div class="seg" role="group" aria-label="Статус">
+      <button type="button" class="seg-btn active" data-st="" onclick="setStatusFilter(this.dataset.st)">Всички</button>
+      <button type="button" class="seg-btn" data-st="busy" onclick="setStatusFilter(this.dataset.st)">Заети</button>
+      <button type="button" class="seg-btn" data-st="free" onclick="setStatusFilter(this.dataset.st)">Свободни</button>
     </div>
-    <button type="button" class="filters-toggle" onclick="toggleFiltersPanel()">Филтри ▾</button>
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Търсене по код, инв. №, наименование, ползвател или обект…" oninput="renderTable()">
+    </div>
+    <button type="button" class="filters-toggle" onclick="toggleFiltersPanel()">Направление ▾</button>
     <select id="filter-cat" onchange="renderTable()">
       <option value="">Всички категории</option>
     </select>
@@ -435,8 +485,6 @@
     </select>
   </div>
 
-  <div id="mobile-chips" class="mobile-chips"></div>
-
   <div class="table-wrap">
     <div class="table-header">
       <h3>Списък на механизацията</h3>
@@ -446,6 +494,23 @@
   </div>
 
   <div class="app-footer">Разработено с AI</div>
+</div>
+
+<button type="button" class="fab" id="fab-zach" onclick="showZachislyavane()">+ Зачисляване</button>
+<div class="row-menu" id="row-menu" role="menu"></div>
+
+<!-- MODAL: ИСТОРИЯ НА МАШИНАТА -->
+<div class="modal-overlay" id="modal-history">
+  <div class="modal" style="width:860px;max-width:98vw;">
+    <div class="modal-header">
+      <h3>История на машината</h3>
+      <button class="modal-close" aria-label="Затвори" onclick="closeModal('modal-history')">×</button>
+    </div>
+    <div class="modal-body" id="history-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-history')">Затвори</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL DEBUG -->
@@ -885,7 +950,8 @@ function applyRoleUI() {
   ri.innerHTML = `<span class="user-avatar" title="${escapeHtml(currentUserName)}">${escapeHtml(initials)}</span>`;
   // Admin dropdown
   const adminDd = document.getElementById('admin-dropdown');
-  if (adminDd) adminDd.style.display = isAdmin ? 'inline-block' : 'none';
+  if (adminDd) adminDd.style.display = (isAdmin && canImport) ? 'inline-block' : 'none';
+  document.body.classList.toggle('is-admin', isAdmin);
   // „Импорт машини“ се вижда само на потребители с право за импорт
   const importBtn = document.getElementById('btn-import-menu');
   if (importBtn) importBtn.style.display = (isAdmin && canImport) ? 'block' : 'none';
@@ -919,7 +985,11 @@ function closeAdminMenu() {
 document.addEventListener('click', function(e) {
   const dd = document.getElementById('admin-dropdown');
   if (dd && !dd.contains(e.target)) closeAdminMenu();
+  const rm = document.getElementById('row-menu');
+  if (rm && !rm.contains(e.target)) closeRowMenu();
 });
+window.addEventListener('scroll', function () { closeRowMenu(); }, true);
+window.addEventListener('resize', function () { closeRowMenu(); });
 
 async function doLogout() {
   if (msalInstance) {
@@ -1395,6 +1465,11 @@ function updateStats() {
   if (dashTotal) dashTotal.textContent = total;
   if (dashFree) dashFree.textContent = free;
   if (dashBusy) dashBusy.textContent = busy;
+  const util = total ? Math.round(busy / total * 100) : 0;
+  const dashUtil = document.getElementById('dash-util');
+  const dashUtilBar = document.getElementById('dash-util-bar');
+  if (dashUtil) dashUtil.textContent = util + '%';
+  if (dashUtilBar) dashUtilBar.style.width = util + '%';
   if (dashOtchisleni) dashOtchisleni.textContent = otchisleniCount;
 
   // Динамични карти по категория — само тези с поне 1 заета машина
@@ -1520,99 +1595,201 @@ function toggleFiltersPanel() {
   if (box) box.classList.toggle('open');
 }
 
+// ===== ТАБЛИЦА: сортиране, бърз филтър, меню „⋯“, история =====
+let sortState = { key: 'ime', dir: 1 };
+
+function setSort(key) {
+  if (sortState.key === key) sortState.dir = -sortState.dir;
+  else sortState = { key: key, dir: 1 };
+  renderTable();
+}
+
+function setStatusFilter(v) {
+  document.getElementById('filter-status').value = v;
+  renderTable();
+}
+
 function renderTable() {
   renderMobileChips();
-  const q = document.getElementById('search').value.toLowerCase();
+  closeRowMenu();
+  const q = document.getElementById('search').value.toLowerCase().trim();
   const cat = document.getElementById('filter-cat').value;
   const st = document.getElementById('filter-status').value;
   const dir = document.getElementById('filter-dir').value;
+  document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.st === st));
 
   const data = MACHINES.filter(m => {
-    const isBusy = !!spMap[m.kod];
-    const status = isBusy ? 'busy' : 'free';
     const spItem = spMap[m.kod];
+    const status = spItem ? 'busy' : 'free';
     const spDir = spItem ? (f(spItem,'dir') || '') : '';
-    return (!q || m.kod.toLowerCase().includes(q) || m.ime.toLowerCase().includes(q)) &&
+    const hay = (m.kod + ' ' + m.ime + ' ' + getMachineDN(m) + ' ' +
+      (spItem ? (f(spItem,'priel') || '') + ' ' + (f(spItem,'mesto') || '') : '')).toLowerCase();
+    return (!q || hay.includes(q)) &&
            (!cat || m.kat === cat) &&
            (!st || status === st) &&
            (!dir || spDir === dir);
   });
 
-  document.getElementById('table-count').textContent = data.length + ' записа';
+  const sk = sortState.key, sd = sortState.dir;
+  const sortVal = m => {
+    const it = spMap[m.kod];
+    if (sk === 'dn') return getMachineDN(m);
+    if (sk === 'kod') return m.kod;
+    if (sk === 'status') return it ? '0' : '1';
+    if (sk === 'dz') return it ? String(f(it,'dz') || '') : '';
+    return m.ime;
+  };
+  data.sort((a, b) => {
+    const va = sortVal(a), vb = sortVal(b);
+    if (sk === 'dz') { if (!va && vb) return 1; if (va && !vb) return -1; }
+    return String(va).localeCompare(String(vb), 'bg', { numeric: true }) * sd;
+  });
+
+  document.getElementById('table-count').textContent = data.length + ' от ' + MACHINES.length + ' машини';
 
   if (data.length === 0) {
     document.getElementById('table-container').innerHTML = '<div class="empty">Няма намерени записи</div>';
     return;
   }
 
-  let html = '<div style="overflow-x:auto"><table><thead><tr>' +
-    '<th>Инв./ДН №</th><th>Код WS</th><th>Наименование</th><th>Категория</th><th>Статус</th>' +
-    '<th>Потв.</th><th>Направление</th><th>Приел</th><th>Местонахождение</th>' +
-    '<th>Дата зачисл.</th>' + (currentRole === 'admin' ? '<th class="col-action">Действие</th>' : '') +
-    '</tr></thead><tbody>';
+  const th = (key, label) => '<th' + (sk === key ? ' aria-sort="' + (sd > 0 ? 'ascending' : 'descending') + '"' : '') + '>' +
+    '<button type="button" class="th-sort' + (sk === key ? ' sorted' : '') + '" onclick="setSort(\'' + key + '\')">' + label +
+    ' <span class="sort-ind">' + (sk === key ? (sd > 0 ? '↑' : '↓') : '↕') + '</span></button></th>';
+
+  let html = '<div class="table-scroll"><table class="main-table"><thead><tr>' +
+    th('dn', 'Инв./ДН №') + th('kod', 'Код WS') + th('ime', 'Наименование') + th('status', 'Статус') +
+    '<th>Направление</th><th>Приел</th><th>Местонахождение</th>' + th('dz', 'Зачислена') +
+    '<th class="col-action">Действие</th></tr></thead><tbody>';
+
+  const jsAttr = s => escapeHtml(String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
 
   data.forEach(m => {
-    const isBusy = !!spMap[m.kod];
     const spItem = spMap[m.kod];
-    const badge = isBusy
-      ? '<span class="status-badge status-busy">Заета</span>'
-      : '<span class="status-badge status-free">Свободна</span>';
+    const isBusy = !!spItem;
+    const dn = getMachineDN(m);
+    const wsDiff = /^\d+$/.test(dn) && dn !== m.kod;
     const dir2 = spItem ? (f(spItem,'dir') || '—') : '—';
     const priel = spItem ? (f(spItem,'priel') || '—') : '—';
     const mesto = spItem ? (f(spItem,'mesto') || '—') : '—';
     const dz = spItem ? formatDate(f(spItem,'dz')) : '—';
-    const jsAttr = s => escapeHtml(String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
     const safeIme = jsAttr(m.ime);
     const safeKod = jsAttr(m.kod);
 
-    let rowClass = isBusy ? '' : 'row-free';
+    let confLine = '';
     if (isBusy) {
       const conf = confirmationsMap[m.kod];
-      rowClass = (conf && conf.confirmed) ? 'row-confirmed' : 'row-pending';
+      confLine = (conf && conf.confirmed)
+        ? '<div class="conf-line ok">✓ потвърдена</div>'
+        : '<div class="conf-line wait">чака потвърждение</div>';
     }
+    const statusHtml = '<span class="st"><span class="st-dot ' + (isBusy ? 'busy' : 'free') + '"></span>' +
+      (isBusy ? 'Заета' : 'Свободна') + '</span>' + confLine;
 
-    let btn = '';
+    let btns = '';
     if (currentRole === 'admin') {
       if (isBusy) {
         const spId = spItem.ID != null ? spItem.ID : spItem.id;
-        const hasConfirmation = !!confirmationsMap[m.kod];
-        if (hasConfirmation) {
-          btn = '<td class="col-action"><div class="col-action-btns">' +
-            '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-            '<button class="action-btn btn-qr" style="background:#fff;color:#0284c7;border:1.5px solid #0284c7;min-width:110px;" onclick="reshareConfirmation(\'' + safeKod + '\')">🔗 QR/Линк</button>' +
-            '</div></td>';
-        } else {
-          btn = '<td class="col-action">' +
-            '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>' +
-            '</td>';
-        }
+        btns += '<button class="action-btn btn-otchisli" onclick="openOtchisli(' + spId + ',\'' + safeIme + '\',\'' + safeKod + '\')">Отчисли</button>';
       } else {
-        btn = '<td class="col-action"><button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button></td>';
+        btns += '<button class="action-btn btn-zachisli" onclick="openZachisliForKod(\'' + safeKod + '\')">Зачисли</button>';
       }
     }
+    btns += '<button type="button" class="action-btn btn-more" aria-label="Още действия" aria-haspopup="menu" data-kod="' + escapeHtml(m.kod) + '" onclick="openRowMenu(event, this.dataset.kod)">⋯</button>';
 
-    let confBadge = '<span style="color:#CBD5E1;font-size:11px;">—</span>';
-    if (isBusy) {
-      const conf = confirmationsMap[m.kod];
-      if (conf && conf.confirmed) {
-        confBadge = '<span class="conf-badge confirmed">✓ Потвърдено</span>';
-      } else if (conf) {
-        const reshareAttr = currentRole === 'admin' ? ' onclick="reshareConfirmation(\'' + safeKod + '\')" title="Сподели линк отново"' : '';
-        confBadge = '<span class="conf-badge pending"' + reshareAttr + '>⏳ Очаква</span>';
-      } else {
-        confBadge = '<span class="conf-badge pending">⏳ Очаква</span>';
-      }
-    }
-    html += '<tr class="' + rowClass + '"><td class="c-dn"><strong>' + escapeHtml(getMachineDN(m)) + '</strong></td><td class="c-kod" data-label="Код WS">' + escapeHtml(m.kod) + '</td><td class="c-ime">' + escapeHtml(m.ime) + '</td>' +
-      '<td class="c-kat"><span class="cat-badge">' + escapeHtml(m.kat) + '</span></td><td class="c-status">' + badge + '</td>' +
-      '<td class="c-conf">' + confBadge + '</td>' +
-      '<td class="c-dir" style="font-size:12px;">' + escapeHtml(dir2) + '</td><td class="c-priel" data-label="Приел:" style="font-size:12px;">' + escapeHtml(priel) + '</td>' +
-      '<td class="c-mesto" data-label="Обект:" style="font-size:12px;">' + escapeHtml(mesto) + '</td><td class="c-dz" data-label="От" style="font-size:12px;">' + escapeHtml(dz) + '</td>' +
-      btn + '</tr>';
+    const kodHtml = wsDiff ? '<span class="ws-diff" title="Кодът в Work Stream се различава от инв. №">' + escapeHtml(m.kod) + '</span>' : escapeHtml(m.kod);
+
+    html += '<tr class="' + (isBusy ? 'row-busy' : 'row-free') + '">' +
+      '<td class="c-dn"><strong>' + escapeHtml(dn) + '</strong></td>' +
+      '<td class="c-kod">' + kodHtml + '</td>' +
+      '<td class="c-ime"><div class="ime-name">' + escapeHtml(m.ime) + '</div>' +
+        '<div class="ime-cat">' + escapeHtml(m.kat) + '</div>' +
+        '<div class="ime-codes m-only">Инв. ' + escapeHtml(dn) + ' · Код WS ' + kodHtml + '</div></td>' +
+      '<td class="c-status">' + statusHtml + '</td>' +
+      '<td class="c-dir" data-label="Направление">' + escapeHtml(dir2) + '</td>' +
+      '<td class="c-priel" data-label="Приел">' + escapeHtml(priel) + '</td>' +
+      '<td class="c-mesto" data-label="Местонахождение">' + escapeHtml(mesto) + '</td>' +
+      '<td class="c-dz" data-label="Зачислена">' + escapeHtml(dz) + '</td>' +
+      '<td class="col-action"><div class="col-action-btns">' + btns + '</div></td></tr>';
   });
 
   html += '</tbody></table></div>';
   document.getElementById('table-container').innerHTML = html;
+}
+
+function closeRowMenu() {
+  const menu = document.getElementById('row-menu');
+  if (menu) { menu.classList.remove('open'); menu.dataset.kod = ''; }
+}
+
+function openRowMenu(ev, kod) {
+  ev.stopPropagation();
+  const menu = document.getElementById('row-menu');
+  if (menu.classList.contains('open') && menu.dataset.kod === kod) { closeRowMenu(); return; }
+  const k = escapeHtml(kod);
+  let html = '';
+  if (currentRole === 'admin' && spMap[kod] && confirmationsMap[kod]) {
+    html += '<button type="button" role="menuitem" data-kod="' + k + '" onclick="var x=this.dataset.kod; closeRowMenu(); reshareConfirmation(x)">QR код и линк за потвърждение</button>';
+  }
+  html += '<button type="button" role="menuitem" data-kod="' + k + '" onclick="var x=this.dataset.kod; closeRowMenu(); openHistory(x)">История на машината</button>';
+  menu.innerHTML = html;
+  menu.dataset.kod = kod;
+  menu.classList.add('open');
+  const r = ev.currentTarget.getBoundingClientRect();
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  let top = r.bottom + 6;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - 6 - h);
+  menu.style.top = top + 'px';
+  menu.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w)) + 'px';
+}
+
+function getOtchDate(item) {
+  const k = Object.keys(item).find(k => k.startsWith(SP_DAT_OTCHISLYAVANE_PREFIX) && k !== SP_DAT_OTCHISLYAVANE_PREFIX && item[k]);
+  return k ? item[k] : null;
+}
+
+function getPredal(item) {
+  const k = Object.keys(item).find(k => k.startsWith('OData__x041f__x0440__x0435__x0434') && item[k]);
+  if (!k) return '';
+  const v = item[k];
+  return (v && typeof v === 'object') ? (v.Value || '') : String(v);
+}
+
+function openHistory(kod) {
+  const m = MACHINES.find(x => x.kod === kod) || { kod: kod, ime: kod, kat: '' };
+  const dn = MACHINES.some(x => x.kod === kod) ? getMachineDN(m) : '—';
+  const items = spData
+    .filter(it => String(f(it, 'kod')) === String(kod) && f(it, 'dz'))
+    .sort((a, b) => new Date(f(b, 'dz')) - new Date(f(a, 'dz')));
+  const today = new Date().toISOString().split('T')[0];
+  let totalDays = 0;
+  let rows = '';
+  items.forEach(it => {
+    const end = getOtchDate(it);
+    const days = calcBillingDays(f(it, 'dz'), end || today);
+    totalDays += days;
+    rows += '<tr>' +
+      '<td>' + escapeHtml(formatDate(f(it, 'dz'))) + '</td>' +
+      '<td>' + (end ? escapeHtml(formatDate(end)) : '<span class="st"><span class="st-dot busy"></span>при ползвател</span>') + '</td>' +
+      '<td>' + escapeHtml(f(it, 'dir') || '—') + '</td>' +
+      '<td>' + escapeHtml(f(it, 'priel') || '—') + '</td>' +
+      '<td>' + escapeHtml(getPredal(it) || '—') + '</td>' +
+      '<td>' + escapeHtml(f(it, 'mesto') || '—') + '</td>' +
+      '<td style="text-align:right;">' + days + (end ? '' : '*') + '</td></tr>';
+  });
+  let html = '<div class="hist-head"><div class="hist-name">' + escapeHtml(m.ime) + '</div>' +
+    '<div class="hist-meta">Код WS ' + escapeHtml(m.kod) + ' · Инв./ДН № ' + escapeHtml(dn) + (m.kat ? ' · ' + escapeHtml(m.kat) : '') + '</div>' +
+    '<div class="hist-meta">Записи: <b>' + items.length + '</b> · Таксувани дни общо: <b>' + totalDays + '</b></div></div>';
+  if (!items.length) {
+    html += '<div class="empty">Няма записи за тази машина.</div>';
+  } else {
+    html += '<div class="hist-scroll"><table class="hist-table"><thead><tr>' +
+      '<th>Зачислена</th><th>Отчислена</th><th>Направление</th><th>Приел</th><th>Предал</th><th>Местонахождение</th><th style="text-align:right;">Дни</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      (items.some(it => !getOtchDate(it)) ? '<div class="hist-note">* до днес, машината още е при ползвател</div>' : '') +
+      '<div class="hist-note">Дните са по правилото до 29 дни на календарен месец.</div>';
+  }
+  document.getElementById('history-body').innerHTML = html;
+  document.getElementById('modal-history').classList.add('open');
 }
 
 function showZachislyavane() {
