@@ -882,6 +882,18 @@ async function getProxyToken() {
   }
 }
 
+/** Публични действия (потвърждение по линк) – без Microsoft вход. */
+async function publicProxy(action, body = {}) {
+  const res = await fetch(`${APP_CONFIG.proxyUrl}/${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(j.error || ('HTTP ' + res.status));
+  return j;
+}
+
 async function callProxy(action, body = {}) {
   const token = await getProxyToken();
   const res = await fetch(`${APP_CONFIG.proxyUrl}/${action}`, {
@@ -901,22 +913,16 @@ let canImport = false; // право за „Импорт машини“ (ко�
 
 async function checkAdminRole(email) {
   canImport = false;
-  let res = await supabaseClient
-    .from('machinery_admins')
-    .select('email, can_import')
-    .eq('email', email.toLowerCase())
-    .maybeSingle();
-  if (res.error) {
-    // Ако колоната can_import още не съществува, администраторите продължават да работят без право за импорт
-    console.warn('Supabase role check error:', res.error.message);
-    res = await supabaseClient
-      .from('machinery_admins')
-      .select('email')
-      .eq('email', email.toLowerCase())
-      .maybeSingle();
+  try {
+    const { ok, text } = await callProxy('whoami', {});
+    if (!ok) { console.warn('whoami: отказ'); return false; }
+    const j = JSON.parse(text);
+    canImport = j.canImport === true;
+    return j.isAdmin === true;
+  } catch (e) {
+    console.warn('whoami грешка:', e.message);
+    return false;
   }
-  if (res.data && res.data.can_import === true) canImport = true;
-  return !!res.data;
 }
 
 async function loginWithMicrosoft() {
@@ -1952,11 +1958,9 @@ function escapeHtml(str) {
 
 async function loadConfirmations() {
   try {
-    const { data, error } = await supabaseClient
-      .from('machinery_confirmations')
-      .select('id, machine_kod, machine_name, recipient_name, direction, confirmed, confirmed_at, created_at')
-      .order('created_at', { ascending: false });
-    if (error) { console.warn('[CONFIRM] Грешка при зареждане:', error.message); return; }
+    const { ok, text } = await callProxy('confirmations-list', {});
+    if (!ok) { console.warn('[CONFIRM] Грешка при зареждане:', text); return; }
+    const data = (JSON.parse(text) || {}).data;
     confirmationsMap = {};
     (data || []).forEach(c => {
       const prev = confirmationsMap[c.machine_kod];
@@ -1975,18 +1979,12 @@ function updateNotifBell() {
 }
 
 async function createConfirmationRecord({ kod, ime, kat, cena, dir, priel, mesto, assignment_date, sluzhitel, sastoyanie }) {
-  const { data: result, error } = await supabaseClient
-    .from('machinery_confirmations')
-    .insert({
-      machine_kod: kod, machine_name: ime, category: kat, price: cena,
-      direction: dir, recipient_name: priel, location: mesto,
-      assignment_date: assignment_date, employee_mit: sluzhitel || null,
-      condition: sastoyanie || null, confirmed: false
-    })
-    .select('id')
-    .single();
-  if (error) throw error;
-  return result.id;
+  const { ok, text } = await callProxy('confirmation-create', {
+    kod, ime, kat, cena, dir, priel, mesto, assignment_date, sluzhitel, sastoyanie
+  });
+  const j = JSON.parse(text || '{}');
+  if (!ok || !j.id) throw new Error(j.error || 'Грешка при създаване на потвърждение');
+  return j.id;
 }
 
 function showConfirmationShare(token, machineInfo) {
@@ -2024,10 +2022,7 @@ async function checkForConfirmation() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('confirm-overlay').classList.add('show');
   try {
-    const { data, error } = await supabaseClient
-      .from('machinery_confirmations')
-      .select('*').eq('id', token).maybeSingle();
-    if (error) throw error;
+    const { data } = await publicProxy('confirmation-get', { id: token });
     if (!data) {
       document.getElementById('confirm-loading').innerHTML = '<p style="color:#dc2626;text-align:center;">Невалиден или изтекъл линк за потвърждение.</p>';
       return;
@@ -2075,11 +2070,7 @@ async function submitConfirmation() {
   btn.disabled = true;
   btn.textContent = 'Потвърждаване...';
   try {
-    const { error } = await supabaseClient
-      .from('machinery_confirmations')
-      .update({ confirmed: true, confirmed_at: new Date().toISOString() })
-      .eq('id', token).eq('confirmed', false);
-    if (error) throw error;
+    await publicProxy('confirmation-confirm', { id: token });
     updateConfirmTimeline(true);
     document.getElementById('confirm-content').style.display = 'none';
     document.getElementById('confirm-already-done').style.display = 'block';
