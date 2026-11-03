@@ -318,6 +318,9 @@
   .hist-table td { font-size: 13.5px; padding: 9px 12px; }
   .hist-table th { padding: 10px 12px; }
   .hist-note { font-size: 12.5px; color: #475569; margin-top: 8px; }
+  .zach-note { margin-top: 10px; padding: 8px 10px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; color: #7c2d12; font-size: 13.5px; white-space: pre-line; }
+  .hist-table { min-width: 960px; }
+  .hist-z { max-width: 220px; white-space: pre-line; }
 
   /* ===== ТЕЛЕФОН (под 768px) ===== */
 @media (max-width: 768px) {
@@ -1362,6 +1365,20 @@ const SP_FIELDS = {
 };
 const SP_DAT_OTCHISLYAVANE_PREFIX = SP_FIELDS.datZachislyavane;
 
+// Забележка (зачисляване) и Забележка при отчисляване — SharePoint съкращава имената еднакво,
+// втората колона получава допълнителен символ накрая (както при двете дати).
+const SP_ZABELEZHKA_PREFIX = 'OData__x0417__x0430__x0431__x0435__x04';
+function getZabelezhki(item) {
+  const val = v => {
+    let s = (v && typeof v === 'object') ? (v.Value || '') : String(v ?? '');
+    if (s.indexOf('<') !== -1) s = s.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ' ');
+    return s.replace(/&nbsp;/g, ' ').trim();
+  };
+  const zach = item ? val(item[SP_ZABELEZHKA_PREFIX]) : '';
+  const k = item ? Object.keys(item).find(k => k.startsWith(SP_ZABELEZHKA_PREFIX) && k !== SP_ZABELEZHKA_PREFIX && item[k]) : null;
+  return { zach: zach, otch: k ? val(item[k]) : '' };
+}
+
 // ── Централизирани данни за падащи менюта ────────────────────────────────────
 const KATEGORII = [
   'Асфалторезачка','Багер','Виброплоча','Трамбовка','Генератор',
@@ -1771,6 +1788,7 @@ function openHistory(kod) {
   let totalDays = 0;
   let rows = '';
   items.forEach(it => {
+    const n = getZabelezhki(it);
     const end = getOtchDate(it);
     const days = calcBillingDays(f(it, 'dz'), end || today);
     totalDays += days;
@@ -1781,6 +1799,8 @@ function openHistory(kod) {
       '<td>' + escapeHtml(f(it, 'priel') || '—') + '</td>' +
       '<td>' + escapeHtml(getPredal(it) || '—') + '</td>' +
       '<td>' + escapeHtml(f(it, 'mesto') || '—') + '</td>' +
+      '<td class="hist-z">' + escapeHtml(n.zach || '—') + '</td>' +
+      '<td class="hist-z">' + escapeHtml(n.otch || '—') + '</td>' +
       '<td style="text-align:right;">' + days + (end ? '' : '*') + '</td></tr>';
   });
   let html = '<div class="hist-head"><div class="hist-name">' + escapeHtml(m.ime) + '</div>' +
@@ -1790,7 +1810,7 @@ function openHistory(kod) {
     html += '<div class="empty">Няма записи за тази машина.</div>';
   } else {
     html += '<div class="hist-scroll"><table class="hist-table"><thead><tr>' +
-      '<th>Зачислена</th><th>Отчислена</th><th>Направление</th><th>Приел</th><th>Предал</th><th>Местонахождение</th><th style="text-align:right;">Дни</th>' +
+      '<th>Зачислена</th><th>Отчислена</th><th>Направление</th><th>Приел</th><th>Предал</th><th>Местонахождение</th><th>Забележка (зачисл.)</th><th>Забележка (отчисл.)</th><th style="text-align:right;">Дни</th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
       (items.some(it => !getOtchDate(it)) ? '<div class="hist-note">* до днес, машината още е при ползвател</div>' : '') +
       '<div class="hist-note">Дните са по правилото до 29 дни на календарен месец.</div>';
@@ -1905,6 +1925,11 @@ function openOtchisli(id, ime, kod) {
   document.getElementById('otchisli-info').innerHTML = '<strong>' + escapeHtml(ime) + '</strong><span>Код WS: ' + escapeHtml(kod) + '</span>';
   document.getElementById('o-data').value = new Date().toISOString().split('T')[0];
   const curItem = spData.find(function (item) { return (item.ID != null ? item.ID : item.id) == id; });
+  const notes = getZabelezhki(curItem);
+  if (notes.zach) {
+    document.getElementById('otchisli-info').innerHTML +=
+      '<div class="zach-note"><b>Забележка при зачисляване:</b> ' + escapeHtml(notes.zach) + '</div>';
+  }
   document.getElementById('o-predal').value = curItem ? normalizeName(f(curItem, 'priel')) : '';
   document.getElementById('o-sluzhitel').value = '';
   document.getElementById('o-zabelezhka').value = '';
