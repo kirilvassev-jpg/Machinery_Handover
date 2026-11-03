@@ -615,6 +615,7 @@
         <div class="form-group"><label>Дата отчисляване *</label><input type="date" id="o-data"></div>
         <div class="form-group"><label>Предал (върнал) *</label><input type="text" id="o-predal" list="dl-priel" autocomplete="off" placeholder="Три имена"></div>
         <div class="form-group full"><label>Служител МиТ (приел)</label><select id="o-sluzhitel"><option value="">-- Изберете служител --</option></select></div>
+        <div class="form-group full"><label>Забележка</label><textarea id="o-zabelezhka" rows="3" placeholder="Допълнителни бележки при връщане (незадължително)"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1906,6 +1907,7 @@ function openOtchisli(id, ime, kod) {
   const curItem = spData.find(function (item) { return (item.ID != null ? item.ID : item.id) == id; });
   document.getElementById('o-predal').value = curItem ? normalizeName(f(curItem, 'priel')) : '';
   document.getElementById('o-sluzhitel').value = '';
+  document.getElementById('o-zabelezhka').value = '';
   document.getElementById('modal-otchisli').classList.add('open');
 }
 
@@ -1913,6 +1915,7 @@ async function submitOtchislyavane() {
   const data = document.getElementById('o-data').value;
   let predal = document.getElementById('o-predal').value;
   const sluzhitel = document.getElementById('o-sluzhitel').value;
+  const zabelezhka = document.getElementById('o-zabelezhka').value.trim();
   if (!data || !predal) { showToast('Попълнете дата и предал!', true); return; }
   const predalOk = checkName(predal, 'Предал (върнал)');
   if (predalOk === null) return;
@@ -1930,7 +1933,7 @@ async function submitOtchislyavane() {
         suma = Math.round(billingDays * price * 100) / 100;
       }
     }
-    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel, "БройДни": billingDays, "Сума": suma };
+    const payload = { ID: currentOtchisliId, "ДатаОтчисляване": data, "Предал": predal, "СлужителМиТ": sluzhitel, "БройДни": billingDays, "Сума": suma, "ЗабележкаОтчисляване": zabelezhka };
     console.log('[OTCHISLI] sending:', payload);
     const { ok, status, text: resText } = await callProxy('otchisli', payload);
     console.log('[OTCHISLI] status:', status, 'body:', resText);
